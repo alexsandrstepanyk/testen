@@ -392,6 +392,7 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
   <div class="abar"><div class="ab-inner">
     <div class="ab-stat" id="abStat">0 Fragen noch offen</div>
     <div class="ab-btns">
+      <button class="bother" id="btnPdf" onclick="downloadResultReportPdf()" style="display:none">📄 Ergebnis als PDF</button>
       <button class="bother" id="btnBack" onclick="goBack()" style="display:none">← Anderer Test</button>
       <button class="bsub"   id="btnSub"  onclick="doSubmit()" disabled>Test auswerten →</button>
     </div>
@@ -485,6 +486,7 @@ async function doStart(){
   document.getElementById('btnSub').style.display='';
   document.getElementById('btnSub').disabled=true;
   document.getElementById('btnBack').style.display='none';
+  document.getElementById('btnPdf').style.display='none';
   document.getElementById('resultBanner').classList.remove('show');
   scr('scTest');
   renderAll();
@@ -717,14 +719,50 @@ async function doSubmit(){
   
   // Save brief text to answers
   const answersWithBrief = {...Object.fromEntries(Object.entries(answers).map(([k,v])=>[k,String(v)])), 'schreiben': briefText};
-  
-  if(sessionId){try{await fetch(API+'/sessions/'+sessionId+'/finish',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({duration_seconds:timerSecs,score:sc,percentage:pct,passed:pass,answers:answersWithBrief,teil1_score:s1,teil2_score:s2,teil3_score:s3,teil4_score:s4})});}catch{}}
+
+  let saved = false;
+  if(sessionId){
+    try{
+      const r = await fetch(API+'/sessions/'+sessionId+'/finish',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({duration_seconds:timerSecs,score:sc,percentage:pct,passed:pass,answers:answersWithBrief,teil1_score:s1,teil2_score:s2,teil3_score:s3,teil4_score:s4})});
+      saved = r.ok;
+    }catch{}
+  }
   document.getElementById('btnSub').style.display='none';
   document.getElementById('btnBack').style.display='';
+  document.getElementById('btnPdf').style.display = (sessionId && saved) ? '' : 'none';
   const st=document.getElementById('abStat');
   st.textContent=sc+'/'+totalPoints+' ('+pct+'%) — '+(pass?'Bestanden ✓':'Nicht bestanden ✗');
   st.className='ab-stat'+(pass?' done':'');
   ban.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+async function downloadResultReportPdf(){
+  if(!sessionId){
+    toast('⚠️ Kein gespeichertes Ergebnis gefunden.');
+    return;
+  }
+  const btn = document.getElementById('btnPdf');
+  const old = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '⏳ PDF wird erstellt…';
+  try{
+    const url = API+'/results/report/'+sessionId+'/pdf?user_name='+encodeURIComponent(userName || '');
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('request');
+    const blob = await res.blob();
+    const dl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = dl;
+    a.download = `Testbericht_Test${selTest}_${(userName||'Teilnehmer').replace(/\s+/g,'_')}.pdf`;
+    a.click();
+    URL.revokeObjectURL(dl);
+    toast('📄 PDF-Bericht heruntergeladen.');
+  }catch{
+    toast('⚠️ PDF konnte nicht erstellt werden.');
+  }finally{
+    btn.disabled = false;
+    btn.textContent = old;
+  }
 }
 
 /* NAV */
