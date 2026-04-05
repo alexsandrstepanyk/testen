@@ -18,6 +18,12 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
 .site-footer{padding:28px 16px 34px;text-align:center;color:var(--muted);font-size:13px;}
 .site-footer a{color:var(--ink);font-weight:600;text-decoration:none;border-bottom:1px solid rgba(24,24,37,.18);}
 .site-footer a:hover{border-bottom-color:var(--gold);color:var(--gold);}
+.brand-credit{margin-top:14px;font-size:12px;color:rgba(255,255,255,.62);line-height:1.6;}
+.brand-credit a{color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(200,168,75,.32);}
+.brand-credit a:hover{border-bottom-color:var(--gold-dim);color:#fff;}
+.th-credit{margin-top:8px;font-size:11px;color:rgba(255,255,255,.42);}
+.th-credit a{color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(200,168,75,.32);}
+.th-credit a:hover{color:#fff;border-bottom-color:var(--gold-dim);}
 
 /* START */
 .start-bg{min-height:100vh;background:var(--ink);
@@ -315,6 +321,7 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
   <div class="test-grid" id="testGrid"></div>
   <button class="btn-start" id="btnStart" onclick="doStart()" disabled>Test starten →</button>
   <div class="start-hint">Ergebnisse werden im Leaderboard gespeichert.</div>
+  <div class="brand-credit">Dieses Testprogramm wurde von Stepaniuk Oleksandr entwickelt · <a href="https://stepaniuk.shop" target="_blank" rel="noopener noreferrer">stepaniuk.shop</a></div>
 </div></div>
 </div>
 
@@ -325,6 +332,7 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
       <div>
         <div class="th-title">Deutsch <em>B1</em> — <span id="hLabel">Test 1</span></div>
         <div class="th-sub" id="hSub"></div>
+        <div class="th-credit">Entwickelt von Stepaniuk Oleksandr · <a href="https://stepaniuk.shop" target="_blank" rel="noopener noreferrer">stepaniuk.shop</a></div>
       </div>
       <div class="timer-box">
         <div class="timer-val" id="timerVal">00:00</div>
