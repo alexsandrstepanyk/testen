@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -38,7 +38,7 @@ if os.path.exists(frontend_path):
         return FileResponse(os.path.join(frontend_path, "index.html"))
 
     @app.get("/teacher", include_in_schema=False)
-    def serve_teacher():
+    def serve_teacher(_auth: str = Depends(teacher.require_teacher_auth)):
         return FileResponse(os.path.join(frontend_path, "teacher.html"))
 
     @app.get("/leaderboard", include_in_schema=False)

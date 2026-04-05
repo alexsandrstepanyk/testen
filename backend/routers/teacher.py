@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, and_
 from models.database import get_db
@@ -7,8 +8,24 @@ from models.questions_data import get_questions_for_test
 from datetime import datetime, date
 from typing import Optional, List, Dict, Any
 import json
+import secrets
 
-router = APIRouter()
+security = HTTPBasic()
+
+
+def require_teacher_auth(credentials: HTTPBasicCredentials = Depends(security)):
+    valid_username = secrets.compare_digest(credentials.username, "admin")
+    valid_password = secrets.compare_digest(credentials.password, "admin")
+    if not (valid_username and valid_password):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid teacher credentials",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
+
+
+router = APIRouter(dependencies=[Depends(require_teacher_auth)])
 
 
 class TeacherSessionOut:
