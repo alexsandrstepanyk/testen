@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deutsch B1 — Übungstests</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#181825;--ink2:#2a2a40;--cream:#faf8f2;--gold:#c8a84b;--gold-dim:#f0e3bc;
+  --blue:#1d4ed8;--blue-dim:#eff6ff;--green:#166534;--green-dim:#dcfce7;
+  --red:#991b1b;--red-dim:#fee2e2;--violet:#5b21b6;--violet-dim:#ede9fe;
+  --border:#e2ddd2;--muted:#6b7280;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:var(--ink);min-height:100vh;line-height:1.5;}
+.screen{display:none;}.screen.active{display:block;}
+
+/* START */
+.start-bg{min-height:100vh;background:var(--ink);
+  background-image:radial-gradient(ellipse 70% 55% at 12% 45%,rgba(200,168,75,.22) 0%,transparent 55%),
+    radial-gradient(ellipse 55% 65% at 88% 18%,rgba(29,78,216,.20) 0%,transparent 55%);
+  display:flex;align-items:center;justify-content:center;padding:24px;}
+.start-card{max-width:540px;width:100%;background:rgba(255,255,255,.055);border:1px solid rgba(200,168,75,.30);
+  border-radius:20px;padding:44px 38px 38px;backdrop-filter:blur(24px);color:#fff;text-align:center;}
+.eyebrow{display:inline-flex;align-items:center;gap:7px;background:rgba(200,168,75,.18);
+  border:1px solid rgba(200,168,75,.38);color:var(--gold);font-size:10.5px;letter-spacing:2.5px;
+  text-transform:uppercase;padding:5px 15px;border-radius:99px;margin-bottom:22px;}
+.start-card h1{font-family:'Playfair Display',serif;font-size:clamp(32px,8vw,48px);font-weight:900;
+  line-height:1.05;letter-spacing:-1px;margin-bottom:10px;}
+.start-card h1 em{color:var(--gold);font-style:normal;}
+.tagline{font-size:13px;color:rgba(255,255,255,.48);font-style:italic;margin-bottom:34px;}
+.hstats{display:flex;justify-content:center;gap:30px;margin-bottom:34px;}
+.hs-n{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--gold);line-height:1;}
+.hs-l{font-size:10px;color:rgba(255,255,255,.36);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px;}
+.flabel{text-align:left;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;
+  color:rgba(255,255,255,.36);margin-bottom:8px;}
+.name-inp{width:100%;padding:13px 17px;border-radius:12px;border:1.5px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.08);color:#fff;font-family:'Source Serif 4',serif;font-size:15px;
+  outline:none;transition:border-color .2s;margin-bottom:24px;}
+.name-inp::placeholder{color:rgba(255,255,255,.28);}.name-inp:focus{border-color:var(--gold);}
+.test-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:26px;}
+.tp-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:13px 5px 11px;
+  border-radius:12px;border:1.5px solid rgba(255,255,255,.13);background:rgba(255,255,255,.05);
+  color:rgba(255,255,255,.65);cursor:pointer;transition:all .2s;}
+.tp-btn:hover{border-color:var(--gold);background:rgba(200,168,75,.14);transform:translateY(-3px);box-shadow:0 6px 18px rgba(0,0,0,.2);}
+.tp-btn.sel{border-color:var(--gold);background:rgba(200,168,75,.22);color:var(--gold);box-shadow:0 4px 16px rgba(200,168,75,.2);}
+.tp-emoji{font-size:18px;line-height:1;}
+.tp-num{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;line-height:1;}
+.tp-theme{font-size:8.5px;letter-spacing:.2px;opacity:.65;text-align:center;line-height:1.3;}
+.tp-btn.sel .tp-theme{opacity:.85;}
+.btn-start{width:100%;padding:14px;border-radius:12px;border:none;
+  background:linear-gradient(135deg,var(--gold) 0%,#d4952a 100%);
+  color:var(--ink);font-family:'Playfair Display',serif;font-size:16px;font-weight:700;
+  cursor:pointer;transition:all .22s;box-shadow:0 4px 20px rgba(200,168,75,.32);}
+.btn-start:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 28px rgba(200,168,75,.44);}
+.btn-start:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none;}
+.start-hint{font-size:11px;color:rgba(255,255,255,.24);margin-top:13px;font-style:italic;}
+
+/* HEADER */
+.t-header{background:var(--ink);background-image:radial-gradient(ellipse 70% 60% at 15% 50%,rgba(200,168,75,.14) 0%,transparent 55%);
+  color:#fff;padding:28px 20px 22px;}
+.th-inner{max-width:820px;margin:0 auto;}
+.th-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:16px;}
+.th-title{font-family:'Playfair Display',serif;font-size:clamp(20px,4.2vw,32px);font-weight:900;letter-spacing:-.5px;line-height:1.1;}
+.th-title em{color:var(--gold);font-style:normal;}
+.th-sub{font-size:12px;color:rgba(255,255,255,.42);font-style:italic;margin-top:4px;}
+.timer-box{background:rgba(255,255,255,.09);border:1px solid rgba(200,168,75,.28);border-radius:12px;
+  padding:9px 16px;text-align:center;min-width:86px;flex-shrink:0;}
+.timer-val{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--gold);letter-spacing:2px;line-height:1;}
+.timer-lbl{font-size:9px;color:rgba(255,255,255,.34);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px;}
+.prog-meta{display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.40);margin-bottom:5px;}
+.prog-rail{background:rgba(255,255,255,.13);border-radius:99px;height:6px;overflow:hidden;}
+.prog-bar{background:linear-gradient(90deg,var(--gold),#d4952a);height:100%;border-radius:99px;
+  width:0%;transition:width .55s cubic-bezier(.4,0,.2,1);}
+
+/* TABS */
+.teil-nav{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:80;
+  box-shadow:0 1px 8px rgba(0,0,0,.05);}
+.teil-nav-inner{max-width:820px;margin:0 auto;padding:0 20px;display:flex;gap:2px;overflow-x:auto;}
+.t-tab{flex-shrink:0;background:none;border:none;border-bottom:3px solid transparent;padding:13px 18px 10px;
+  cursor:pointer;font-family:'Source Serif 4',serif;font-size:13px;color:var(--muted);transition:all .2s;
+  display:flex;flex-direction:column;align-items:center;gap:4px;}
+.t-tab:hover{color:var(--ink);}.t-tab.active{color:var(--ink);font-weight:600;border-bottom-color:var(--gold);}
+.t-pill{font-size:10px;padding:1px 8px;border-radius:99px;background:#f0ede6;color:#999;transition:all .2s;}
+.t-tab.done .t-pill{background:var(--green-dim);color:var(--green);}
+.t-tab.active .t-pill{background:var(--gold-dim);color:#7a5800;}
+.t-tab-lb{margin-left:auto;}
+
+/* RESULT BANNER */
+#resultBanner{display:none;padding:14px 20px;}#resultBanner.show{display:block;}
+.rb-wrap{max-width:820px;margin:0 auto;border-radius:18px;padding:18px 26px;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;color:#fff;}
+.rb-pass{background:linear-gradient(135deg,#15803d,#14532d);}
+.rb-fail{background:linear-gradient(135deg,#b91c1c,#7f1d1d);}
+.rb-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;}
+.rb-sub{font-size:12.5px;opacity:.85;margin-top:3px;line-height:1.5;}
+.rb-parts{display:flex;gap:9px;flex-wrap:wrap;}
+.rb-part{background:rgba(255,255,255,.16);border-radius:10px;padding:7px 13px;text-align:center;font-size:12px;min-width:70px;}
+.rb-part strong{display:block;font-family:'Playfair Display',serif;font-size:17px;}
+
+/* MAIN */
+.main-area{max-width:820px;margin:0 auto;padding:22px 16px 118px;}
+.teil-sec{display:none;}.teil-sec.active{display:block;}
+.teil-hd{border-radius:14px;padding:16px 20px;margin-bottom:22px;border:1px solid;}
+.teil-hd h2{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:3px;}
+.teil-hd p{font-size:12.5px;opacity:.62;font-style:italic;}
+.thd1{background:#eff6ff;border-color:#bfdbfe;}.thd1 h2{color:var(--blue);}
+.thd2{background:var(--violet-dim);border-color:#c4b5fd;}.thd2 h2{color:var(--violet);}
+.thd3{background:var(--green-dim);border-color:#a7f3d0;}.thd3 h2{color:var(--green);}
+
+/* CARD */
+.qcard{background:#fff;border-radius:16px;margin-bottom:16px;border:2px solid var(--border);
+  overflow:hidden;transition:border-color .28s,box-shadow .28s;animation:su .3s ease both;}
+@keyframes su{from{opacity:0;transform:translateY(13px)}to{opacity:1;transform:translateY(0)}}
+.qcard:hover{box-shadow:0 2px 16px rgba(24,24,37,.08);}
+.qcard.qa{border-color:#93c5fd;}.qcard.qok{border-color:#86efac;}.qcard.qbad{border-color:#fca5a5;}
+.qhead{padding:15px 18px 13px;display:flex;gap:11px;align-items:flex-start;}
+.qbadge{flex-shrink:0;min-width:27px;height:27px;border-radius:50%;background:#f0ede6;color:#999;
+  display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;
+  font-size:11px;font-weight:700;transition:all .28s;}
+.qcard.qa .qbadge{background:#dbeafe;color:var(--blue);}
+.qcard.qok .qbadge{background:var(--green-dim);color:var(--green);}
+.qcard.qbad .qbadge{background:var(--red-dim);color:var(--red);}
+.qtext{font-size:14.5px;font-weight:600;line-height:1.48;flex:1;color:var(--ink);}
+.qctx{background:#f9f7f2;border-top:1px solid #ede9df;border-bottom:1px solid #ede9df;
+  padding:12px 18px;font-size:13px;line-height:1.78;color:#3d3a32;white-space:pre-wrap;font-style:italic;}
+.ans-wrap{padding:13px 18px 15px;display:flex;flex-direction:column;gap:8px;}
+.ans-wrap.rf-row{flex-direction:row;gap:10px;}
+.abtn{text-align:left;padding:10px 14px;border-radius:10px;border:2px solid var(--border);
+  background:#faf8f2;color:var(--ink);font-family:'Source Serif 4',serif;font-size:14px;
+  line-height:1.44;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:9px;}
+.abtn:hover:not(:disabled){border-color:var(--gold);background:var(--gold-dim);transform:translateX(4px);}
+.abtn.asel{border-color:var(--blue);background:var(--blue-dim);color:var(--blue);font-weight:600;}
+.abtn.aok{border-color:var(--green)!important;background:var(--green-dim)!important;color:var(--green)!important;font-weight:600;}
+.abtn.abad{border-color:var(--red)!important;background:var(--red-dim)!important;color:var(--red)!important;}
+.abtn:disabled{cursor:default;transform:none!important;}
+.aic{width:20px;height:20px;border-radius:50%;border:2px solid currentColor;display:flex;align-items:center;
+  justify-content:center;font-size:10px;flex-shrink:0;transition:all .2s;}
+.abtn.asel .aic{background:var(--blue);border-color:var(--blue);color:#fff;}
+.abtn.aok .aic{background:var(--green);border-color:var(--green);color:#fff;}
+.abtn.abad .aic{background:var(--red);border-color:var(--red);color:#fff;}
+.rfbtn{flex:1;text-align:center;padding:12px;border-radius:11px;border:2px solid var(--border);
+  background:#faf8f2;font-family:'Source Serif 4',serif;font-size:15px;font-weight:600;
+  cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:7px;}
+.rfbtn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.1);}
+.rfbtn.rfr{border-color:var(--blue);background:var(--blue-dim);color:var(--blue);}
+.rfbtn.rff{border-color:var(--violet);background:var(--violet-dim);color:var(--violet);}
+.rfbtn.aok{border-color:var(--green)!important;background:var(--green-dim)!important;color:var(--green)!important;}
+.rfbtn.abad{border-color:var(--red)!important;background:var(--red-dim)!important;color:var(--red)!important;}
+.rfbtn:disabled{cursor:default;transform:none!important;box-shadow:none!important;}
+.etog{background:none;border:none;color:#aaa;font-size:12px;cursor:pointer;
+  margin:0 18px 12px;font-family:'Source Serif 4',serif;font-style:italic;
+  display:none;align-items:center;gap:5px;padding:0;transition:color .2s;}
+.etog:hover{color:var(--ink);}.etog.vis{display:flex;}
+.ebox{margin:0 18px 14px;background:#f7f3e8;border:1px solid #e5dbc4;border-radius:10px;
+  padding:11px 15px;font-size:13px;color:#5a4a2a;line-height:1.58;display:none;}
+.ebox.vis{display:block;animation:fi .25s ease;}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+.nav-row{display:flex;gap:12px;justify-content:space-between;margin-top:10px;}
+.bnav{padding:10px 20px;border-radius:10px;border:2px solid var(--border);background:#fff;
+  font-family:'Source Serif 4',serif;font-size:14px;font-weight:600;cursor:pointer;color:var(--ink);transition:all .2s;}
+.bnav:hover{border-color:var(--gold);background:var(--gold-dim);}
+.bnav.pri{background:var(--ink);color:#fff;border-color:var(--ink);margin-left:auto;}
+.bnav.pri:hover{background:var(--ink2);}
+
+/* BOTTOM BAR */
+.abar{position:fixed;bottom:0;left:0;right:0;background:rgba(250,248,242,.97);
+  backdrop-filter:blur(18px);border-top:1px solid var(--border);padding:12px 20px;
+  z-index:100;box-shadow:0 -4px 24px rgba(0,0,0,.08);}
+.ab-inner{max-width:820px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:14px;}
+.ab-stat{font-size:13px;color:var(--muted);font-style:italic;}
+.ab-stat.done{color:var(--green);font-weight:600;font-style:normal;}
+.ab-btns{display:flex;gap:10px;}
+.bsub{padding:10px 28px;border-radius:10px;border:none;background:var(--ink);color:#fff;
+  font-family:'Playfair Display',serif;font-size:15px;font-weight:700;cursor:pointer;
+  transition:all .22s;box-shadow:0 4px 14px rgba(24,24,37,.22);}
+.bsub:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px rgba(24,24,37,.3);}
+.bsub:disabled{background:#ccc;cursor:not-allowed;box-shadow:none;transform:none;}
+.bother{padding:10px 18px;border-radius:10px;border:2px solid var(--border);background:#fff;
+  font-family:'Source Serif 4',serif;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink);transition:all .2s;}
+.bother:hover{border-color:var(--red);color:var(--red);}
+
+/* LEADERBOARD */
+.lb-screen{min-height:100vh;background:var(--cream);}
+.lb-hero{background:var(--ink);padding:30px 20px 26px;text-align:center;color:#fff;}
+.lb-hero h1{font-family:'Playfair Display',serif;font-size:clamp(22px,5vw,34px);font-weight:900;margin-bottom:5px;}
+.lb-hero h1 em{color:var(--gold);font-style:normal;}
+.lb-hero p{font-size:13px;color:rgba(255,255,255,.36);font-style:italic;}
+.lb-body{max-width:760px;margin:0 auto;padding:24px 16px 60px;}
+.lb-ctrl{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
+.lbsg{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:11px;margin-bottom:22px;}
+.lbs{background:#fff;border-radius:12px;padding:14px;text-align:center;border:1px solid var(--border);box-shadow:0 2px 12px rgba(24,24,37,.06);}
+.lbs-n{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--gold);line-height:1;}
+.lbs-l{font-size:11px;color:var(--muted);margin-top:4px;}
+.lb-filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px;}
+.lf-btn{padding:6px 14px;border-radius:99px;border:1.5px solid var(--border);background:#fff;
+  font-family:'Source Serif 4',serif;font-size:12px;cursor:pointer;color:var(--muted);transition:all .18s;}
+.lf-btn:hover{border-color:var(--gold);color:var(--ink);}
+.lf-btn.act{border-color:var(--ink);background:var(--ink);color:#fff;}
+.lbt-wrap{background:#fff;border-radius:16px;overflow:hidden;border:1px solid var(--border);box-shadow:0 2px 12px rgba(24,24,37,.06);}
+.lbt{width:100%;border-collapse:collapse;}
+.lbt thead th{background:var(--ink);color:#fff;padding:11px 14px;text-align:left;font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;font-weight:600;}
+.lbt tbody tr{border-bottom:1px solid var(--border);transition:background .18s;}
+.lbt tbody tr:last-child{border-bottom:none;}
+.lbt tbody tr:hover{background:#faf8f2;}
+.lbt tbody td{padding:11px 14px;font-size:13.5px;}
+.rn{font-family:'Playfair Display',serif;font-weight:700;font-size:15px;}
+.rg{color:#c9a84c;}.rs{color:#9ca3af;}.rb{color:#b45309;}
+.tchip{display:inline-block;background:var(--gold-dim);color:#7a5800;font-size:9.5px;font-weight:600;padding:2px 8px;border-radius:99px;}
+.bpass{background:var(--green-dim);color:var(--green);font-size:11px;padding:2px 9px;border-radius:99px;font-weight:600;}
+.bfail{background:var(--red-dim);color:var(--red);font-size:11px;padding:2px 9px;border-radius:99px;font-weight:600;}
+.lb-empty{text-align:center;padding:48px;color:#bbb;font-style:italic;font-size:15px;}
+.bctr{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;
+  font-family:'Source Serif 4',serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+.bctr.out{border:2px solid var(--border);background:#fff;color:var(--ink);}
+.bctr.out:hover{border-color:var(--gold);background:var(--gold-dim);}
+.bctr.sol{border:none;background:var(--ink);color:#fff;box-shadow:0 2px 12px rgba(24,24,37,.2);}
+.bctr.sol:hover{background:var(--ink2);}
+.thd4{background:#fff7ed;border-color:#fed7aa;}.thd4 h2{color:#c2410c;}
+/* ── SCHREIBEN ── */
+.sch-wrap{display:flex;flex-direction:column;gap:18px;}
+.sch-card{background:#fff;border-radius:16px;border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 12px rgba(24,24,37,.06);}
+.sch-card-head{padding:16px 20px 14px;border-bottom:1px solid #f0ede6;display:flex;align-items:center;gap:10px;}
+.sch-card-head h3{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--ink);}
+.sch-card-body{padding:16px 20px 18px;}
+.situation-box{background:#fefce8;border:1px solid #fde68a;border-radius:10px;padding:14px 16px;
+  font-size:14px;line-height:1.7;color:#1a1a0e;margin-bottom:0;}
+.lp-list{list-style:none;display:flex;flex-direction:column;gap:8px;}
+.lp-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:10px;
+  background:#f9f7f2;border:1.5px solid var(--border);transition:all .25s;}
+.lp-item.lp-done{background:var(--green-dim);border-color:#86efac;}
+.lp-item.lp-skip{background:var(--red-dim);border-color:#fca5a5;}
+.lp-num{min-width:24px;height:24px;border-radius:50%;background:var(--gold-dim);color:#7a5800;
+  font-family:'Playfair Display',serif;font-weight:700;font-size:12px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .25s;}
+.lp-item.lp-done .lp-num{background:var(--green);color:#fff;}
+.lp-item.lp-skip .lp-num{background:var(--red);color:#fff;}
+.lp-text{font-size:13.5px;line-height:1.45;color:var(--ink);}
+.lp-check{margin-left:auto;font-size:16px;flex-shrink:0;}
+.editor-wrap{position:relative;}
+.brief-editor{width:100%;min-height:340px;padding:16px;border-radius:12px;
+  border:2px solid var(--border);background:#fdfcfa;
+  font-family:'Source Serif 4',Georgia,serif;font-size:15px;line-height:1.75;
+  color:var(--ink);resize:vertical;outline:none;transition:border-color .2s;}
+.brief-editor:focus{border-color:var(--gold);}
+.brief-editor.warn{border-color:#f59e0b;}
+.brief-editor.over{border-color:var(--red);}
+.brief-editor.good{border-color:var(--green);}
+.wc-bar{display:flex;justify-content:space-between;align-items:center;
+  margin-top:8px;padding:8px 12px;border-radius:8px;background:#f0ede6;transition:background .3s;}
+.wc-bar.wc-low{background:#fef3c7;}.wc-bar.wc-ok{background:var(--green-dim);}.wc-bar.wc-over{background:var(--red-dim);}
+.wc-count{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;transition:color .3s;}
+.wc-label{font-size:12px;color:var(--muted);}
+.wc-progress{flex:1;margin:0 14px;height:6px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden;}
+.wc-fill{height:100%;border-radius:99px;transition:width .4s, background .3s;background:var(--gold);}
+.anrede-hint{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:9px 13px;
+  font-size:13px;color:var(--blue);margin-bottom:8px;display:flex;gap:8px;align-items:center;}
+.gruss-hint{background:var(--violet-dim);border:1px solid #c4b5fd;border-radius:8px;padding:9px 13px;
+  font-size:13px;color:var(--violet);margin-top:8px;display:flex;gap:8px;align-items:center;}
+.btn-insert{background:none;border:none;cursor:pointer;font-size:12px;
+  color:inherit;opacity:.7;padding:2px 6px;border-radius:4px;transition:opacity .2s;font-family:inherit;}
+.btn-insert:hover{opacity:1;background:rgba(0,0,0,.07);}
+.download-section{display:flex;flex-direction:column;gap:12px;}
+.dl-btn{display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:14px 24px;border-radius:12px;border:none;cursor:pointer;
+  font-family:'Playfair Display',serif;font-size:15px;font-weight:700;
+  transition:all .22s;width:100%;}
+.dl-btn.dl-txt{background:var(--ink);color:#fff;box-shadow:0 4px 14px rgba(24,24,37,.22);}
+.dl-btn.dl-txt:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px rgba(24,24,37,.3);}
+.dl-btn.dl-copy{background:#fff;color:var(--ink);border:2px solid var(--border);}
+.dl-btn.dl-copy:hover{border-color:var(--gold);background:var(--gold-dim);}
+.dl-btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none!important;}
+.kriterien-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.kr-item{background:#f9f7f2;border-radius:8px;padding:10px 12px;font-size:12.5px;
+  color:var(--muted);display:flex;gap:7px;align-items:flex-start;line-height:1.4;}
+.kr-icon{flex-shrink:0;font-size:14px;}
+.dl-done-msg{text-align:center;padding:12px;background:var(--green-dim);border-radius:10px;
+  color:var(--green);font-size:13px;display:none;}
+.dl-done-msg.show{display:block;animation:fi .3s ease;}
+@media(max-width:560px){.kriterien-grid{grid-template-columns:1fr;}}
+  padding:9px 20px;border-radius:10px;font-size:13px;z-index:200;display:none;white-space:nowrap;
+  box-shadow:0 4px 20px rgba(24,24,37,.25);}
+.toast.show{display:block;animation:fi .3s ease;}
+@media(max-width:560px){
+  .start-card{padding:30px 18px 26px;}.test-grid{gap:6px;}
+  .tp-btn{padding:11px 3px 9px;}.tp-emoji{font-size:16px;}.tp-num{font-size:14px;}
+  .t-header{padding:20px 14px 18px;}.main-area{padding:16px 10px 118px;}
+  .qhead{padding:13px 14px 11px;}.ans-wrap{padding:11px 14px 13px;}.qctx{padding:11px 14px;}
+  .etog,.ebox{margin-left:14px;margin-right:14px;}
+}
+</style>
+</head>
+<body>
+
+<!-- START SCREEN -->
+<div class="screen active" id="scStart">
+<div class="start-bg"><div class="start-card">
+  <div class="eyebrow">🇩🇪 Goethe-Zertifikat · Niveau B1</div>
+  <h1>Deutsch <em>B1</em><br>Übungstests</h1>
+  <p class="tagline">5 vollständige Tests · Lesen · Grammatik · Leseverstehen</p>
+  <div class="hstats">
+    <div><div class="hs-n">5</div><div class="hs-l">Tests</div></div>
+    <div><div class="hs-n">225</div><div class="hs-l">Fragen</div></div>
+    <div><div class="hs-n">60%</div><div class="hs-l">Bestehen</div></div>
+    <div><div class="hs-n">~65'</div><div class="hs-l">Pro Test</div></div>
+  </div>
+  <div class="flabel">Ihr Name</div>
+  <input class="name-inp" id="nameInp" type="text" placeholder="Name eingeben…" maxlength="60"
+    oninput="onName()" onkeydown="if(event.key==='Enter')doStart()">
+  <div class="flabel">Test auswählen</div>
+  <div class="test-grid" id="testGrid"></div>
+  <button class="btn-start" id="btnStart" onclick="doStart()" disabled>Test starten →</button>
+  <div class="start-hint">Ergebnisse werden im Leaderboard gespeichert.</div>
+</div></div>
+</div>
+
+<!-- TEST SCREEN -->
+<div class="screen" id="scTest">
+  <header class="t-header"><div class="th-inner">
+    <div class="th-top">
+      <div>
+        <div class="th-title">Deutsch <em>B1</em> — <span id="hLabel">Test 1</span></div>
+        <div class="th-sub" id="hSub"></div>
+      </div>
+      <div class="timer-box">
+        <div class="timer-val" id="timerVal">00:00</div>
+        <div class="timer-lbl">Zeit</div>
+      </div>
+    </div>
+    <div class="prog-meta"><span id="progTxt">0 von 45</span><span id="progPct">0%</span></div>
+    <div class="prog-rail"><div class="prog-bar" id="progBar"></div></div>
+  </div></header>
+
+  <nav class="teil-nav"><div class="teil-nav-inner">
+    <button class="t-tab active" id="tab1" onclick="setTeil(1)">Teil 1<span class="t-pill" id="pill1">0/20</span></button>
+    <button class="t-tab"        id="tab2" onclick="setTeil(2)">Teil 2<span class="t-pill" id="pill2">0/10</span></button>
+    <button class="t-tab"        id="tab3" onclick="setTeil(3)">Teil 3<span class="t-pill" id="pill3">0/15</span></button>
+    <button class="t-tab" id="tab4" onclick="setTeil(4)">Teil 4 ✍️<span class="t-pill" id="pill4">–</span></button>
+    <button class="t-tab t-tab-lb" onclick="goLb()">🏆 Rangliste</button>
+  </div></nav>
+
+  <div id="resultBanner"><div class="rb-wrap" id="rbWrap">
+    <div><div class="rb-title" id="rbTitle"></div><div class="rb-sub" id="rbSub"></div></div>
+    <div class="rb-parts" id="rbParts"></div>
+  </div></div>
+
+  <div class="main-area">
+    <div class="teil-sec active" id="teil1">
+      <div class="teil-hd thd1"><h2>Teil 1 — Multiple Choice</h2><p>Wählen Sie die richtige Antwort (a, b oder c) — 20 Aufgaben</p></div>
+      <div id="qs1"></div>
+      <div class="nav-row"><button class="bnav pri" onclick="setTeil(2)">Teil 2 →</button></div>
+    </div>
+    <div class="teil-sec" id="teil2">
+      <div class="teil-hd thd2"><h2>Teil 2 — Richtig oder Falsch</h2><p>Lesen Sie den Text und entscheiden Sie — 10 Aufgaben</p></div>
+      <div id="qs2"></div>
+      <div class="nav-row">
+        <button class="bnav" onclick="setTeil(1)">← Teil 1</button>
+        <button class="bnav pri" onclick="setTeil(3)">Teil 3 →</button>
+      </div>
+    </div>
+    <div class="teil-sec" id="teil3">
+      <div class="teil-hd thd3"><h2>Teil 3 — Leseverstehen / Textauswahl</h2><p>Zu welchem Text passt die Aussage? — 15 Aufgaben</p></div>
+      <div id="qs3"></div>
+      <div class="nav-row"><button class="bnav" onclick="setTeil(2)">← Teil 2</button></div>
+    </div>
+
+    <!-- TEIL 4 — SCHREIBEN -->
+    <div class="teil-sec" id="teil4">
+      <div class="teil-hd thd4">
+        <h2>Teil 4 — Schriftlicher Ausdruck</h2>
+        <p>Schreiben Sie einen Brief (150–200 Wörter) und laden Sie ihn herunter.</p>
+      </div>
+      <div id="schreibenArea">
+        <!-- filled by JS -->
+      </div>
+      <div class="nav-row"><button class="bnav" onclick="setTeil(3)">← Teil 3</button></div>
+    </div>
+  </div>
+
+  <div class="abar"><div class="ab-inner">
+    <div class="ab-stat" id="abStat">0 Fragen noch offen</div>
+    <div class="ab-btns">
+      <button class="bother" id="btnBack" onclick="goBack()" style="display:none">← Anderer Test</button>
+      <button class="bsub"   id="btnSub"  onclick="doSubmit()" disabled>Test auswerten →</button>
+    </div>
+  </div></div>
+</div>
+
+<!-- LEADERBOARD SCREEN -->
+<div class="screen" id="scLb">
+<div class="lb-screen">
+  <div class="lb-hero">
+    <h1>🏆 <em>Rangliste</em></h1>
+    <p>Beste Ergebnisse aller Teilnehmer</p>
+  </div>
+  <div class="lb-body">
+    <div class="lb-ctrl">
+      <button class="bctr out" onclick="lbBack()">← Zurück</button>
+      <button class="bctr sol" onclick="loadLb()">⟳ Aktualisieren</button>
+    </div>
+    <div class="lbsg" id="lbSG"></div>
+    <div class="lb-filters" id="lbF"></div>
+    <div class="lbt-wrap">
+      <table class="lbt">
+        <thead><tr><th>#</th><th>Name</th><th>Test</th><th>Punkte</th><th>%</th><th>Zeit</th><th>Status</th></tr></thead>
+        <tbody id="lbTB"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API='http://localhost:8000/api';
+const TM={
+  1:{theme:'Alltag & Grammatik',    e:'📚'},
+  2:{theme:'Freizeit & Reisen',     e:'✈️'},
+  3:{theme:'Arbeit & Bildung',      e:'💼'},
+  4:{theme:'Gesellschaft & Technik',e:'🏙️'},
+  5:{theme:'Umwelt & Zukunft',      e:'🌱'},
+};
+
+let questions=[],answers={},submitted=false,sessionId=null;
+let userName='',selTest=1,timerSecs=0,timerH=null,timerOn=false;
+let curTeil=1,lbFlt=0;
+// Section timers: Teil 1-3 = 15 min, Teil 4 = 20 min
+const TEIL_TIME_LIMITS = {1: 15*60, 2: 15*60, 3: 15*60, 4: 20*60};
+let teilTimers = {1: 0, 2: 0, 3: 0, 4: 0}; // seconds spent per section
+let currentTeilTimer = null;
+
+function ft(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(msg,ms=3200){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),ms);}
+function scr(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
+
+/* BUILD TEST GRID */
+function buildGrid(){
+  const g=document.getElementById('testGrid');
+  g.innerHTML='';
+  for(let n=1;n<=5;n++){
+    const m=TM[n];
+    const b=document.createElement('button');
+    b.className='tp-btn'+(n===1?' sel':'');
+    b.id='tpB'+n;
+    b.innerHTML=`<span class="tp-emoji">${m.e}</span><span class="tp-num">${n}</span><span class="tp-theme">${m.theme}</span>`;
+    b.onclick=()=>selT(n);
+    g.appendChild(b);
+  }
+}
+function selT(n){
+  selTest=n;
+  for(let i=1;i<=5;i++) document.getElementById('tpB'+i).classList.toggle('sel',i===n);
+}
+function onName(){document.getElementById('btnStart').disabled=!document.getElementById('nameInp').value.trim();}
+
+/* START */
+async function doStart(){
+  const name=document.getElementById('nameInp').value.trim();
+  if(!name) return;
+  userName=name;
+  await fetchQs(selTest);
+  try{
+    const r=await fetch(API+'/sessions/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_name:name,test_number:selTest})});
+    if(r.ok) sessionId=(await r.json()).id;
+  }catch{sessionId=null;}
+  document.getElementById('hLabel').textContent='Test '+selTest;
+  document.getElementById('hSub').textContent=name+' · '+TM[selTest].e+' '+TM[selTest].theme+' · 4 Teile (65 Min)';
+  answers={};submitted=false;timerSecs=0;timerOn=false;aufgabe=null;briefSaved=false;
+  teilTimers={1:0,2:0,3:0,4:0};
+  document.getElementById('timerVal').textContent='15:00';
+  document.getElementById('btnSub').style.display='';
+  document.getElementById('btnSub').disabled=true;
+  document.getElementById('btnBack').style.display='none';
+  document.getElementById('resultBanner').classList.remove('show');
+  scr('scTest');
+  renderAll();
+  updProg();
+  setTeil(1);
+}
+
+/* FETCH */
+async function fetchQs(tn){
+  try{
+    const r=await fetch(API+'/questions/test/'+tn);
+    if(!r.ok) throw 0;
+    questions=(await r.json()).questions;
+    toast('Test '+tn+' geladen — '+questions.length+' Aufgaben ✓');
+  }catch{
+    questions=fallback(tn);
+    toast('Offline-Modus: lokale Fragen geladen.');
+  }
+}
+
+/* TIMER */
+function startTeilTimer(teil) {
+  if (currentTeilTimer) clearInterval(currentTeilTimer);
+  const limit = TEIL_TIME_LIMITS[teil] || 15*60;
+  const elapsed = teilTimers[teil] || 0;
+  
+  currentTeilTimer = setInterval(() => {
+    teilTimers[teil]++;
+    const remaining = limit - teilTimers[teil];
+    const display = remaining > 0 ? ft(remaining) : '00:00';
+    document.getElementById('timerVal').textContent = display;
+    
+    // Visual warning when time is running out
+    const timerBox = document.getElementById('timerVal').parentElement;
+    if (remaining <= 60) {
+      timerBox.style.background = 'rgba(244, 63, 94, .3)';
+      timerBox.style.borderColor = '#f43f5e';
+    } else if (remaining <= 180) {
+      timerBox.style.background = 'rgba(251, 191, 36, .3)';
+      timerBox.style.borderColor = '#fbbf24';
+    } else {
+      timerBox.style.background = 'rgba(255,255,255,.09)';
+      timerBox.style.borderColor = 'rgba(200,168,75,.28)';
+    }
+    
+    // Auto-advance when time is up
+    if (remaining <= 0) {
+      clearInterval(currentTeilTimer);
+      toast('⏰ Zeit für Teil ' + teil + ' ist abgelaufen!');
+      if (teil < 4) {
+        setTimeout(() => setTeil(teil + 1), 2000);
+      }
+    }
+  }, 1000);
+}
+
+function startTimer(){if(timerOn)return;timerOn=true;timerH=setInterval(()=>{timerSecs++;},1000);}
+function stopTimer(){if(timerH)clearInterval(timerH);if(currentTeilTimer)clearInterval(currentTeilTimer);}
+function stopTeilTimer(){if(currentTeilTimer)clearInterval(currentTeilTimer);}
+
+/* RENDER */
+function renderAll(){
+  for(let t=1;t<=3;t++){
+    const c=document.getElementById('qs'+t);
+    c.innerHTML=questions.filter(q=>q.teil===t).map(buildCard).join('');
+  }
+}
+function buildCard(q){
+  const ctx=q.context?`<div class="qctx">${esc(q.context)}</div>`:'';
+  const L=['a','b','c'];
+  let ans;
+  if(q.type==='rf'){
+    ans=`<div class="ans-wrap rf-row">
+      <button class="rfbtn" id="rfR${q.id}" onclick="doRF(${q.id},true)">✓ Richtig</button>
+      <button class="rfbtn" id="rfF${q.id}" onclick="doRF(${q.id},false)">✗ Falsch</button>
+    </div>`;
+  }else{
+    ans='<div class="ans-wrap">'+
+      (q.options||[]).map((o,i)=>`<button class="abtn" id="ab${q.id}_${i}" onclick="doMC(${q.id},${i})"><span class="aic">${L[i]}</span><span>${esc(o)}</span></button>`).join('')+
+    '</div>';
+  }
+  return `<div class="qcard" id="card${q.id}">
+    <div class="qhead"><div class="qbadge" id="badge${q.id}">${q.id}</div><div class="qtext">${esc(q.question)}</div></div>
+    ${ctx}${ans}
+    <button class="etog" id="etog${q.id}" onclick="togExp(${q.id})">▼ Erklärung anzeigen</button>
+    <div class="ebox" id="ebox${q.id}"></div>
+  </div>`;
+}
+
+/* ANSWERS */
+function doMC(qid,idx){
+  if(submitted)return; startTimer();
+  answers[qid]=idx;
+  const q=questions.find(x=>x.id===qid);
+  const L=['a','b','c'];
+  (q.options||[]).forEach((_,i)=>{
+    const b=document.getElementById('ab'+qid+'_'+i);
+    if(!b)return;
+    b.classList.toggle('asel',i===idx);
+    b.querySelector('.aic').textContent=i===idx?'●':L[i];
+  });
+  markCard(qid);updProg();
+}
+function doRF(qid,val){
+  if(submitted)return; startTimer();
+  answers[qid]=val;
+  document.getElementById('rfR'+qid).className='rfbtn'+(val?' rfr':'');
+  document.getElementById('rfF'+qid).className='rfbtn'+(!val?' rff':'');
+  markCard(qid);updProg();
+}
+function markCard(qid){
+  const c=document.getElementById('card'+qid);
+  if(!c)return;
+  c.classList.remove('qa','qok','qbad');
+  if(answers[qid]!==undefined) c.classList.add('qa');
+}
+
+/* PROGRESS */
+function updProg(){
+  const total=questions.length||45,done=Object.keys(answers).length,pct=Math.round(done/total*100);
+  document.getElementById('progTxt').textContent=done+' von '+total+' beantwortet';
+  document.getElementById('progPct').textContent=pct+'%';
+  document.getElementById('progBar').style.width=pct+'%';
+  for(let t=1;t<=3;t++){
+    const tqs=questions.filter(q=>q.teil===t),td=tqs.filter(q=>answers[q.id]!==undefined).length;
+    document.getElementById('pill'+t).textContent=td+'/'+tqs.length;
+    document.getElementById('tab'+t).classList.toggle('done',td===tqs.length&&tqs.length>0);
+  }
+
+  // Teil 4 progress (word count)
+  const briefEl=document.getElementById('briefEditor');
+  const wc4=briefEl?countWords(briefEl.value):0;
+  const pill4=document.getElementById('pill4');
+  const minWords = aufgabe ? aufgabe.woerter_min : 150;
+  if(pill4) pill4.textContent=wc4>0?wc4+' W':'–';
+  if(pill4 && wc4 >= minWords) pill4.style.background='var(--green-dim)';
+  else if(pill4) pill4.style.background='#f0ede6';
+
+  const rem=total-done,st=document.getElementById('abStat');
+  const briefDone = wc4 >= minWords;
+  
+  // Auto-advance to Teil 4 when all questions answered
+  if(!rem && curTeil!==4) {
+    st.textContent='✅ Alle Fragen beantwortet! Wechseln Sie zu Teil 4 ✍️';
+    st.className='ab-stat done';
+    // Auto-advance after 2 seconds
+    if(!window.autoAdvanceTimeout) {
+      window.autoAdvanceTimeout = setTimeout(() => {
+        setTeil(4);
+        window.autoAdvanceTimeout = null;
+      }, 2000);
+      toast('📝 Alle Fragen beantwortet! Wechsel zu Teil 4...');
+    }
+  }
+  else if(!rem && curTeil===4 && briefDone){
+    st.textContent='✅ Test bereit zur Abgabe!';
+    st.className='ab-stat done';
+  }
+  else if(!rem && curTeil===4){
+    st.textContent='✍️ Bitte schreiben Sie noch den Brief (min. '+minWords+' Wörter)';
+    st.className='ab-stat';
+  }
+  else{
+    st.textContent=rem+' Frage'+(rem!==1?'n':'')+' noch offen';
+    st.className='ab-stat';
+  }
+  
+  document.getElementById('btnSub').disabled=done<total || !briefDone;
+}
+
+/* SUBMIT */
+async function doSubmit(){
+  // Validate Teil 4 (Schreiben) is completed
+  const briefEl = document.getElementById('briefEditor');
+  const briefText = briefEl ? briefEl.value.trim() : '';
+  const minWords = aufgabe ? aufgabe.woerter_min : 150;
+  const wordCount = countWords(briefText);
+  
+  if (!briefText || wordCount < minWords) {
+    toast('⚠️ Bitte schreiben Sie zuerst einen Brief (mindestens ' + minWords + ' Wörter)!');
+    setTeil(4);
+    return;
+  }
+  
+  submitted=true;stopTimer();stopTeilTimer();
+  let fqs=questions;
+  try{const r=await fetch(API+'/questions/test/'+selTest+'/with-answers');if(r.ok)fqs=(await r.json()).questions;}catch{}
+  let sc=0,s1=0,s2=0,s3=0,s4=0;
+  fqs.forEach(q=>{
+    const ua=answers[q.id],ok=(q.type==='rf')?(ua===q.correct):(ua===q.correct);
+    if(ok){sc++;if(q.teil===1)s1++;else if(q.teil===2)s2++;else if(q.teil===3)s3++;}
+  });
+  
+  // Teil 4 scoring (based on word count and criteria)
+  const maxWords = aufgabe ? aufgabe.woerter_max : 200;
+  if (wordCount >= minWords && wordCount <= maxWords) s4 = 10;
+  else if (wordCount >= minWords * 0.8) s4 = 5;
+  else s4 = 0;
+  
+  sc += s4;
+  const totalPoints = fqs.length + 10; // 45 + 10 for schreiben
+  const pct=Math.round(sc/totalPoints*100),pass=pct>=60;
+  
+  fqs.forEach(q=>{
+    const c=document.getElementById('card'+q.id);if(!c)return;
+    const ua=answers[q.id],ok=(q.type==='rf')?(ua===q.correct):(ua===q.correct);
+    c.classList.remove('qa');c.classList.add(ok?'qok':'qbad');
+    if(q.type==='rf'){
+      const r=document.getElementById('rfR'+q.id),f=document.getElementById('rfF'+q.id);
+      if(r)r.disabled=true;if(f)f.disabled=true;
+      if(q.correct&&r)r.classList.add('aok'); if(!q.correct&&f)f.classList.add('aok');
+      if(!ok){if(ua&&r)r.classList.add('abad');if(!ua&&f)f.classList.add('abad');}
+    }else{
+      (q.options||[]).forEach((_,i)=>{
+        const b=document.getElementById('ab'+q.id+'_'+i);if(!b)return;
+        b.disabled=true;b.classList.remove('asel');
+        if(i===q.correct)b.classList.add('aok');
+        else if(i===ua&&!ok)b.classList.add('abad');
+      });
+    }
+    const tog=document.getElementById('etog'+q.id),box=document.getElementById('ebox'+q.id);
+    if(tog&&box&&q.explanation){box.textContent='💡 '+q.explanation;tog.classList.add('vis');}
+  });
+  
+  const ban=document.getElementById('resultBanner');ban.classList.add('show');
+  document.getElementById('rbWrap').className='rb-wrap '+(pass?'rb-pass':'rb-fail');
+  document.getElementById('rbTitle').textContent=pass?'🎉 Bestanden!':'❌ Nicht bestanden';
+  document.getElementById('rbSub').textContent='Punkte: '+sc+'/'+totalPoints+' ('+pct+'%) · Zeit: '+ft(timerSecs)+' · Test '+selTest+': '+TM[selTest].theme;
+  document.getElementById('rbParts').innerHTML='<div class="rb-part"><strong>'+s1+'/20</strong>Teil 1</div><div class="rb-part"><strong>'+s2+'/10</strong>Teil 2</div><div class="rb-part"><strong>'+s3+'/15</strong>Teil 3</div><div class="rb-part"><strong>'+s4+'/10</strong>Teil 4</div>';
+  
+  // Save brief text to answers
+  const answersWithBrief = {...Object.fromEntries(Object.entries(answers).map(([k,v])=>[k,String(v)])), 'schreiben': briefText};
+  
+  if(sessionId){try{await fetch(API+'/sessions/'+sessionId+'/finish',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({duration_seconds:timerSecs,score:sc,percentage:pct,passed:pass,answers:answersWithBrief,teil1_score:s1,teil2_score:s2,teil3_score:s3,teil4_score:s4})});}catch{}}
+  document.getElementById('btnSub').style.display='none';
+  document.getElementById('btnBack').style.display='';
+  const st=document.getElementById('abStat');
+  st.textContent=sc+'/'+totalPoints+' ('+pct+'%) — '+(pass?'Bestanden ✓':'Nicht bestanden ✗');
+  st.className='ab-stat'+(pass?' done':'');
+  ban.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+/* NAV */
+function setTeil(t){
+  // Stop timer for previous section
+  stopTeilTimer();
+  
+  curTeil=t;
+  for(let i=1;i<=4;i++){
+    const sec=document.getElementById('teil'+i);
+    const tab=document.getElementById('tab'+i);
+    if(sec) sec.classList.toggle('active',i===t);
+    if(tab) tab.classList.toggle('active',i===t);
+  }
+  
+  // Load Teil 4 if needed
+  if(t===4 && aufgabe===null) {
+    loadSchreiben(selTest).then(() => {
+      // After loading, update progress to enable submit button
+      setTimeout(updProg, 500);
+    });
+  }
+  
+  // Start section timer
+  startTeilTimer(t);
+  
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function goBack(){stopTimer();scr('scStart');}
+function togExp(qid){
+  const b=document.getElementById('ebox'+qid),t=document.getElementById('etog'+qid);
+  const o=b.classList.toggle('vis');
+  t.textContent=o?'▲ Erklärung verbergen':'▼ Erklärung anzeigen';
+}
+
+/* LEADERBOARD */
+async function goLb(){scr('scLb');buildLbF();await loadLb();}
+function buildLbF(){
+  document.getElementById('lbF').innerHTML=
+    '<button class="lf-btn act" onclick="setLbF(0,this)">Alle Tests</button>'+
+    [1,2,3,4,5].map(n=>'<button class="lf-btn" onclick="setLbF('+n+',this)">'+TM[n].e+' Test '+n+'</button>').join('');
+}
+function setLbF(n,el){lbFlt=n;document.querySelectorAll('.lf-btn').forEach(b=>b.classList.remove('act'));el.classList.add('act');loadLb();}
+async function loadLb(){
+  document.getElementById('lbTB').innerHTML='<tr><td colspan="7" class="lb-empty">Wird geladen…</td></tr>';
+  try{
+    const url=lbFlt?API+'/results/leaderboard?limit=50&test_number='+lbFlt:API+'/results/leaderboard?limit=50';
+    const[lr,sr]=await Promise.all([fetch(url),fetch(API+'/results/stats')]);
+    renderLb((await lr.json()).leaderboard,await sr.json());
+  }catch{
+    document.getElementById('lbTB').innerHTML='<tr><td colspan="7" class="lb-empty">Backend nicht erreichbar — starte zuerst den Server.</td></tr>';
+    document.getElementById('lbSG').innerHTML='';
+  }
+}
+function renderLb(ents,stats){
+  document.getElementById('lbSG').innerHTML=
+    '<div class="lbs"><div class="lbs-n">'+(stats.total_attempts||0)+'</div><div class="lbs-l">Versuche</div></div>'+
+    '<div class="lbs"><div class="lbs-n">'+(stats.pass_rate||0)+'%</div><div class="lbs-l">Bestanden</div></div>'+
+    '<div class="lbs"><div class="lbs-n">'+(stats.avg_score||0)+'</div><div class="lbs-l">Ø Punkte</div></div>'+
+    '<div class="lbs"><div class="lbs-n">'+ft(stats.avg_duration_seconds||0)+'</div><div class="lbs-l">Ø Zeit</div></div>';
+  if(!ents||!ents.length){document.getElementById('lbTB').innerHTML='<tr><td colspan="7" class="lb-empty">Noch keine Ergebnisse — sei der Erste! 🚀</td></tr>';return;}
+  document.getElementById('lbTB').innerHTML=ents.map((e,i)=>{
+    const med=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+    const rc=i===0?'rg':i===1?'rs':i===2?'rb':'';
+    const tn=e.test_number||1;
+    return '<tr><td><span class="rn '+rc+'">'+(med||e.rank)+'</span></td><td><strong>'+esc(e.user_name)+'</strong></td><td><span class="tchip">'+TM[tn].e+' T'+tn+'</span></td><td><strong>'+e.score+'/45</strong></td><td>'+e.percentage+'%</td><td>'+ft(e.duration_seconds||0)+'</td><td><span class="'+(e.passed?'bpass':'bfail')+'">'+(e.passed?'✓':'✗')+'</span></td></tr>';
+  }).join('');
+}
+function lbBack(){if(questions.length)scr('scTest');else scr('scStart');}
+
+/* OFFLINE FALLBACK */
+function fallback(tn){
+  const o=(tn-1)*1000;
+  const mc=[
+    {id:101,teil:1,type:'mc',question:"Was bedeutet 'Veranstaltung'?",options:['Ein Gebäude','Ein organisiertes Event','Ein Lebensmittel'],correct:1,explanation:"Veranstaltung = organisiertes Event."},
+    {id:102,teil:1,type:'mc',question:"'Seit 2019 wohne ich hier.' Was bedeutet 'seit'?",options:['Ab Vergangenheit bis jetzt','Nur kurze Zeit','Erst in Zukunft'],correct:0,explanation:"Seit = Beginn in Vergangenheit bis heute."},
+    {id:103,teil:1,type:'mc',question:"Welcher Satz ist korrekt?",options:['Ich habe ins Kino gegangen.','Ich bin ins Kino gegangen.','Ich war ins Kino gegangen.'],correct:1,explanation:"Bewegungsverben bilden Perfekt mit 'sein'."},
+    {id:104,teil:1,type:'mc',question:"Er liest _____ Anzeige.",options:['ein','eine','einen'],correct:1,explanation:"Anzeige ist feminin → 'eine'."},
+    {id:105,teil:1,type:'mc',question:"Höflich für 'Kannst du helfen?'",options:['Hilf mir!','Könntest du helfen?','Du musst helfen.'],correct:1,explanation:"Konjunktiv II = höfliche Bitte."},
+    {id:106,teil:1,type:'mc',question:"Der Zug hat _____ Verspätung.",options:['eine','einen','ein'],correct:0,explanation:"Verspätung ist feminin → 'eine'."},
+    {id:107,teil:1,type:'mc',question:"'Sich beschweren' bedeutet:",options:['Ausruhen','Unzufriedenheit äußern','Genießen'],correct:1,explanation:"Beschweren = Unzufriedenheit mitteilen."},
+    {id:108,teil:1,type:'mc',question:"'Ich freue mich _____ das Wochenende.'",options:['für','auf','über'],correct:1,explanation:"'Freuen auf' + Akkusativ = Vorfreude."},
+    {id:109,teil:1,type:'mc',question:"Tasche verloren — was tun?",options:['Neue kaufen','Fundbüro anrufen','Nach Hause gehen'],correct:1,explanation:"Fundbüro = lost and found."},
+    {id:110,teil:1,type:'mc',question:"Er hat nicht bestanden, _____ er viel lernte.",options:['weil','obwohl','damit'],correct:1,explanation:"'Obwohl' = Konzessivsatz (Gegensatz)."},
+    {id:111,teil:1,type:'mc',question:"'Bewerbungsschreiben' ist:",options:['Beschwerdebrief','Motivationsbrief für eine Stelle','Einladung'],correct:1,explanation:"Bewerbungsschreiben = Cover Letter."},
+    {id:112,teil:1,type:'mc',question:"'Das gibt es doch nicht!' drückt aus:",options:['Zustimmung','Überraschung','Bitte'],correct:1,explanation:"Typischer Überraschungsausruf."},
+    {id:113,teil:1,type:'mc',question:"'Wenn ich Zeit _____, würde ich reisen.'",options:['habe','hätte','haben werde'],correct:1,explanation:"Konjunktiv II 'hätte' = irreale Bedingung."},
+    {id:114,teil:1,type:'mc',question:"'Die Familie zieht um.' Bedeutet:",options:['Sie verreisen','Sie wechseln die Wohnung','Sie kaufen Möbel'],correct:1,explanation:"Umziehen = Wohnung wechseln."},
+    {id:115,teil:1,type:'mc',question:"'Obwohl' leitet einen _____ Nebensatz.",options:['kausalen','konzessiven','finalen'],correct:1,explanation:"Obwohl = konzessiv (trotz Hindernis)."},
+    {id:116,teil:1,type:'mc',question:"Sie gehen _____ Reisebüro.",options:['in das','zu dem','Beide korrekt'],correct:2,explanation:"Beide Formen sind grammatikalisch richtig."},
+    {id:117,teil:1,type:'mc',question:"'Pünktlich' bedeutet:",options:['Zu spät','Genau zur vereinbarten Zeit','Sehr schnell'],correct:1,explanation:"Pünktlich = exakt zur abgemachten Zeit."},
+    {id:118,teil:1,type:'mc',question:"'Gestern _____ ich meinen Freund _____.'",options:['habe … getroffen','habe getroffen …','treffe … haben'],correct:0,explanation:"Perfekt: Hilfsverb Pos.2, Partizip II am Ende."},
+    {id:119,teil:1,type:'mc',question:"'Lebenslauf' enthält:",options:['Persönliche Geschichte','Berufliche und persönliche Daten','Reisebericht'],correct:1,explanation:"Lebenslauf (CV) = berufliche Daten."},
+    {id:120,teil:1,type:'mc',question:"'Er arbeitet, _____ er müde ist.'",options:['weil','obwohl','wenn'],correct:1,explanation:"'Obwohl' = trotz Müdigkeit weiterarbeiten."},
+  ].map(q=>({...q,id:q.id+o,test:tn}));
+  const rf=[
+    {id:121,teil:2,type:'rf',context:"E-Mail:\n\nLiebe Anna, leider kann ich am Freitag nicht kommen — ich muss arbeiten. Können wir uns nächste Woche treffen? Sophie",question:"Sophie kann nicht kommen, weil sie krank ist.",correct:false,explanation:"Falsch. Sophie muss arbeiten."},
+    {id:122,teil:2,type:'rf',context:"(Gleiche E-Mail)",question:"Sophie schlägt ein Treffen nächste Woche vor.",correct:true,explanation:"Richtig."},
+    {id:123,teil:2,type:'rf',context:"Ansage:\n\nBäckerei schließt um 18 Uhr. Kasse bis 20 Uhr geöffnet.",question:"Der Supermarkt schließt komplett um 18 Uhr.",correct:false,explanation:"Falsch. Nur die Bäckerei."},
+    {id:124,teil:2,type:'rf',context:"(Gleiche Ansage)",question:"Die Kasse ist bis 20 Uhr geöffnet.",correct:true,explanation:"Richtig."},
+    {id:125,teil:2,type:'rf',context:"Notiz:\n\nKomme gegen 22 Uhr. Warte nicht mit dem Essen. Suppe im Kühlschrank. Klaus",question:"Klaus möchte, dass man mit Essen auf ihn wartet.",correct:false,explanation:"Falsch. Er schreibt ausdrücklich: nicht warten."},
+    {id:126,teil:2,type:'rf',context:"(Gleiche Notiz)",question:"Im Kühlschrank ist Essen für Klaus.",correct:true,explanation:"Richtig."},
+    {id:127,teil:2,type:'rf',context:"Sprachschule:\n\nB1-Kurs ab 5. März. Gebühr: 250 €. Anmeldung nur online. Nicht anrufen.",question:"Man kann sich telefonisch anmelden.",correct:false,explanation:"Falsch. Nur online."},
+    {id:128,teil:2,type:'rf',context:"(Gleiche Mitteilung)",question:"Der Kurs kostet 250 Euro.",correct:true,explanation:"Richtig."},
+    {id:129,teil:2,type:'rf',context:"Studie:\n\nNur 28% sind körperlich inaktiv. Radfahren und Schwimmen besonders beliebt.",question:"Mehr als die Hälfte macht keinen Sport.",correct:false,explanation:"Falsch. Nur 28% inaktiv, also 72% aktiv."},
+    {id:130,teil:2,type:'rf',context:"(Gleiche Studie)",question:"Schwimmen ist laut Studie beliebt.",correct:true,explanation:"Richtig."},
+  ].map(q=>({...q,id:q.id+o,test:tn}));
+  const tx=[
+    {id:131,teil:3,type:'text',context:"TEXT A — Homeoffice\nFlexibilität, aber manche leiden unter Einsamkeit.\n\nTEXT B — Berge\nWandern in den Alpen im Sommer.\n\nTEXT C — Bezahlen\nBargeld wird immer seltener.",question:"Veränderungen beim Bezahlen?",options:['Text A','Text B','Text C'],correct:2,explanation:"Text C = Bargeld wird seltener."},
+    {id:132,teil:3,type:'text',context:"(Gleiche Texte A, B, C)",question:"Einsamkeit als Nachteil moderner Arbeit?",options:['Text A — Homeoffice','Text B','Text C'],correct:0,explanation:"Text A erwähnt Einsamkeit."},
+    {id:133,teil:3,type:'text',context:"(Gleiche Texte A, B, C)",question:"Freizeit in der Natur?",options:['Text A','Text B — Alpen','Text C'],correct:1,explanation:"Text B = Alpen und Wandern."},
+    {id:134,teil:3,type:'text',context:"TEXT D — Ernährung\nÄltere Generationen essen mehr Fleisch.\n\nTEXT E — Nahverkehr\n49-Euro-Ticket erfolgreich.\n\nTEXT F — Lernen\n20 Minuten täglich empfohlen.",question:"Günstiges Verkehrsticket?",options:['Text D','Text E — 49-Euro','Text F'],correct:1,explanation:"Text E = 49-Euro-Ticket."},
+    {id:135,teil:3,type:'text',context:"(Gleiche Texte D, E, F)",question:"Essgewohnheiten nach Generationen?",options:['Text D','Text E','Text F'],correct:0,explanation:"Text D = ältere Generationen."},
+    {id:136,teil:3,type:'text',context:"(Gleiche Texte D, E, F)",question:"Konkrete Lernempfehlung?",options:['Text D','Text E','Text F — 20 Min'],correct:2,explanation:"Text F = täglich 20 Minuten."},
+    {id:137,teil:3,type:'text',context:"TEXT G — Mieten\nSteigen in Großstädten.\n\nTEXT H — Klima\nExtremwetter nimmt zu.\n\nTEXT I — Soziale Medien\nSchlafprobleme bei Jugendlichen.",question:"Psychische Belastung durch Medien?",options:['Text G','Text H','Text I — Schlaf'],correct:2,explanation:"Text I = Schlafprobleme."},
+    {id:138,teil:3,type:'text',context:"(Gleiche Texte G, H, I)",question:"Steigende Wohnkosten?",options:['Text G','Text H','Text I'],correct:0,explanation:"Text G = steigende Mieten."},
+    {id:139,teil:3,type:'text',context:"(Gleiche Texte G, H, I)",question:"Naturkatastrophen durch Klimawandel?",options:['Text G','Text H — Extremwetter','Text I'],correct:1,explanation:"Text H = Klimafolgen."},
+    {id:140,teil:3,type:'text',context:"TEXT J — Ehrenamt\nRentner und Schüler aktiv.\n\nTEXT K — Technologie\nDaten werden ohne Wissen gesammelt.\n\nTEXT L — Sport\nKommerzialisierung kritisiert.",question:"Datenschutzprobleme?",options:['Text J','Text K','Text L'],correct:1,explanation:"Text K = Datenmissbrauch."},
+    {id:141,teil:3,type:'text',context:"(Gleiche Texte J, K, L)",question:"Freiwilliges Engagement?",options:['Text J — Ehrenamt','Text K','Text L'],correct:0,explanation:"Text J = Ehrenamt."},
+    {id:142,teil:3,type:'text',context:"(Gleiche Texte J, K, L)",question:"Kritik an Sportkommerzialisierung?",options:['Text J','Text K','Text L'],correct:2,explanation:"Text L = Kommerzialisierung."},
+    {id:143,teil:3,type:'text',context:"(Gleiche Texte J, K, L)",question:"Welche Gruppen sind beim Ehrenamt besonders aktiv?",options:['Manager und Studenten','Rentner und Schüler','Ärzte und Lehrer'],correct:1,explanation:"Text J = Rentner und Schüler."},
+    {id:144,teil:3,type:'text',context:"(Alle Texte)",question:"Welches Thema erscheint in mehreren Texten?",options:['Gesellschaftlicher Zusammenhalt','Fremdsprachen','Medizin'],correct:0,explanation:"Gemeinschaft = Ehrenamt, Sport, Homeoffice."},
+    {id:145,teil:3,type:'text',context:"(Alle Texte)",question:"Günstig pendeln — welcher Text hilft?",options:['Text A','Text E — 49-Euro-Ticket','Text G'],correct:1,explanation:"Text E = 49-Euro-Ticket."},
+  ].map(q=>({...q,id:q.id+o,test:tn}));
+  return[...mc,...rf,...tx];
+}
+
+/* ══ TEIL 4 — SCHREIBEN ══ */
+let aufgabe = null;
+let briefSaved = false;
+
+async function loadSchreiben(testNum) {
+  try {
+    const r = await fetch(API + '/schreiben/aufgabe/' + testNum);
+    if (r.ok) { aufgabe = await r.json(); }
+    else { aufgabe = getFallbackAufgabe(testNum); }
+  } catch { aufgabe = getFallbackAufgabe(testNum); }
+  renderSchreiben();
+  return aufgabe; // Return promise for chaining
+}
+
+function getFallbackAufgabe(tn) {
+  const tasks = {
+    1:{thema:"Brief an einen Freund — Einladung absagen",situation:"Sie haben eine Einladung zu einer Geburtstagsparty Ihres Freundes Max bekommen. Leider können Sie nicht kommen. Schreiben Sie Max einen Brief.",leitpunkte:["Bedanken Sie sich für die Einladung.","Erklären Sie, warum Sie nicht kommen können.","Machen Sie einen anderen Treffvorschlag.","Wünschen Sie ihm alles Gute für die Party."],beispiel_anrede:"Lieber Max,",beispiel_gruss:"Viele Grüße,\n[Ihr Name]",bewertungskriterien:["Wurden alle 4 Leitpunkte bearbeitet?","Ist der Brief logisch aufgebaut?","Ist die Sprache dem Anlass angemessen?","Sind Grammatik und Rechtschreibung korrekt?"],woerter_min:150,woerter_max:200,hinweise:"150–200 Wörter. Vergessen Sie Anrede und Grußformel nicht."},
+    2:{thema:"Brief an Vermieter — Wohnungsprobleme",situation:"Sie wohnen seit drei Monaten in einer neuen Wohnung. Die Heizung funktioniert nicht und es gibt einen Wasserschaden. Schreiben Sie an Ihren Vermieter, Herrn Bauer.",leitpunkte:["Stellen Sie sich kurz vor (Name, Wohnung).","Beschreiben Sie die Probleme.","Bitten Sie um schnelle Hilfe.","Geben Sie an, wann Sie erreichbar sind."],beispiel_anrede:"Sehr geehrter Herr Bauer,",beispiel_gruss:"Mit freundlichen Grüßen,\n[Ihr Name]",bewertungskriterien:["Wurden alle 4 Leitpunkte bearbeitet?","Ist der Ton formell?","Ist der Brief logisch?","Sind Grammatik und Rechtschreibung korrekt?"],woerter_min:150,woerter_max:200,hinweise:"150–200 Wörter. Formelle Anrede verwenden."},
+    3:{thema:"Brief an Chefin — Krankmeldung",situation:"Sie sind krank und können nicht zur Arbeit kommen. Schreiben Sie eine E-Mail an Ihre Chefin, Frau Schmidt.",leitpunkte:["Erklären Sie, dass Sie krank sind.","Beschreiben Sie kurz Ihre Symptome.","Informieren Sie über einen Arztbesuch.","Geben Sie an, wann Sie zurückkommen."],beispiel_anrede:"Sehr geehrte Frau Schmidt,",beispiel_gruss:"Mit freundlichen Grüßen,\n[Ihr Name]",bewertungskriterien:["Wurden alle 4 Leitpunkte bearbeitet?","Ist der Ton professionell?","Ist die Mail klar?","Sind Grammatik und Rechtschreibung korrekt?"],woerter_min:150,woerter_max:200,hinweise:"150–200 Wörter. Formeller Ton."},
+    4:{thema:"Brief an Volkshochschule — Kursanmeldung",situation:"Sie möchten einen B2-Deutschkurs besuchen. Schreiben Sie an die Volkshochschule.",leitpunkte:["Erklären Sie Ihr Interesse am Kurs.","Fragen Sie nach Zeiten und Kosten.","Fragen Sie nach Vorkenntnissen.","Bitten Sie um Infos zur Anmeldung."],beispiel_anrede:"Sehr geehrte Damen und Herren,",beispiel_gruss:"Mit freundlichen Grüßen,\n[Ihr Name]",bewertungskriterien:["Wurden alle 4 Leitpunkte bearbeitet?","Ist der Brief formell?","Sind alle Infos enthalten?","Sind Grammatik und Rechtschreibung korrekt?"],woerter_min:150,woerter_max:200,hinweise:"150–200 Wörter. Formelle Anrede."},
+    5:{thema:"Beschwerde ans Ordnungsamt — Lärm",situation:"In Ihrer Straße wird seit Wochen nachts sehr laut gefeiert. Sie können nicht schlafen. Schreiben Sie an das Ordnungsamt.",leitpunkte:["Beschreiben Sie das Lärmproblem.","Erklären Sie die Auswirkungen auf Ihren Alltag.","Fragen Sie, was dagegen getan werden kann.","Bitten Sie um schnelle Reaktion."],beispiel_anrede:"Sehr geehrte Damen und Herren,",beispiel_gruss:"Mit freundlichen Grüßen,\n[Ihr Name]",bewertungskriterien:["Wurden alle 4 Leitpunkte bearbeitet?","Ist der Ton sachlich und höflich?","Ist die Beschwerde klar?","Sind Grammatik und Rechtschreibung korrekt?"],woerter_min:150,woerter_max:200,hinweise:"150–200 Wörter. Höflich bleiben."},
+  };
+  return tasks[tn] || tasks[1];
+}
+
+function renderSchreiben() {
+  if (!aufgabe) return;
+  const container = document.getElementById('schreibenArea');
+
+  const lp_html = aufgabe.leitpunkte.map((lp, i) => `
+    <li class="lp-item" id="lp${i}">
+      <span class="lp-num">${i + 1}</span>
+      <span class="lp-text">${esc(lp)}</span>
+      <span class="lp-check" id="lpChk${i}">○</span>
+    </li>`).join('');
+
+  const kr_html = aufgabe.bewertungskriterien.map(k => `
+    <div class="kr-item"><span class="kr-icon">📋</span><span>${esc(k)}</span></div>`).join('');
+
+  container.innerHTML = `
+    <div class="sch-wrap">
+
+      <!-- AUFGABE -->
+      <div class="sch-card">
+        <div class="sch-card-head">
+          <span style="font-size:22px">📋</span>
+          <h3>Aufgabe: ${esc(aufgabe.thema)}</h3>
+        </div>
+        <div class="sch-card-body">
+          <div class="situation-box">${esc(aufgabe.situation)}</div>
+        </div>
+      </div>
+
+      <!-- LEITPUNKTE -->
+      <div class="sch-card">
+        <div class="sch-card-head">
+          <span style="font-size:22px">✅</span>
+          <h3>Leitpunkte — alle 4 müssen bearbeitet werden</h3>
+        </div>
+        <div class="sch-card-body">
+          <ul class="lp-list">${lp_html}</ul>
+          <div style="margin-top:12px;font-size:12px;color:var(--muted);font-style:italic;">
+            💡 ${esc(aufgabe.hinweise)}
+          </div>
+        </div>
+      </div>
+
+      <!-- EDITOR -->
+      <div class="sch-card">
+        <div class="sch-card-head">
+          <span style="font-size:22px">✍️</span>
+          <h3>Ihr Brief</h3>
+        </div>
+        <div class="sch-card-body">
+          <div class="anrede-hint">
+            <span>📌</span>
+            <span>Empfohlene Anrede: <strong>${esc(aufgabe.beispiel_anrede)}</strong></span>
+            <button class="btn-insert" onclick="insertAnrede()">Einfügen ↓</button>
+          </div>
+
+          <div class="editor-wrap">
+            <textarea class="brief-editor" id="briefEditor"
+              placeholder="Beginnen Sie hier mit Ihrem Brief…&#10;&#10;Denken Sie an:&#10;• Anrede&#10;• Alle 4 Leitpunkte&#10;• Grußformel&#10;• 150–200 Wörter"
+              oninput="onBriefInput()" spellcheck="true" lang="de"></textarea>
+          </div>
+
+          <div class="wc-bar" id="wcBar">
+            <div>
+              <div class="wc-count" id="wcCount">0</div>
+              <div class="wc-label">Wörter</div>
+            </div>
+            <div class="wc-progress">
+              <div class="wc-fill" id="wcFill" style="width:0%"></div>
+            </div>
+            <div style="text-align:right">
+              <div class="wc-count" style="font-size:14px;color:var(--muted)">
+                ${aufgabe.woerter_min}–${aufgabe.woerter_max}
+              </div>
+              <div class="wc-label">Ziel</div>
+            </div>
+          </div>
+
+          <div class="gruss-hint">
+            <span>👋</span>
+            <span>Vergessen Sie die Grußformel nicht: <strong>${esc(aufgabe.beispiel_gruss.split('\n')[0])}</strong></span>
+            <button class="btn-insert" onclick="insertGruss()">Einfügen ↓</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- DOWNLOAD -->
+      <div class="sch-card">
+        <div class="sch-card-head">
+          <span style="font-size:22px">📥</span>
+          <h3>Brief herunterladen</h3>
+        </div>
+        <div class="sch-card-body download-section">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:4px;">
+            Laden Sie Ihren Brief als Textdatei herunter — mit Aufgabe, Leitpunkten und Auswertung.
+            Die Datei kann als Prüfungsunterlage verwendet werden.
+          </div>
+          <button class="dl-btn dl-txt" id="btnDlTxt" onclick="downloadBrief()" disabled>
+            ⬇️ Brief herunterladen (.txt)
+          </button>
+          <button class="dl-btn dl-copy" onclick="copyBrief()">
+            📋 Brief in Zwischenablage kopieren
+          </button>
+          <div class="dl-done-msg" id="dlDoneMsg">
+            ✅ Brief erfolgreich heruntergeladen!
+          </div>
+        </div>
+      </div>
+
+      <!-- BEWERTUNGSKRITERIEN -->
+      <div class="sch-card">
+        <div class="sch-card-head">
+          <span style="font-size:22px">🎯</span>
+          <h3>Bewertungskriterien (Prüfer-Checkliste)</h3>
+        </div>
+        <div class="sch-card-body">
+          <div class="kriterien-grid">${kr_html}</div>
+          <div style="margin-top:14px;padding:12px;background:#fff7ed;border-radius:10px;
+               border:1px solid #fed7aa;font-size:12.5px;color:#7c2d12;line-height:1.6;">
+            <strong>⚠️ Hinweis:</strong> Die automatische Leitpunkt-Prüfung oben ist eine
+            Orientierungshilfe. Die offizielle Bewertung erfolgt durch einen zertifizierten
+            Goethe-Institut-Prüfer nach den offiziellen Kriterien.
+          </div>
+        </div>
+      </div>
+
+    </div>`;
+
+  updateWC();
+}
+
+function onBriefInput() {
+  updateWC();
+  checkLeitpunkte();
+  briefSaved = false;
+  const txt = getBriefText();
+  document.getElementById('btnDlTxt').disabled = txt.trim().length < 10;
+  updProg(); // Update submit button state
+}
+
+function getBriefText() {
+  const el = document.getElementById('briefEditor');
+  return el ? el.value : '';
+}
+
+function countWords(text) {
+  return text.trim() ? text.trim().split(/\s+/).length : 0;
+}
+
+function updateWC() {
+  const txt = getBriefText();
+  const wc = countWords(txt);
+  const min = aufgabe ? aufgabe.woerter_min : 150;
+  const max = aufgabe ? aufgabe.woerter_max : 200;
+  const pct = Math.min(100, Math.round((wc / max) * 100));
+
+  const el = document.getElementById('wcCount');
+  const bar = document.getElementById('wcBar');
+  const fill = document.getElementById('wcFill');
+  const editor = document.getElementById('briefEditor');
+  if (!el) return;
+
+  el.textContent = wc;
+  fill.style.width = pct + '%';
+
+  if (wc === 0)               { fill.style.background='var(--border)';    bar.className='wc-bar';        editor.className='brief-editor'; }
+  else if (wc < min)          { fill.style.background='var(--gold)';       bar.className='wc-bar wc-low'; editor.className='brief-editor warn'; }
+  else if (wc <= max)         { fill.style.background='var(--green)';      bar.className='wc-bar wc-ok';  editor.className='brief-editor good'; }
+  else                        { fill.style.background='var(--red)';        bar.className='wc-bar wc-over';editor.className='brief-editor over'; }
+
+  el.style.color = wc < min ? '#92400e' : wc <= max ? 'var(--green)' : 'var(--red)';
+}
+
+function checkLeitpunkte() {
+  if (!aufgabe) return;
+  const txt = getBriefText().toLowerCase();
+  aufgabe.leitpunkte.forEach((lp, i) => {
+    const words = lp.toLowerCase().replace(/[.,!?]/g,'').split(/\s+/).filter(w=>w.length>4);
+    const hits  = words.filter(w => txt.includes(w)).length;
+    const done  = hits >= Math.max(1, Math.floor(words.length * 0.35));
+    const item  = document.getElementById('lp'+i);
+    const chk   = document.getElementById('lpChk'+i);
+    if (!item || !chk) return;
+    item.classList.toggle('lp-done', done);
+    item.classList.toggle('lp-skip', !done && txt.length > 80);
+    chk.textContent = done ? '✓' : (txt.length > 80 ? '✗' : '○');
+  });
+}
+
+function insertAnrede() {
+  const el = document.getElementById('briefEditor');
+  if (!el || !aufgabe) return;
+  const anrede = aufgabe.beispiel_anrede + '\n\n';
+  if (!el.value.startsWith(aufgabe.beispiel_anrede)) {
+    el.value = anrede + el.value;
+    onBriefInput();
+  }
+  el.focus();
+}
+
+function insertGruss() {
+  const el = document.getElementById('briefEditor');
+  if (!el || !aufgabe) return;
+  const gruss = '\n\n' + aufgabe.beispiel_gruss;
+  if (!el.value.includes(aufgabe.beispiel_gruss.split('\n')[0])) {
+    el.value = el.value.trimEnd() + gruss;
+    onBriefInput();
+  }
+  el.focus();
+}
+
+async function downloadBrief() {
+  const txt = getBriefText();
+  if (!txt.trim() || !aufgabe) return;
+
+  const btn = document.getElementById('btnDlTxt');
+  btn.disabled = true;
+  btn.textContent = '⏳ Wird erstellt…';
+
+  try {
+    const res = await fetch(API + '/schreiben/download-pdf/' + selTest, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ test_number: selTest, user_name: userName, text: txt })
+    });
+
+    if (res.ok) {
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `Brief_Test${selTest}_${userName.replace(/\s+/g,'_')}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+      document.getElementById('dlDoneMsg').classList.add('show');
+      briefSaved = true;
+      setTimeout(() => document.getElementById('dlDoneMsg').classList.remove('show'), 4000);
+    } else {
+      throw new Error('Server error');
+    }
+  } catch {
+    // Offline fallback — build & download locally
+    const content = buildLocalDownload(txt);
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `Brief_Test${selTest}_${userName.replace(/\s+/g,'_')}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    document.getElementById('dlDoneMsg').classList.add('show');
+    briefSaved = true;
+    setTimeout(() => document.getElementById('dlDoneMsg').classList.remove('show'), 4000);
+  }
+
+  btn.disabled = false;
+  btn.textContent = '⬇️ Brief herunterladen (.txt)';
+}
+
+function buildLocalDownload(text) {
+  if (!aufgabe) return text;
+  const sep  = '='.repeat(60);
+  const sep2 = '-'.repeat(60);
+  const wc   = countWords(text);
+  const now  = new Date().toLocaleString('de-DE');
+  const lps  = aufgabe.leitpunkte.map((lp,i)=>`  ${i+1}. ${lp}`).join('\n');
+  const krs  = aufgabe.bewertungskriterien.map(k=>`  • ${k}`).join('\n');
+  const wok  = aufgabe.woerter_min <= wc && wc <= aufgabe.woerter_max;
+  return `${sep}
+GOETHE-ZERTIFIKAT B1 — SCHRIFTLICHER AUSDRUCK
+${sep}
+Teilnehmer:  ${userName}
+Test:        Test ${selTest} — ${aufgabe.thema}
+Datum:       ${now}
+${sep}
+
+AUFGABE (Teil 4 — Brief schreiben)
+${sep2}
+${aufgabe.situation}
+
+LEITPUNKTE:
+${lps}
+
+HINWEIS: ${aufgabe.hinweise}
+${sep2}
+
+IHR BRIEF
+${sep2}
+${aufgabe.beispiel_anrede}
+
+${text || '[Kein Text eingegeben]'}
+
+${aufgabe.beispiel_gruss}
+${sep2}
+
+AUSWERTUNG
+${sep2}
+Wörteranzahl:  ${wc} Wörter  ${wok?'✓':'⚠'}  (Ziel: ${aufgabe.woerter_min}–${aufgabe.woerter_max})
+
+Bewertungskriterien:
+${krs}
+${sep}
+Erstellt mit Deutsch B1 Übungstest
+${sep}
+`;
+}
+
+function copyBrief() {
+  const txt = getBriefText();
+  if (!txt.trim()) { toast('⚠️ Bitte zuerst einen Brief schreiben.'); return; }
+  navigator.clipboard.writeText(txt).then(() => {
+    toast('📋 Brief in Zwischenablage kopiert!');
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = txt;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('📋 Brief kopiert!');
+  });
+}
+
+buildGrid();
+</script>
+</body>
+</html>

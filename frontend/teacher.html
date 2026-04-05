@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lehrer-Dashboard — Deutsch B1</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#181825;--ink2:#2a2a40;--cream:#faf8f2;--gold:#c8a84b;--gold-dim:#f0e3bc;
+  --blue:#1d4ed8;--blue-dim:#eff6ff;--green:#166534;--green-dim:#dcfce7;
+  --red:#991b1b;--red-dim:#fee2e2;--violet:#5b21b6;--violet-dim:#ede9fe;
+  --border:#e2ddd2;--muted:#6b7280;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:var(--ink);min-height:100vh;line-height:1.5;}
+
+/* HEADER */
+.header{background:var(--ink);padding:20px 24px;color:#fff;}
+.header-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;}
+.header h1{font-family:'Playfair Display',serif;font-size:24px;font-weight:900;}
+.header h1 em{color:var(--gold);font-style:normal;}
+.header-nav a{color:rgba(255,255,255,.7);text-decoration:none;margin-left:18px;font-size:13px;transition:color .2s;}
+.header-nav a:hover{color:#fff;}
+
+/* STATS */
+.stats-wrap{max-width:1200px;margin:24px auto;padding:0 24px;}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px;}
+.stat-card{background:#fff;border-radius:14px;padding:18px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.stat-val{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:var(--gold);line-height:1;}
+.stat-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:6px;}
+
+/* FILTERS */
+.filters{background:#fff;border-radius:14px;padding:16px 20px;border:1px solid var(--border);margin-bottom:24px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+.filter-grp{display:flex;gap:8px;align-items:center;}
+.filter-grp label{font-size:12px;color:var(--muted);font-weight:600;}
+select,input[type="text"],input[type="number"]{padding:8px 12px;border-radius:8px;border:1.5px solid var(--border);font-family:inherit;font-size:13px;background:#faf8f2;outline:none;transition:border-color .2s;}
+select:focus,input:focus{border-color:var(--gold);}
+.btn{padding:9px 18px;border-radius:9px;border:none;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-pri{background:var(--ink);color:#fff;}
+.btn-pri:hover{background:var(--ink2);}
+.btn-sec{background:#fff;border:1.5px solid var(--border);color:var(--ink);}
+.btn-sec:hover{border-color:var(--gold);background:var(--gold-dim);}
+
+/* TABLE */
+.table-card{background:#fff;border-radius:14px;border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);margin-bottom:24px;}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead{background:var(--ink);color:#fff;}
+th{padding:11px 14px;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;}
+td{padding:12px 14px;border-bottom:1px solid var(--border);font-size:13.5px;}
+tbody tr:hover{background:#faf8f2;}
+tbody tr:last-child td{border-bottom:none;}
+.badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:600;}
+.badge-pass{background:var(--green-dim);color:var(--green);}
+.badge-fail{background:var(--red-dim);color:var(--red);}
+.btn-view{padding:6px 12px;border-radius:7px;border:1.5px solid var(--border);background:#fff;font-size:12px;cursor:pointer;transition:all .2s;}
+.btn-view:hover{border-color:var(--gold);background:var(--gold-dim);}
+
+/* MODAL */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal{background:#fff;border-radius:16px;max-width:900px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;z-index:10;}
+.modal-header h2{font-family:'Playfair Display',serif;font-size:20px;}
+.modal-close{background:none;border:none;font-size:24px;cursor:pointer;color:var(--muted);transition:color .2s;}
+.modal-close:hover{color:var(--ink);}
+.modal-body{padding:24px;}
+
+/* STUDENT INFO */
+.student-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px;background:#f9f7f2;border-radius:12px;padding:16px;}
+.si-item{}
+.si-val{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--ink);}
+.si-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;margin-top:4px;}
+
+/* MISTAKES */
+.mistakes-sec{margin-top:24px;}
+.mistakes-sec h3{font-family:'Playfair Display',serif;font-size:16px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.mistake-card{background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:16px;margin-bottom:12px;}
+.mistake-card.correct{background:var(--green-dim);border-color:#86efac;}
+.mq-text{font-weight:600;font-size:14.5px;margin-bottom:10px;}
+.mq-context{background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 12px;font-size:13px;color:#431407;margin-bottom:12px;font-style:italic;}
+.mq-row{display:flex;gap:16px;flex-wrap:wrap;}
+.mq-answer{flex:1;min-width:200px;}
+.mq-answer strong{font-size:11px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;}
+.mq-val{padding:8px 12px;border-radius:8px;font-size:13.5px;}
+.mq-val.wrong{background:var(--red-dim);color:var(--red);border:1px solid #fca5a5;}
+.mq-val.right{background:var(--green-dim);color:var(--green);border:1px solid #86efac;}
+.mq-explanation{background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:12px;margin-top:12px;font-size:13px;color:#0c4a6e;}
+.mq-explanation strong{display:block;margin-bottom:6px;font-size:11px;text-transform:uppercase;color:#0369a1;}
+
+/* BY TEST STATS */
+.by-test{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px;}
+.bt-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;}
+.bt-test{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--gold);margin-bottom:8px;}
+.bt-stat{font-size:12px;color:var(--muted);margin-top:4px;}
+.bt-stat strong{color:var(--ink);}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:48px 24px;color:var(--muted);}
+.empty-state h3{font-family:'Playfair Display',serif;font-size:18px;margin-bottom:8px;color:var(--ink);}
+
+/* LOADING */
+.loading{text-align:center;padding:48px;}
+.loading-spinner{width:40px;height:40px;border:3px solid var(--gold-dim);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:12px 20px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:2000;display:none;}
+.toast.show{display:block;animation:fadein .3s ease;}
+@keyframes fadein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:768px){
+  .header-inner{flex-direction:column;align-items:flex-start;gap:10px;}
+  .header-nav{margin-top:8px;}
+  .header-nav a{margin-left:0;margin-right:14px;}
+  .filters{flex-direction:column;align-items:stretch;}
+  .filter-grp{flex-direction:column;align-items:stretch;}
+  .mq-row{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <h1>Lehrer-Dashboard — Deutsch <em>B1</em></h1>
+    <nav class="header-nav">
+      <a href="/">→ Zum Test</a>
+      <a href="/leaderboard">→ Rangliste</a>
+    </nav>
+  </div>
+</header>
+
+<div class="stats-wrap">
+  <!-- Stats Grid -->
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card">
+      <div class="stat-val" id="statTotal">-</div>
+      <div class="stat-lbl">Gesamte Versuche</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="statPassed">-</div>
+      <div class="stat-lbl">Bestanden</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="statRate">-</div>
+      <div class="stat-lbl">Bestehensquote</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="statAvg">-</div>
+      <div class="stat-lbl">Ø Punkte</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="statStudents">-</div>
+      <div class="stat-lbl">Schüler</div>
+    </div>
+  </div>
+
+  <!-- By Test Stats -->
+  <div class="by-test" id="byTestStats"></div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="filter-grp">
+      <label>Test:</label>
+      <select id="filterTest" onchange="loadSessions()">
+        <option value="">Alle</option>
+        <option value="1">Test 1</option>
+        <option value="2">Test 2</option>
+        <option value="3">Test 3</option>
+        <option value="4">Test 4</option>
+        <option value="5">Test 5</option>
+      </select>
+    </div>
+    <div class="filter-grp">
+      <label>Status:</label>
+      <select id="filterStatus" onchange="loadSessions()">
+        <option value="">Alle</option>
+        <option value="true">Bestanden ✓</option>
+        <option value="false">Nicht bestanden ✗</option>
+      </select>
+    </div>
+    <div class="filter-grp">
+      <label>Name:</label>
+      <input type="text" id="filterName" placeholder="Suchen..." oninput="loadSessions()">
+    </div>
+    <button class="btn btn-sec" onclick="loadSessions()">↻ Aktualisieren</button>
+    <button class="btn btn-sec" onclick="exportCSV()">📥 CSV Export</button>
+  </div>
+
+  <!-- Sessions Table -->
+  <div class="table-card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Schüler</th>
+            <th>Test</th>
+            <th>Datum</th>
+            <th>Zeit</th>
+            <th>Punkte</th>
+            <th>%</th>
+            <th>Status</th>
+            <th>Fehler</th>
+            <th>Aktion</th>
+          </tr>
+        </thead>
+        <tbody id="sessionsBody">
+          <tr><td colspan="10" class="loading"><div class="loading-spinner"></div>Lade Daten...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for Details -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Details</h2>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <div class="loading"><div class="loading-spinner"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '/api/teacher';
+let allSessions = [];
+
+/* LOAD STATS */
+async function loadStats() {
+  try {
+    const r = await fetch(API + '/stats/overview');
+    const stats = await r.json();
+    
+    document.getElementById('statTotal').textContent = stats.total_attempts;
+    document.getElementById('statPassed').textContent = stats.total_passed;
+    document.getElementById('statRate').textContent = stats.pass_rate + '%';
+    document.getElementById('statAvg').textContent = stats.avg_score;
+    
+    // Load students count
+    const sr = await fetch(API + '/students');
+    const sdata = await sr.json();
+    document.getElementById('statStudents').textContent = sdata.total_students;
+    
+    // By test stats
+    const btContainer = document.getElementById('byTestStats');
+    if (stats.by_test.length > 0) {
+      btContainer.innerHTML = stats.by_test.map(bt => `
+        <div class="bt-card">
+          <div class="bt-test">Test ${bt.test_number}</div>
+          <div class="bt-stat">${bt.attempts} Versuche</div>
+          <div class="bt-stat"><strong>${bt.pass_rate}%</strong> bestanden</div>
+          <div class="bt-stat">Ø ${bt.avg_score} Pkt</div>
+        </div>
+      `).join('');
+    } else {
+      btContainer.innerHTML = '<div class="empty-state"><h3>Keine Daten verfügbar</h3><p>Noch keine Testergebnisse vorhanden.</p></div>';
+    }
+  } catch (e) {
+    console.error('Stats error:', e);
+    toast('⚠️ Fehler beim Laden der Statistiken');
+  }
+}
+
+/* LOAD SESSIONS */
+async function loadSessions() {
+  const testNum = document.getElementById('filterTest').value;
+  const status = document.getElementById('filterStatus').value;
+  const name = document.getElementById('filterName').value;
+  
+  let url = API + '/sessions?limit=200';
+  if (testNum) url += '&test_number=' + testNum;
+  if (status !== '') url += '&passed=' + status;
+  if (name) url += '&user_name=' + encodeURIComponent(name);
+  
+  try {
+    const r = await fetch(url);
+    const data = await r.json();
+    allSessions = data.sessions;
+    
+    const tbody = document.getElementById('sessionsBody');
+    if (allSessions.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="10" class="empty-state"><h3>Keine Ergebnisse</h3><p>Noch keine Tests abgeschlossen.</p></td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = allSessions.map((s, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td><strong>${esc(s.user_name)}</strong></td>
+        <td><span class="tchip">Test ${s.test_number}</span></td>
+        <td>${formatDate(s.finished_at)}</td>
+        <td>${formatDuration(s.duration_seconds)}</td>
+        <td>${s.score}/${s.total_questions}</td>
+        <td><strong>${s.percentage?.toFixed(1) || 0}%</strong></td>
+        <td>${s.passed ? '<span class="badge badge-pass">Bestanden ✓</span>' : '<span class="badge badge-fail">Nicht bestanden ✗</span>'}</td>
+        <td id="mistakes-${s.id}">-</td>
+        <td><button class="btn-view" onclick="viewDetails(${s.id})">👁 Ansehen</button></td>
+      </tr>
+    `).join('');
+    
+    // Load mistake counts
+    allSessions.forEach(s => {
+      loadMistakeCount(s.id);
+    });
+  } catch (e) {
+    console.error('Sessions error:', e);
+    toast('⚠️ Fehler beim Laden der Ergebnisse');
+  }
+}
+
+async function loadMistakeCount(sessionId) {
+  try {
+    const r = await fetch(API + '/sessions/' + sessionId + '/details');
+    const data = await r.json();
+    const count = data.mistakes ? data.mistakes.length : 0;
+    const cell = document.getElementById('mistakes-' + sessionId);
+    if (cell) {
+      cell.innerHTML = count > 0 
+        ? '<span style="color:var(--red);font-weight:600;">' + count + ' Fehler</span>'
+        : '<span style="color:var(--green);font-weight:600;">Perfekt! ✓</span>';
+    }
+  } catch {}
+}
+
+/* VIEW DETAILS */
+async function viewDetails(sessionId) {
+  const overlay = document.getElementById('modalOverlay');
+  const modalBody = document.getElementById('modalBody');
+  const session = allSessions.find(s => s.id === sessionId);
+  
+  document.getElementById('modalTitle').textContent = session.user_name + ' — Test ' + session.test_number;
+  modalBody.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
+  overlay.classList.add('show');
+  
+  try {
+    const r = await fetch(API + '/sessions/' + sessionId + '/details');
+    const data = await r.json();
+
+    // Student info
+    const infoHtml = `
+      <div class="student-info">
+        <div class="si-item">
+          <div class="si-val">${data.percentage?.toFixed(1) || 0}%</div>
+          <div class="si-lbl">Ergebnis</div>
+        </div>
+        <div class="si-item">
+          <div class="si-val">${data.score}/${data.total_questions}</div>
+          <div class="si-lbl">Punkte</div>
+        </div>
+        <div class="si-item">
+          <div class="si-val">${formatDuration(data.duration_seconds)}</div>
+          <div class="si-lbl">Zeit</div>
+        </div>
+        <div class="si-item">
+          <div class="si-val" style="color:${data.passed ? 'var(--green)' : 'var(--red)'}">${data.passed ? 'Bestanden ✓' : 'Nicht bestanden ✗'}</div>
+          <div class="si-lbl">Status</div>
+        </div>
+        <div class="si-item">
+          <div class="si-val">${data.teil1_score || 0}/20</div>
+          <div class="si-lbl">Teil 1</div>
+        </div>
+        <div class="si-item">
+          <div class="si-val">${data.teil2_score || 0}/10</div>
+          <div class="si-lbl">Teil 2</div>
+        </div>
+        <div class="si-item">
+          <div class="si-val">${data.teil3_score || 0}/15</div>
+          <div class="si-lbl">Teil 3</div>
+        </div>
+        <div class="si-item">
+          <div class="si-val">${data.teil4_score || 0}/10</div>
+          <div class="si-lbl">Teil 4</div>
+        </div>
+        <div class="si-item">
+          <div class="si-val">${data.mistakes.length}</div>
+          <div class="si-lbl">Fehler</div>
+        </div>
+        <div class="si-item">
+          <div class="si-val">${formatDate(data.finished_at)}</div>
+          <div class="si-lbl">Datum</div>
+        </div>
+      </div>
+    `;
+
+    // Teil 4 - Brief anzeigen
+    const briefText = data.answers_json?.schreiben || '';
+    const briefHtml = briefText ? `
+      <div class="mistakes-sec">
+        <h3>✍️ Teil 4 — Brief von ${esc(data.user_name)}</h3>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:12px;">
+          <div style="white-space:pre-wrap;font-family:'Source Serif 4',serif;font-size:14px;line-height:1.7;color:var(--ink);">${esc(briefText)}</div>
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);">
+            <strong>📊 Wörter:</strong> ${briefText.trim().split(/\s+/).length} | 
+            <strong>📝 Zeichen:</strong> ${briefText.length}
+          </div>
+        </div>
+      </div>
+    ` : '';
+    
+    // Mistakes by section
+    const mistakesByTeil = { 1: [], 2: [], 3: [], 4: [] };
+    data.mistakes.forEach(m => {
+      const teil = m.teil || 1;
+      if (!mistakesByTeil[teil]) mistakesByTeil[teil] = [];
+      mistakesByTeil[teil].push(m);
+    });
+    
+    let mistakesHtml = '';
+    const teilNames = {
+      1: 'Teil 1 — Multiple Choice',
+      2: 'Teil 2 — Richtig/Falsch',
+      3: 'Teil 3 — Leseverstehen',
+      4: 'Teil 4 — Schreiben'
+    };
+    
+    for (let t = 1; t <= 4; t++) {
+      if (mistakesByTeil[t].length > 0) {
+        mistakesHtml += `
+          <div class="mistakes-sec">
+            <h3>🔴 ${teilNames[t]} (${mistakesByTeil[t].length} Fehler)</h3>
+            ${mistakesByTeil[t].map(m => renderMistake(m)).join('')}
+          </div>
+        `;
+      }
+    }
+    
+    if (data.mistakes.length === 0) {
+      mistakesHtml = '<div class="empty-state"><h3>🎉 Perfekt!</h3><p>Keine Fehler gefunden. Ausgezeichnete Arbeit!</p></div>';
+    }
+
+    modalBody.innerHTML = infoHtml + briefHtml + mistakesHtml;
+  } catch (e) {
+    console.error('Details error:', e);
+    modalBody.innerHTML = '<div class="empty-state"><h3>⚠️ Fehler</h3><p>Details konnten nicht geladen werden.</p></div>';
+  }
+}
+
+function renderMistake(m) {
+  const isRF = m.teil === 2;
+  let userAnswerDisplay, correctAnswerDisplay;
+  
+  if (isRF) {
+    userAnswerDisplay = m.user_answer === 'true' ? '✓ Richtig' : '✗ Falsch';
+    correctAnswerDisplay = m.correct_answer ? '✓ Richtig' : '✗ Falsch';
+  } else {
+    const letters = ['a', 'b', 'c'];
+    const userLetter = m.user_answer;
+    const correctLetter = m.correct_letter || letters[m.correct_answer];
+    userAnswerDisplay = letters[m.user_answer] || m.user_answer;
+    correctAnswerDisplay = correctLetter;
+  }
+  
+  const contextHtml = m.context ? `<div class="mq-context">"${esc(m.context)}"</div>` : '';
+  const explanationHtml = m.explanation ? `
+    <div class="mq-explanation">
+      <strong>💡 Erklärung:</strong>
+      ${esc(m.explanation)}
+    </div>
+  ` : '';
+  
+  const optionsHtml = m.options && m.options.length > 0 ? `
+    <div style="margin-top:8px;font-size:12px;color:var(--muted);">
+      <strong>Optionen:</strong>
+      ${m.options.map((o, i) => `<span style="margin-right:12px;"><strong>${['a','b','c'][i]})</strong> ${esc(o)}</span>`).join('')}
+    </div>
+  ` : '';
+  
+  return `
+    <div class="mistake-card">
+      <div class="mq-text">Frage ${m.question_id}: ${esc(m.question_text)}</div>
+      ${contextHtml}
+      <div class="mq-row">
+        <div class="mq-answer">
+          <strong>Ihre Antwort:</strong>
+          <div class="mq-val wrong">${esc(userAnswerDisplay)}</div>
+          ${optionsHtml}
+        </div>
+        <div class="mq-answer">
+          <strong>Richtige Antwort:</strong>
+          <div class="mq-val right">${esc(correctAnswerDisplay)}</div>
+        </div>
+      </div>
+      ${explanationHtml}
+    </div>
+  `;
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
+/* EXPORT CSV */
+function exportCSV() {
+  if (allSessions.length === 0) {
+    toast('⚠️ Keine Daten zum Exportieren');
+    return;
+  }
+  
+  const headers = ['ID', 'Name', 'Test', 'Datum', 'Zeit (s)', 'Punkte', 'Prozent', 'Bestanden', 'Fehler'];
+  const rows = allSessions.map(s => [
+    s.id,
+    s.user_name,
+    s.test_number,
+    s.finished_at,
+    s.duration_seconds,
+    s.score,
+    s.percentage,
+    s.passed ? 'Ja' : 'Nein',
+    ''
+  ]);
+  
+  const csv = [headers, ...rows].map(row => row.map(cell => {
+    if (typeof cell === 'string' && cell.includes(',')) return `"${cell}"`;
+    return cell;
+  }).join(',')).join('\n');
+  
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'ergebnisse_' + new Date().toISOString().split('T')[0] + '.csv';
+  link.click();
+  
+  toast('📥 CSV exportiert!');
+}
+
+/* HELPERS */
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatDate(iso) {
+  if (!iso) return '-';
+  const d = new Date(iso);
+  return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function formatDuration(sec) {
+  if (!sec) return '-';
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}'${s.toString().padStart(2, '0')}''`;
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+/* INIT */
+loadStats();
+loadSessions();
+</script>
+</body>
+</html>

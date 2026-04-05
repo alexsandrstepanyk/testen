@@ -1,0 +1,46 @@
+# Render.com ignore file
+# Files that should not be deployed
+
+# Development files
+*.md
+!requirements.txt
+!Dockerfile
+!render.yaml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.eggs/
+*.egg-info/
+venv/
+env/
+ENV/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database (SQLite - не потрібно для production)
+*.db
+*.sqlite
+*.sqlite3
