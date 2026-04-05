@@ -103,7 +103,8 @@ def build_test_report_pdf(session, questions):
 
     schreiben_text = extract_schreiben_text(answers)
     ensure_space(120)
-    write_line("Teil 4 - Ihr Brief", size=13, bold=True, gap=18)
+    y -= 4
+    write_line("Teil 4 - Ihr Brief", bold=True, gap=16)
     if schreiben_text:
         write_wrapped(schreiben_text, size=10, width_chars=100)
     else:
