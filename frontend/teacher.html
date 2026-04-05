@@ -237,10 +237,21 @@ tbody tr:last-child td{border-bottom:none;}
 const API = '/api/teacher';
 let allSessions = [];
 
+async function apiFetch(url) {
+  const response = await fetch(url);
+  if (response.status === 401) {
+    throw new Error('auth');
+  }
+  if (!response.ok) {
+    throw new Error('request');
+  }
+  return response;
+}
+
 /* LOAD STATS */
 async function loadStats() {
   try {
-    const r = await fetch(API + '/stats/overview');
+    const r = await apiFetch(API + '/stats/overview');
     const stats = await r.json();
     
     document.getElementById('statTotal').textContent = stats.total_attempts;
@@ -249,7 +260,7 @@ async function loadStats() {
     document.getElementById('statAvg').textContent = stats.avg_score;
     
     // Load students count
-    const sr = await fetch(API + '/students');
+    const sr = await apiFetch(API + '/students');
     const sdata = await sr.json();
     document.getElementById('statStudents').textContent = sdata.total_students;
     
@@ -269,7 +280,7 @@ async function loadStats() {
     }
   } catch (e) {
     console.error('Stats error:', e);
-    toast('⚠️ Fehler beim Laden der Statistiken');
+    toast(e.message === 'auth' ? '🔒 Bitte Seite neu laden und mit admin / admin anmelden.' : '⚠️ Fehler beim Laden der Statistiken');
   }
 }
 
@@ -285,7 +296,7 @@ async function loadSessions() {
   if (name) url += '&user_name=' + encodeURIComponent(name);
   
   try {
-    const r = await fetch(url);
+    const r = await apiFetch(url);
     const data = await r.json();
     allSessions = data.sessions;
     
@@ -316,13 +327,13 @@ async function loadSessions() {
     });
   } catch (e) {
     console.error('Sessions error:', e);
-    toast('⚠️ Fehler beim Laden der Ergebnisse');
+    toast(e.message === 'auth' ? '🔒 Bitte Seite neu laden und mit admin / admin anmelden.' : '⚠️ Fehler beim Laden der Ergebnisse');
   }
 }
 
 async function loadMistakeCount(sessionId) {
   try {
-    const r = await fetch(API + '/sessions/' + sessionId + '/details');
+    const r = await apiFetch(API + '/sessions/' + sessionId + '/details');
     const data = await r.json();
     const count = data.mistakes ? data.mistakes.length : 0;
     const cell = document.getElementById('mistakes-' + sessionId);
@@ -345,7 +356,7 @@ async function viewDetails(sessionId) {
   overlay.classList.add('show');
   
   try {
-    const r = await fetch(API + '/sessions/' + sessionId + '/details');
+    const r = await apiFetch(API + '/sessions/' + sessionId + '/details');
     const data = await r.json();
 
     // Student info
@@ -395,7 +406,8 @@ async function viewDetails(sessionId) {
     `;
 
     // Teil 4 - Brief anzeigen
-    const briefText = data.answers_json?.schreiben || '';
+    const briefValue = data.answers_json?.schreiben;
+    const briefText = typeof briefValue === 'string' ? briefValue : (briefValue?.text || '');
     const briefHtml = briefText ? `
       <div class="mistakes-sec">
         <h3>✍️ Teil 4 — Brief von ${esc(data.user_name)}</h3>
@@ -443,7 +455,9 @@ async function viewDetails(sessionId) {
     modalBody.innerHTML = infoHtml + briefHtml + mistakesHtml;
   } catch (e) {
     console.error('Details error:', e);
-    modalBody.innerHTML = '<div class="empty-state"><h3>⚠️ Fehler</h3><p>Details konnten nicht geladen werden.</p></div>';
+    modalBody.innerHTML = e.message === 'auth'
+      ? '<div class="empty-state"><h3>🔒 Anmeldung nötig</h3><p>Bitte Seite neu laden und mit admin / admin anmelden.</p></div>'
+      : '<div class="empty-state"><h3>⚠️ Fehler</h3><p>Details konnten nicht geladen werden.</p></div>';
   }
 }
 
