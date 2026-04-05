@@ -15,6 +15,9 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:var(--ink);min-height:100vh;line-height:1.5;}
 .screen{display:none;}.screen.active{display:block;}
+.site-footer{padding:28px 16px 34px;text-align:center;color:var(--muted);font-size:13px;}
+.site-footer a{color:var(--ink);font-weight:600;text-decoration:none;border-bottom:1px solid rgba(24,24,37,.18);}
+.site-footer a:hover{border-bottom-color:var(--gold);color:var(--gold);}
 
 /* START */
 .start-bg{min-height:100vh;background:var(--ink);
@@ -1191,5 +1194,8 @@ function copyBrief() {
 
 buildGrid();
 </script>
+<footer class="site-footer">
+  Entwickelt von Stepaniuk Oleksandr · <a href="https://stepaniuk.shop" target="_blank" rel="noopener noreferrer">stepaniuk.shop</a>
+</footer>
 </body>
 </html>
