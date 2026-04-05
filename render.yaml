@@ -21,6 +21,10 @@ services:
         fromDatabase:
           name: deutsch-b1-db
           property: connectionString
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
 
 databases:
   # PostgreSQL Database
