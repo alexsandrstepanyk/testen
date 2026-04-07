@@ -49,17 +49,84 @@ def build_test_report_pdf(session, questions):
     solved_tasks = count_solved_tasks(answers)
 
     # Page 1: certificate page
-    write_line("ZERTIFIKAT", size=30, bold=True, gap=34)
-    write_line("Deutsch Test - Stepaniuk", size=16, bold=True, gap=30)
-    write_line(f"Hiermit wird bestaetigt, dass {session.user_name}", size=13, gap=20)
-    write_line("den Deutsch-Test erfolgreich abgeschlossen hat.", size=13, gap=20)
-    write_line(f"Session ID: {session.id}", size=12)
-    write_line(f"Abgeschlossen: {finished}", size=12)
-    write_line(f"Aufgaben erledigt: {solved_tasks}/{session.total_questions or 45} + Schreiben", size=12)
-    write_line(f"Punkte: {session.score}/{total_points} ({session.percentage}%)", size=12, bold=True)
-    write_line(f"Eingestuftes Niveau: {level}", size=14, bold=True, gap=24)
-    write_line("Vielen Dank fuer die Teilnahme am Test.", size=11, gap=26)
-    write_line("Ausgestellt von Stepaniuk", size=11)
+    accent = colors.HexColor("#0F766E")
+    light = colors.HexColor("#E6FFFA")
+    dark = colors.HexColor("#0B3B39")
+
+    def center_text(text, y_pos, size=12, bold=False, color=colors.black):
+        font = "Helvetica-Bold" if bold else "Helvetica"
+        c.setFont(font, size)
+        c.setFillColor(color)
+        text_width = c.stringWidth(text, font, size)
+        c.drawString((width - text_width) / 2, y_pos, text)
+        c.setFillColor(colors.black)
+
+    # Double frame
+    c.setStrokeColor(accent)
+    c.setLineWidth(2)
+    c.rect(28, 28, width - 56, height - 56)
+    c.setLineWidth(0.8)
+    c.rect(40, 40, width - 80, height - 80)
+
+    # Header band
+    c.setFillColor(light)
+    c.rect(42, height - 150, width - 84, 94, stroke=0, fill=1)
+    c.setFillColor(colors.black)
+
+    center_text("CERTIFICATE OF ACHIEVEMENT", height - 95, size=24, bold=True, color=dark)
+    center_text("Deutsch Pruefung - Stepaniuk", height - 120, size=13, bold=True, color=accent)
+
+    center_text("This certifies that", height - 195, size=13, color=dark)
+    center_text(session.user_name, height - 235, size=30, bold=True, color=colors.HexColor("#111827"))
+    c.setStrokeColor(accent)
+    c.setLineWidth(1)
+    c.line(120, height - 242, width - 120, height - 242)
+
+    center_text("has successfully completed the language assessment", height - 278, size=12)
+
+    # Level badge
+    badge_w, badge_h = 180, 42
+    badge_x = (width - badge_w) / 2
+    badge_y = height - 338
+    c.setFillColor(accent)
+    c.roundRect(badge_x, badge_y, badge_w, badge_h, 10, stroke=0, fill=1)
+    center_text(f"LEVEL {level}", badge_y + 14, size=17, bold=True, color=colors.white)
+
+    # Stats cards
+    card_y = height - 430
+    card_w = (width - 140) / 3
+    labels = [
+        ("Score", f"{session.score}/{total_points}"),
+        ("Result", f"{session.percentage}%"),
+        ("Tasks", f"{solved_tasks}/{session.total_questions or 45} + Schreiben"),
+    ]
+    for i, (label, value) in enumerate(labels):
+        x = 50 + i * (card_w + 20)
+        c.setFillColor(colors.HexColor("#F8FAFC"))
+        c.roundRect(x, card_y, card_w, 76, 8, stroke=0, fill=1)
+        c.setStrokeColor(colors.HexColor("#CBD5E1"))
+        c.setLineWidth(0.8)
+        c.roundRect(x, card_y, card_w, 76, 8, stroke=1, fill=0)
+        c.setFont("Helvetica", 10)
+        c.setFillColor(colors.HexColor("#475569"))
+        c.drawString(x + 12, card_y + 54, label)
+        c.setFont("Helvetica-Bold", 13)
+        c.setFillColor(colors.HexColor("#0F172A"))
+        c.drawString(x + 12, card_y + 30, value)
+
+    # Footer details
+    center_text(f"Session ID: {session.id}", 170, size=11, color=dark)
+    center_text(f"Completed: {finished}", 152, size=11, color=dark)
+
+    c.setStrokeColor(colors.HexColor("#334155"))
+    c.setLineWidth(0.9)
+    c.line(95, 108, 255, 108)
+    c.line(width - 255, 108, width - 95, 108)
+    c.setFont("Helvetica", 9)
+    c.setFillColor(colors.HexColor("#475569"))
+    c.drawString(140, 94, "Authorized by Stepaniuk")
+    c.drawString(width - 226, 94, "Language Assessment Platform")
+    c.setFillColor(colors.black)
 
     # Page 2: detailed report with all answers and letter
     c.showPage()
