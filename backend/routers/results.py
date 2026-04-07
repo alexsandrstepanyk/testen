@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, func
+from sqlalchemy import desc, func, not_, or_
 from models.database import get_db
 from models.models import TestSession
 from models.questions_data import get_questions_for_test
@@ -9,6 +9,14 @@ import io
 from services.report_pdf import build_test_report_pdf
 
 router = APIRouter()
+
+TEST_NAME_PATTERNS = [
+    "%test-student%",
+    "%copilot qa%",
+    "%live qa demo%",
+    "%qa render test%",
+    "%telegram qa%",
+]
 
 
 def get_derived_teil5_score(session: TestSession) -> int:
@@ -31,6 +39,7 @@ def get_leaderboard(limit: int = Query(default=50, le=200),
                     test_number: int = Query(default=0),
                     db: Session = Depends(get_db)):
     q = db.query(TestSession).filter(TestSession.score.isnot(None))
+    q = q.filter(not_(or_(*[TestSession.user_name.ilike(p) for p in TEST_NAME_PATTERNS])))
     if test_number in range(1, 6):
         q = q.filter(TestSession.test_number == test_number)
     sessions = q.order_by(desc(TestSession.score), TestSession.duration_seconds).limit(limit).all()
