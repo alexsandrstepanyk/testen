@@ -1,65 +1,147 @@
-# 🗺️ Roadmap — Deutsch B1 Übungstest
+# Roadmap — Deutsch B1 App
 
-## ✅ Version 1.0 (Aktuell)
+Оновлено: April 2026
 
-- [x] 45 Fragen in 3 Formaten (MC, Richtig/Falsch, Textauswahl)
-- [x] FastAPI Backend mit SQLite
-- [x] Session-Tracking (Start / Finish)
-- [x] Leaderboard mit globaler Statistik
-- [x] Offline-Modus (Fallback ohne Backend)
-- [x] Swagger API-Dokumentation
-- [x] Responsive Design für Mobile
-- [x] Timer + Fortschrittsanzeige
-- [x] Erklärungen nach dem Test
+## Product Vision
 
----
+Побудувати повноцінну платформу для підготовки до Deutsch B1, де:
 
-## 🔜 Version 1.1 — Benutzerverwaltung
+- учень проходить тести, отримує сертифікат і детальний розбір
+- викладач бачить аналітику і створює власні курси
+- результати автоматично зберігаються, експортуються й надсилаються у Telegram
 
-- [ ] Einfaches Login mit Passwort (kein OAuth nötig)
-- [ ] Persönliche Lernhistorie pro Benutzer
-- [ ] Fortschrittsdiagramm über mehrere Versuche
-- [ ] Merken welche Fragen falsch beantwortet wurden
+## Already Done
 
----
+### Core Testing Flow
 
-## 🔜 Version 1.2 — Erweiterte Inhalte
+- [x] 5 повних статичних тестів
+- [x] 45 питань + Schreiben
+- [x] таймер проходження
+- [x] автоматична перевірка відповідей
+- [x] підрахунок балів і відсотка
+- [x] збереження завершених сесій у БД
 
-- [ ] Mehr Fragenkategorien: Hören, Schreiben, Sprechen (Simulation)
-- [ ] Fragenbank mit 200+ Aufgaben (zufällige Auswahl)
-- [ ] Schwierigkeitsgrade: Leicht / Mittel / Schwer
-- [ ] Tägliche Übungsaufgaben (5 Fragen pro Tag)
+### Teacher Dashboard
 
----
+- [x] teacher panel
+- [x] фільтри по імені, тесту, статусу
+- [x] деталі кожної сесії
+- [x] перегляд помилок по питаннях
+- [x] перегляд написаного листа
+- [x] статистика по тестах
+- [x] CSV export
+- [x] teacher auth через HTTP Basic (`admin/admin`)
 
-## 🔜 Version 1.3 — Admin-Panel
+### Results and Reports
 
-- [ ] Web-Interface zum Hinzufügen neuer Fragen
-- [ ] CSV-Import für Massenfragen
-- [ ] Statistiken pro Frage (Fehlerquote)
-- [ ] Export der Ergebnisse als CSV/PDF
+- [x] student PDF download
+- [x] shared PDF generation service
+- [x] повний answer key у PDF
+- [x] червоне виділення неправильних відповідей
+- [x] лист у PDF
+- [x] certificate page на першій сторінці
+- [x] красивий redesign certificate page
 
----
+### Telegram Integration
 
-## 🔜 Version 2.0 — Vollständige Prüfungssimulation
+- [x] повідомлення про старт тесту
+- [x] PDF у Telegram після завершення тесту
+- [x] налаштування через env vars
 
-- [ ] Audio-Aufgaben (Hörverstehen)
-- [ ] Schreibaufgaben mit KI-Bewertung (Claude API)
-- [ ] Zeitlimit per Teil (wie in echter Prüfung)
-- [ ] Zertifikat-PDF nach Bestehen
-- [ ] Mehrsprachige UI (UA, EN, DE)
+### Course Builder
 
----
+- [x] teacher вкладка `Kurs-Builder`
+- [x] створення власних курсів
+- [x] налаштування рівня, часу, кількості завдань
+- [x] створення власних питань
+- [x] редагування і видалення курсів та питань
+- [x] синхронізація course builder з БД
 
-## 💡 Technische Verbesserungen
+## In Progress / Next Priority
 
-- [ ] PostgreSQL statt SQLite für Produktionsumgebung
-- [ ] Docker Compose Setup
-- [ ] JWT-Authentifizierung
-- [ ] Rate Limiting für API
-- [ ] Automatische Tests (pytest)
-- [ ] CI/CD Pipeline (GitHub Actions)
+### 1. Custom Courses for Students
 
----
+- [ ] показувати custom courses на student page
+- [ ] запускати сесію не лише для стандартних 5 тестів, а й для custom course
+- [ ] відображати структуру custom course у test UI
+- [ ] рахувати результати для custom course
+- [ ] включати custom course results у leaderboard або окремий рейтинг
 
-*Zuletzt aktualisiert: März 2026*
+### 2. Course Builder Completion
+
+- [ ] preview custom course before publish
+- [ ] duplicate course
+- [ ] reorder questions with better UX
+- [ ] validate builder counts against real number of questions
+- [ ] CSV import/export for custom questions
+
+### 3. Teacher and Admin Security
+
+- [ ] винести `admin/admin` у env vars
+- [ ] додати окремі teacher accounts
+- [ ] audit trail для змін курсів
+- [ ] обмежити небезпечні teacher actions
+
+## Planned Versions
+
+## Version 1.5 — Custom Course Delivery
+
+- [ ] custom courses visible to students
+- [ ] проходження custom course end-to-end
+- [ ] PDF and certificate support for custom courses
+- [ ] Telegram support for custom courses
+
+## Version 1.6 — Better Analytics
+
+- [ ] analytics by question
+- [ ] hardest questions report
+- [ ] success rate by Teil
+- [ ] student progress history
+- [ ] top students by teacher-created courses
+
+## Version 1.7 — Content Operations
+
+- [ ] CSV bulk import
+- [ ] JSON import/export
+- [ ] question templates
+- [ ] reusable writing prompts
+- [ ] media attachments for tasks
+
+## Version 2.0 — Full Exam Platform
+
+- [ ] Horen / audio tasks
+- [ ] speaking simulation
+- [ ] writing evaluation assistant
+- [ ] multilingual interface
+- [ ] student accounts and saved history
+- [ ] teacher groups / classes
+- [ ] certificates with verification code
+
+## Technical Roadmap
+
+- [ ] add Alembic migrations instead of only `create_all`
+- [ ] add pytest coverage for API and scoring
+- [ ] add CI pipeline
+- [ ] add safer settings management
+- [ ] split large frontend HTML files into templates or modular frontend
+- [ ] improve error handling around Telegram delivery
+- [ ] add backup/export strategy for teacher-created content
+
+## Product/UX Roadmap
+
+- [ ] better onboarding for teachers
+- [ ] custom branding for certificates
+- [ ] student dashboard with previous attempts
+- [ ] printable teacher reports
+- [ ] dedicated course publication flow
+- [ ] clear separation between static official tests and teacher custom tests
+
+## Success Criteria
+
+Проєкт можна вважати вийшовшим на наступний рівень, коли:
+
+- teacher can build a course and publish it
+- student can open and pass that custom course
+- result is saved to DB
+- PDF and certificate are generated correctly
+- Telegram receives the final PDF automatically

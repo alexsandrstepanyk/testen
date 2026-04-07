@@ -1,214 +1,236 @@
-# 🇩🇪 Deutsch B1 Übungstest
+# Deutsch B1 App
 
-**Інтерактивна платформа для підготовки до іспиту Goethe-Zertifikat B1**
+Інтерактивна платформа для підготовки до Goethe-Zertifikat B1 з повною симуляцією тесту, teacher dashboard, PDF-звітами, Telegram-сповіщеннями та конструктором власних курсів.
 
----
+## Що вже є в проєкті
 
-## 📋 Про проект
+- 5 готових повних тестів на теми B1
+- 4 частини тесту: Multiple Choice, Richtig/Falsch, Leseverstehen, Schreiben
+- таймер проходження тесту
+- автоматичний підрахунок балів і відсотка
+- сторінка результату одразу після завершення тесту
+- teacher dashboard з переглядом усіх результатів
+- HTTP Basic Auth для teacher panel: `admin / admin`
+- leaderboard для порівняння результатів
+- PDF-звіт для учня після завершення тесту
+- Telegram bot: повідомлення про старт тесту та PDF після завершення
+- сертифікат на першій сторінці PDF з визначенням рівня `B1 / A2 / A1`
+- детальний звіт на наступних сторінках PDF:
+   - помилки
+   - усі відповіді та правильні варіанти
+   - виділення неправильних відповідей червоним
+   - текст листа
+- нова вкладка `Kurs-Builder` у teacher dashboard
+- збереження власних курсів викладача в БД
+- збереження власних питань викладача в БД
 
-Цей додаток допомагає учням готуватися до іспиту **Deutsch B1** з повною симуляцією тесту:
+## Поточна логіка оцінювання сертифіката
 
-- ✅ **5 повних тестів** з різними темами
-- ✅ **4 частини**: Multiple Choice, Richtig/Falsch, Leseverstehen, Schreiben (лист)
-- ✅ **Таймер** для кожної частини (15 хв + 15 хв + 15 хв + 20 хв)
-- ✅ **Миттєві результати** з детальним аналізом помилок
-- ✅ **Панель вчителя** з переглядом результатів усіх учнів
-- ✅ **Leaderboard** для змагання між учнями
+- `B1`: від `70%`
+- `A2`: від `55%`
+- `A1`: нижче `55%`
 
----
+## Архітектура
 
-## 🚀 Деплой на Render.com
+### Backend
 
-### Крок 1: Створіть GitHub репозиторій
+- `FastAPI`
+- `SQLAlchemy`
+- `PostgreSQL` на Render або `SQLite` локально
+- `ReportLab` для PDF
+- `httpx` для Telegram Bot API
 
-```bash
-# Ініціалізація Git (якщо ще не створено)
-git init
-git add .
-git commit -m "Initial commit - Deutsch B1 App"
+### Frontend
+
+- чистий `HTML + CSS + JavaScript`
+- окрема сторінка для учня
+- окрема сторінка для викладача
+
+## Структура проєкту
+
+```text
+deutsch-b1-app/
+├── backend/
+│   ├── main.py
+│   ├── requirements.txt
+│   ├── models/
+│   │   ├── database.py
+│   │   ├── models.py
+│   │   └── questions_data.py
+│   ├── routers/
+│   │   ├── course_builder.py
+│   │   ├── questions.py
+│   │   ├── results.py
+│   │   ├── schreiben.py
+│   │   ├── sessions.py
+│   │   └── teacher.py
+│   ├── schemas/
+│   │   └── schemas.py
+│   └── services/
+│       ├── report_pdf.py
+│       └── telegram.py
+├── frontend/
+│   ├── index.html
+│   └── teacher.html
+├── Dockerfile
+├── render.yaml
+├── README.md
+└── ROADMAP.md
 ```
 
-### Крок 2: Завантажте на GitHub
+## Основні можливості для учня
 
-```bash
-# Створіть новий репозиторій на github.com
-# Потім виконайте:
-git remote add origin https://github.com/ВАШ_НІК/deutsch-b1-app.git
-git branch -M main
-git push -u origin main
+- вибір одного з 5 тестів
+- проходження всіх 4 частин іспиту
+- написання листа в Teil 4
+- миттєвий результат після сабміту
+- PDF зі звітом і сертифікатом
+- збереження результату в БД
+
+## Основні можливості для викладача
+
+- вхід у teacher panel через `admin / admin`
+- перегляд усіх завершених сесій
+- фільтрація за тестом, статусом, іменем
+- перегляд деталей кожної спроби
+- перегляд листа учня
+- аналіз помилок по кожному питанню
+- CSV export
+- статистика по тестах
+- створення власних курсів у `Kurs-Builder`
+- створення власних питань для курсів
+
+## PDF-звіт
+
+Після завершення тесту формується PDF, який може бути:
+
+- відкритий учнем вручну через кнопку на сторінці результатів
+- автоматично надісланий у Telegram бот
+
+PDF містить:
+
+1. красиву першу сторінку у форматі сертифіката
+2. ім'я учня
+3. отримані бали та відсоток
+4. присвоєний рівень
+5. детальний звіт по питаннях
+6. правильні та неправильні відповіді
+7. текст листа
+
+## Telegram інтеграція
+
+Підтримуються дві події:
+
+1. старт тесту: повідомлення в Telegram
+2. завершення тесту: PDF-документ у Telegram
+
+Потрібні environment variables:
+
+```env
+TELEGRAM_BOT_TOKEN=...
+TELEGRAM_CHAT_ID=...
 ```
 
-### Крок 3: Зареєструйтеся на Render.com
+## Teacher Auth
 
-1. Перейдіть на [render.com](https://render.com)
-2. Натисніть **"Get Started for Free"**
-3. Увійдіть через **GitHub** (рекомендується)
+Teacher panel захищена через HTTP Basic Auth.
 
-### Крок 4: Створіть новий Web Service
+Поточні облікові дані:
 
-1. Натисніть **"New +"** → **"Web Service"**
-2. Виберіть **"Connect a repository"**
-3. Знайдіть ваш репозиторій `deutsch-b1-app`
-4. Натисніть **"Connect"**
-
-### Крок 5: Налаштуйте Web Service
-
-| Параметр | Значення |
-|----------|----------|
-| **Name** | `deutsch-b1-app` (або ваша назва) |
-| **Region** | `Frankfurt, Germany` (найближче до України) |
-| **Branch** | `main` |
-| **Root Directory** | залиште пустим |
-| **Runtime** | `Docker` |
-| **DockerfilePath** | `./Dockerfile` |
-| **Plan** | `Free` |
-
-### Крок 6: Додайте змінні оточення
-
-Натисніть **"Advanced"** → **"Add Environment Variable"**:
-
-```
-DATABASE_URL = (буде автоматично додано з бази даних)
-PYTHON_VERSION = 3.11.0
-WEB_CONCURRENCY = 1
+```text
+username: admin
+password: admin
 ```
 
-### Крок 7: Створіть базу даних PostgreSQL
+Примітка: для production варто винести ці значення в environment variables.
 
-1. Поверніться на головну Render
-2. Натисніть **"New +"** → **"PostgreSQL"**
-3. Заповніть:
-   - **Name**: `deutsch-b1-db`
-   - **Region**: `Frankfurt`
-   - **Plan**: `Free`
-4. Натисніть **"Create Database"**
-
-### Крок 8: Підключіть базу даних
-
-1. Відкрийте ваш **Web Service**
-2. Перейдіть у вкладку **"Environment"**
-3. Натисніть **"Add From"** → **"Database"**
-4. Виберіть `deutsch-b1-db`
-5. Додайте змінну `DATABASE_URL` з властивості `connectionString`
-
-### Крок 9: Запустіть деплой
-
-1. Поверніться на головну Web Service
-2. Натисніть **"Manual Deploy"** → **"Deploy Latest Commit"**
-3. Зачекайте 3-5 хвилин (перший деплой)
-
-### Крок 10: Підключіть свій домен
-
-1. Відкрийте Web Service → вкладка **"Settings"**
-2. Знайдіть **"Custom Domains"**
-3. Натисніть **"Add Custom Domain"**
-4. Введіть ваш домен (наприклад, `deutsch-b1.com`)
-5. Натисніть **"Save"**
-
-#### Налаштуйте DNS у реєстратора домену:
-
-```
-Тип запису: CNAME
-Ім'я: @ (або залиште пустим)
-Значення: deutsch-b1-app.onrender.com
-TTL: Automatic
-```
-
-**Або для піддомену:**
-```
-Тип запису: CNAME
-Ім'я: www
-Значення: deutsch-b1-app.onrender.com
-TTL: Automatic
-```
-
----
-
-## 🔧 Локальна розробка
+## Локальний запуск
 
 ### Вимоги
-- Python 3.10+
-- pip
 
-### Встановлення
+- Python `3.11+` для production-сумісного запуску
+- `pip`
+
+### Запуск локально
 
 ```bash
-# Встановіть залежності
 cd backend
 pip install -r requirements.txt
-
-# Запустіть сервер
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### Відкрийте у браузері
+### Локальні адреси
 
-- **Frontend**: http://localhost:8000
-- **Teacher Dashboard**: http://localhost:8000/teacher
-- **Leaderboard**: http://localhost:8000/leaderboard
-- **API Docs**: http://localhost:8000/docs
+- app: `http://localhost:8000`
+- teacher: `http://localhost:8000/teacher`
+- docs: `http://localhost:8000/docs`
+- health: `http://localhost:8000/api/health`
 
----
+## Deploy на Render
 
-## 📁 Структура проекту
+Проєкт уже підготовлений під Render через [render.yaml](/Users/os/Downloads/deutsch-b1-app%203/render.yaml).
 
-```
-deutsch-b1-app/
-├── backend/
-│   ├── main.py              # FastAPI додаток
-│   ├── models/
-│   │   ├── models.py        # SQLAlchemy моделі
-│   │   └── database.py      # Підключення до БД
-│   ├── routers/
-│   │   ├── questions.py     # API для запитань
-│   │   ├── sessions.py      # API для сесій
-│   │   ├── results.py       # API для результатів
-│   │   ├── schreiben.py     # API для письма
-│   │   └── teacher.py       # API для вчителя
-│   └── schemas/
-│       └── schemas.py       # Pydantic схеми
-├── frontend/
-│   ├── index.html           # Головна сторінка тесту
-│   └── teacher.html         # Панель вчителя
-├── Dockerfile               # Docker конфігурація
-├── render.yaml              # Render конфігурація
-└── requirements.txt         # Python залежності
+### Що використовується на Render
+
+- `Docker`
+- `Web Service`
+- `PostgreSQL`
+- region: `Frankfurt`
+
+### Основні env vars
+
+```env
+PYTHON_VERSION=3.11.0
+WEB_CONCURRENCY=1
+DATABASE_URL=...
+TELEGRAM_BOT_TOKEN=...
+TELEGRAM_CHAT_ID=...
 ```
 
----
+### Ручний деплой
 
-## 🎯 Функціонал
+1. Відкрити Render service `deutsch-b1-app`
+2. Натиснути `Manual Deploy`
+3. Обрати `Deploy Latest Commit`
 
-### Для учнів:
-- Реєстрація за іменем
-- 5 тестів з різними темами
-- 45 запитань + написання листа
-- Таймер для кожної частини
-- Миттєва перевірка з результатами
-- Аналіз помилок з поясненнями
+## API секції
 
-### Для вчителів:
-- Перегляд усіх результатів
-- Фільтри по тестах, статусі, імені
-- Детальний аналіз помилок кожного учня
-- Експорт результатів у CSV
-- Статистика по класу
+- `/api/questions` — отримання питань готових тестів
+- `/api/sessions` — старт і завершення сесій
+- `/api/results` — результати та PDF-звіти
+- `/api/schreiben` — Schreiben related endpoints
+- `/api/teacher` — dashboard викладача
+- `/api/teacher/courses` — course builder для власних курсів
 
----
+## Що вже зроблено останніми ітераціями
 
-## 🆘 Підтримка
+- перевірено production deployment і збереження сесій у БД
+- виправлено teacher details loading після додавання auth
+- додано авторський credit на student page
+- додано student PDF download
+- винесено генерацію PDF у shared service
+- додано Telegram bot integration
+- покращено PDF: всі відповіді, правильні рішення, лист, червоне виділення помилок
+- додано certificate page на першій сторінці PDF
+- перероблено certificate page у більш професійний дизайн
+- додано teacher `Kurs-Builder` з БД-синхронізацією
 
-Якщо виникли питання:
-1. Перевірте **API Docs**: `https://ВАШ_ДОМЕН/docs`
-2. Перевірте логи на Render: **Logs** вкладка
-3. Переконайтеся що база даних підключена
+## Поточні обмеження
 
----
+- custom courses уже можна створювати в teacher panel, але student page поки проходить тільки 5 статичних тестів
+- teacher credentials поки що хардкодні
+- автоматичні тести ще не додані
+- міграції БД поки не використовуються; таблиці створюються через `Base.metadata.create_all()`
 
-## 📝 Ліцензія
+## Найближчі наступні кроки
 
-Цей проект створено для освітніх цілей.
+1. підключити custom courses до student flow
+2. дати учням можливість проходити курси, створені викладачем
+3. додати оцінювання custom courses у results / PDF / Telegram
+4. винести teacher credentials у env vars
+5. додати automated tests
 
----
+## Автор
 
-**Успіхів у вивченні німецької! 🇩🇪**
+Stepaniuk Oleksandr  
+Website: `https://stepaniuk.shop`
