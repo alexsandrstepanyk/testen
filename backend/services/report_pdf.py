@@ -42,7 +42,14 @@ def build_test_report_pdf(session, questions):
             c.setFillColor(colors.black)
             y -= gap
 
-    total_points = (session.total_questions or 45) + 10
+    answers_meta_score = answers.get("__teil5_score") if isinstance(answers, dict) else None
+    teil5_score = int(answers_meta_score) if str(answers_meta_score).isdigit() else max(0, (session.score or 0) - sum([
+        session.teil1_score or 0,
+        session.teil2_score or 0,
+        session.teil3_score or 0,
+        session.teil4_score or 0,
+    ]))
+    total_points = (session.total_questions or 55) + 10
     finished = session.finished_at.isoformat() if session.finished_at else "-"
     percentage = float(session.percentage or 0)
     level = determine_level(percentage)
@@ -98,7 +105,7 @@ def build_test_report_pdf(session, questions):
     labels = [
         ("Score", f"{session.score}/{total_points}"),
         ("Result", f"{session.percentage}%"),
-        ("Tasks", f"{solved_tasks}/{session.total_questions or 45} + Schreiben"),
+        ("Tasks", f"{solved_tasks}/{session.total_questions or 55} + Schreiben"),
     ]
     for i, (label, value) in enumerate(labels):
         x = 50 + i * (card_w + 20)
@@ -145,7 +152,8 @@ def build_test_report_pdf(session, questions):
         f"Teil 1 {session.teil1_score or 0}/20 | "
         f"Teil 2 {session.teil2_score or 0}/10 | "
         f"Teil 3 {session.teil3_score or 0}/15 | "
-        f"Teil 4 {session.teil4_score or 0}/10"
+        f"Teil 4 {session.teil4_score or 0}/10 | "
+        f"Teil 5 {teil5_score}/10"
     )
 
     y -= 8
@@ -191,7 +199,7 @@ def build_test_report_pdf(session, questions):
     schreiben_text = extract_schreiben_text(answers)
     ensure_space(120)
     y -= 4
-    write_line("Teil 4 - Ihr Brief", bold=True, gap=16)
+    write_line("Teil 5 - Ihr Brief", bold=True, gap=16)
     if schreiben_text:
         write_wrapped(schreiben_text, size=10, width_chars=100)
     else:
@@ -229,7 +237,7 @@ def collect_mistakes(questions_by_id, answers):
     mistakes = []
 
     for key, user_answer in answers.items():
-        if key == "schreiben":
+        if key == "schreiben" or str(key).startswith("__"):
             continue
         try:
             qid = int(key)
@@ -346,7 +354,7 @@ def determine_level(percentage):
 def count_solved_tasks(answers):
     solved = 0
     for key, value in answers.items():
-        if key == "schreiben":
+        if key == "schreiben" or str(key).startswith("__"):
             continue
         if value is None:
             continue

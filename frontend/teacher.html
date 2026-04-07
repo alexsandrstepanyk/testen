@@ -529,7 +529,7 @@ async function loadSessions() {
         <td><span class="tchip">Test ${s.test_number}</span></td>
         <td>${formatDate(s.finished_at)}</td>
         <td>${formatDuration(s.duration_seconds)}</td>
-        <td>${s.score}/${s.total_questions}</td>
+        <td>${s.score}/${(s.total_questions || 55) + 10}</td>
         <td><strong>${s.percentage?.toFixed(1) || 0}%</strong></td>
         <td>${s.passed ? '<span class="badge badge-pass">Bestanden ✓</span>' : '<span class="badge badge-fail">Nicht bestanden ✗</span>'}</td>
         <td id="mistakes-${s.id}">-</td>
@@ -583,7 +583,7 @@ async function viewDetails(sessionId) {
           <div class="si-lbl">Ergebnis</div>
         </div>
         <div class="si-item">
-          <div class="si-val">${data.score}/${data.total_questions}</div>
+          <div class="si-val">${data.score}/${(data.total_questions || 55) + 10}</div>
           <div class="si-lbl">Punkte</div>
         </div>
         <div class="si-item">
@@ -611,6 +611,10 @@ async function viewDetails(sessionId) {
           <div class="si-lbl">Teil 4</div>
         </div>
         <div class="si-item">
+          <div class="si-val">${data.teil5_score || 0}/10</div>
+          <div class="si-lbl">Teil 5</div>
+        </div>
+        <div class="si-item">
           <div class="si-val">${data.mistakes.length}</div>
           <div class="si-lbl">Fehler</div>
         </div>
@@ -621,12 +625,12 @@ async function viewDetails(sessionId) {
       </div>
     `;
 
-    // Teil 4 - Brief anzeigen
+    // Teil 5 - Brief anzeigen
     const briefValue = data.answers_json?.schreiben;
     const briefText = typeof briefValue === 'string' ? briefValue : (briefValue?.text || '');
     const briefHtml = briefText ? `
       <div class="mistakes-sec">
-        <h3>✍️ Teil 4 — Brief von ${esc(data.user_name)}</h3>
+        <h3>✍️ Teil 5 — Brief von ${esc(data.user_name)}</h3>
         <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:12px;">
           <div style="white-space:pre-wrap;font-family:'Source Serif 4',serif;font-size:14px;line-height:1.7;color:var(--ink);">${esc(briefText)}</div>
           <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);">
@@ -650,10 +654,11 @@ async function viewDetails(sessionId) {
       1: 'Teil 1 — Multiple Choice',
       2: 'Teil 2 — Richtig/Falsch',
       3: 'Teil 3 — Leseverstehen',
-      4: 'Teil 4 — Schreiben'
+      4: 'Teil 4 — Anzeigen zuordnen',
+      5: 'Teil 5 — Schreiben'
     };
     
-    for (let t = 1; t <= 4; t++) {
+    for (let t = 1; t <= 5; t++) {
       if (mistakesByTeil[t].length > 0) {
         mistakesHtml += `
           <div class="mistakes-sec">

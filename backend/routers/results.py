@@ -10,6 +10,22 @@ from services.report_pdf import build_test_report_pdf
 
 router = APIRouter()
 
+
+def get_derived_teil5_score(session: TestSession) -> int:
+    answers = session.answers_json or {}
+    if isinstance(answers, dict):
+        meta_score = answers.get("__teil5_score")
+        if isinstance(meta_score, int):
+            return meta_score
+        if isinstance(meta_score, str) and meta_score.isdigit():
+            return int(meta_score)
+    return max(0, (session.score or 0) - sum([
+        session.teil1_score or 0,
+        session.teil2_score or 0,
+        session.teil3_score or 0,
+        session.teil4_score or 0,
+    ]))
+
 @router.get("/leaderboard")
 def get_leaderboard(limit: int = Query(default=50, le=200),
                     test_number: int = Query(default=0),
@@ -25,6 +41,7 @@ def get_leaderboard(limit: int = Query(default=50, le=200),
          "passed": s.passed, "teil1_score": s.teil1_score,
          "teil2_score": s.teil2_score, "teil3_score": s.teil3_score,
          "teil4_score": s.teil4_score or 0,
+         "teil5_score": get_derived_teil5_score(s),
          "finished_at": s.finished_at.isoformat() if s.finished_at else None}
         for i, s in enumerate(sessions)
     ], "total_entries": len(sessions)}

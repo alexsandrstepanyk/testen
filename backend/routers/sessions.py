@@ -10,9 +10,32 @@ from services.telegram import is_enabled, send_message, send_pdf_document
 
 router = APIRouter()
 
+
+def get_derived_teil5_score(session: TestSession) -> int:
+    answers = session.answers_json or {}
+    if isinstance(answers, dict):
+        meta_score = answers.get("__teil5_score")
+        if isinstance(meta_score, int):
+            return meta_score
+        if isinstance(meta_score, str) and meta_score.isdigit():
+            return int(meta_score)
+
+    total = session.score or 0
+    return max(0, total - sum([
+        session.teil1_score or 0,
+        session.teil2_score or 0,
+        session.teil3_score or 0,
+        session.teil4_score or 0,
+    ]))
+
 @router.post("/start", response_model=SessionOut)
 def start_session(data: SessionCreate, db: Session = Depends(get_db)):
-    session = TestSession(user_name=data.user_name.strip(), test_number=data.test_number)
+    total_questions = len(get_questions_for_test(data.test_number))
+    session = TestSession(
+        user_name=data.user_name.strip(),
+        test_number=data.test_number,
+        total_questions=total_questions,
+    )
     db.add(session); db.commit(); db.refresh(session)
     if is_enabled():
         msg = (
@@ -34,12 +57,18 @@ def finish_session(session_id: int, data: SessionFinish, db: Session = Depends(g
     session.score = data.score
     session.percentage = data.percentage
     session.passed = data.passed
-    session.answers_json = data.answers
+    answers_payload = data.answers.copy() if isinstance(data.answers, dict) else dict(data.answers)
+    answers_payload["__teil5_score"] = data.teil5_score or 0
+    session.answers_json = answers_payload
     session.teil1_score = data.teil1_score
     session.teil2_score = data.teil2_score
     session.teil3_score = data.teil3_score
     session.teil4_score = data.teil4_score or 0
+    session.total_questions = len(get_questions_for_test(session.test_number or 1))
     db.commit(); db.refresh(session)
+
+    response_payload = SessionOut.model_validate(session).model_dump()
+    response_payload["teil5_score"] = get_derived_teil5_score(session)
 
     if is_enabled():
         try:
@@ -48,7 +77,7 @@ def finish_session(session_id: int, data: SessionFinish, db: Session = Depends(g
             filename = f"Testbericht_T{session.test_number}_{session.user_name.replace(' ', '_')}_{session.id}.pdf"
             caption = (
                 f"Neues Testergebnis: {session.user_name} (Test {session.test_number or 1})\n"
-                f"Punkte: {session.score}/{(session.total_questions or 45) + 10} | {session.percentage}%\n"
+                f"Punkte: {session.score}/{(session.total_questions or 55) + 10} | {session.percentage}%\n"
                 f"Fehler: {len(mistakes)}"
             )
             send_pdf_document(pdf_bytes, filename, caption)
@@ -56,10 +85,12 @@ def finish_session(session_id: int, data: SessionFinish, db: Session = Depends(g
             # Telegram delivery must never break the test flow
             pass
 
-    return session
+    return response_payload
 
 @router.get("/{session_id}", response_model=SessionOut)
 def get_session(session_id: int, db: Session = Depends(get_db)):
     s = db.query(TestSession).filter(TestSession.id == session_id).first()
     if not s: raise HTTPException(status_code=404, detail="Session not found")
-    return s
+    payload = SessionOut.model_validate(s).model_dump()
+    payload["teil5_score"] = get_derived_teil5_score(s)
+    return payload

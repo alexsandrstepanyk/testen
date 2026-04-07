@@ -16,6 +16,7 @@ class SessionFinish(BaseModel):
     teil2_score: int
     teil3_score: int
     teil4_score: Optional[int] = 0
+    teil5_score: Optional[int] = 0
 
 class SessionOut(BaseModel):
     id: int
@@ -32,6 +33,7 @@ class SessionOut(BaseModel):
     teil2_score: Optional[int]
     teil3_score: Optional[int]
     teil4_score: Optional[int]
+    teil5_score: Optional[int] = 0
     class Config:
         from_attributes = True
 

@@ -28,6 +28,36 @@ def require_teacher_auth(credentials: HTTPBasicCredentials = Depends(security)):
 router = APIRouter(dependencies=[Depends(require_teacher_auth)])
 
 
+def get_derived_teil5_score(session: TestSession) -> int:
+    answers = session.answers_json or {}
+    if isinstance(answers, dict):
+        meta_score = answers.get("__teil5_score")
+        if isinstance(meta_score, int):
+            return meta_score
+        if isinstance(meta_score, str) and meta_score.isdigit():
+            return int(meta_score)
+    return max(0, (session.score or 0) - sum([
+        session.teil1_score or 0,
+        session.teil2_score or 0,
+        session.teil3_score or 0,
+        session.teil4_score or 0,
+    ]))
+
+
+def is_answer_correct(question: Dict[str, Any], user_answer: Any) -> bool:
+    if question.get("type") == "rf":
+        return (str(user_answer).lower() == "true" and bool(question.get("correct"))) or \
+               (str(user_answer).lower() == "false" and not bool(question.get("correct")))
+
+    answer_map = {"a": 0, "b": 1, "c": 2}
+    user_text = str(user_answer).lower()
+    if user_text.isdigit():
+        user_idx = int(user_text)
+    else:
+        user_idx = answer_map.get(user_text, -1)
+    return user_idx == question.get("correct")
+
+
 class TeacherSessionOut:
     """Extended session data for teacher view"""
     def __init__(self, session: TestSession, mistakes: List[Dict[str, Any]]):
@@ -45,6 +75,7 @@ class TeacherSessionOut:
         self.teil2_score = session.teil2_score
         self.teil3_score = session.teil3_score
         self.teil4_score = session.teil4_score or 0
+        self.teil5_score = get_derived_teil5_score(session)
         self.mistakes = mistakes
         self.answers_json = session.answers_json or {}
 
@@ -86,7 +117,8 @@ def get_all_sessions(
                 "teil1_score": s.teil1_score,
                 "teil2_score": s.teil2_score,
                 "teil3_score": s.teil3_score,
-                "teil4_score": s.teil4_score or 0
+                "teil4_score": s.teil4_score or 0,
+                "teil5_score": get_derived_teil5_score(s)
             }
             for s in sessions
         ]
@@ -125,26 +157,19 @@ def get_session_details(session_id: int, db: Session = Depends(get_db)):
         
         for q_id, user_answer in user_answers.items():
             # Skip 'schreiben' key
-            if q_id == 'schreiben':
+            if q_id == 'schreiben' or str(q_id).startswith('__'):
                 continue
                 
-            q_id_int = int(q_id) if isinstance(q_id, str) else q_id
+            try:
+                q_id_int = int(q_id) if isinstance(q_id, str) else q_id
+            except Exception:
+                continue
             question = questions_by_id.get(q_id_int)
             if not question:
                 continue
             
             correct_answer = question.get("correct")
-            is_correct = False
-            
-            if question.get("type") == "rf":
-                # Richtig/Falsch: user_answer is "true" or "false"
-                is_correct = (user_answer == "true" and correct_answer) or \
-                            (user_answer == "false" and not correct_answer)
-            else:
-                # Multiple choice: user_answer is "a", "b", or "c"
-                answer_map = {"a": 0, "b": 1, "c": 2}
-                user_idx = answer_map.get(str(user_answer).lower(), -1)
-                is_correct = (user_idx == correct_answer)
+            is_correct = is_answer_correct(question, user_answer)
             
             if not is_correct:
                 mistake_info = {

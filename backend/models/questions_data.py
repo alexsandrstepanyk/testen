@@ -1719,11 +1719,11 @@ TEST5 = [
 # COMBINED DICTIONARY
 # ═══════════════════════════════════════════════════════════════════════════
 ALL_TESTS = {
-    1: TEST1,
-    2: TEST2,
-    3: TEST3,
-    4: TEST4,
-    5: TEST5,
+  1: TEST1,
+  2: TEST2,
+  3: TEST3,
+  4: TEST4,
+  5: TEST5,
 }
 
 def get_questions_for_test(test_number: int):
@@ -1738,7 +1738,141 @@ def get_all_questions():
 QUESTIONS = get_questions_for_test(1)  # backward compatibility
 
 # ═══════════════════════════════════════════════════════════════════
-# TEIL 4 — SCHREIBEN (Brief schreiben) — 1 Aufgabe pro Test
+# TEIL 4 — ANZEIGEN ZUORDNEN
+# Jede Aufgabe zeigt drei Anzeigen. Die passende Anzeige muss zur Aussage gewählt werden.
+
+ANZEIGEN_BLOCKS = {
+  1: {
+    "ads": [
+      "Anzeige A: Sprachcafe im Jugendzentrum. Jeden Dienstag 18 Uhr. Kostenlos Deutsch sprechen und neue Leute kennenlernen.",
+      "Anzeige B: Wohnungsboerse Innenstadt. Kleine 1-Zimmer-Wohnung ab sofort frei, warm 620 Euro, keine Haustiere.",
+      "Anzeige C: Fahrradwerkstatt SchnellFix. Reparaturen ohne Termin, samstags 9-14 Uhr.",
+    ],
+    "questions": [
+      ("Sie moechten kostenlos Deutsch ueben und Leute treffen.", 0),
+      ("Sie suchen dringend eine kleine Wohnung in der Stadt.", 1),
+      ("Ihr Fahrrad ist kaputt und Sie brauchen schnelle Hilfe am Samstag.", 2),
+      ("Sie wollen ohne Anmeldung mit anderen Deutsch sprechen.", 0),
+      ("Sie brauchen eine Unterkunft, aber kein Angebot fuer Tiere.", 1),
+      ("Sie moechten Ihr Rad ohne vorherigen Termin reparieren lassen.", 2),
+      ("Sie haben abends Zeit und wollen Ihre Sprache verbessern.", 0),
+      ("Sie suchen ein neues Zuhause im Zentrum.", 1),
+      ("Sie brauchen eine Werkstatt, die auch am Wochenende offen ist.", 2),
+      ("Sie suchen ein kostenloses Angebot fuer Konversation.", 0),
+    ],
+  },
+  2: {
+    "ads": [
+      "Anzeige A: Reiseclub Nord. Tagesausfluege am Wochenende, Busfahrt und Reiseleitung inklusive.",
+      "Anzeige B: Hotel am See. Familienzimmer, Fruehstueck und Fahrradverleih, direkt am Wasser.",
+      "Anzeige C: Flughafen-Shuttle 24. Transfers zum Airport Tag und Nacht, Reservierung online.",
+    ],
+    "questions": [
+      ("Sie wollen am Wochenende einen organisierten Ausflug machen.", 0),
+      ("Sie suchen eine Unterkunft fuer Urlaub am Wasser.", 1),
+      ("Sie muessen sehr frueh zum Flughafen fahren.", 2),
+      ("Sie moechten mit Gruppe und Reiseleitung unterwegs sein.", 0),
+      ("Sie wollen im Urlaub Fahrraeder direkt beim Hotel mieten.", 1),
+      ("Sie brauchen einen Transfer auch mitten in der Nacht.", 2),
+      ("Sie suchen ein Angebot fuer einen Tagestrip.", 0),
+      ("Sie reisen mit Familie und brauchen ein Zimmer fuer mehrere Personen.", 1),
+      ("Sie wollen Ihren Flughafentransfer vorher im Internet buchen.", 2),
+      ("Sie moechten verreisen, aber nicht selbst fahren.", 0),
+    ],
+  },
+  3: {
+    "ads": [
+      "Anzeige A: Karrierezentrum. Bewerbungscheck und Training fuer Vorstellungsgespraeche, mittwochs 17 Uhr.",
+      "Anzeige B: Abendkurs Buchhaltung. Fuer Berufstaetige, montags und donnerstags online.",
+      "Anzeige C: Coworking Hub. Flexible Arbeitsplaetze mit WLAN, Kaffee und Drucker im Zentrum.",
+    ],
+    "questions": [
+      ("Sie moechten Hilfe fuer ein Vorstellungsgespraech.", 0),
+      ("Sie wollen nach Feierabend Buchhaltung lernen.", 1),
+      ("Sie suchen einen Arbeitsplatz mit Internet und Drucker.", 2),
+      ("Sie brauchen Feedback zu Ihrer Bewerbung.", 0),
+      ("Sie koennen nur online am Abend lernen.", 1),
+      ("Sie brauchen kurzfristig einen flexiblen Arbeitsplatz in der Stadt.", 2),
+      ("Sie suchen Training fuer Jobinterviews.", 0),
+      ("Sie wollen einen Weiterbildungskurs fuer Berufstaetige besuchen.", 1),
+      ("Sie moechten ausserhalb des Buros arbeiten.", 2),
+      ("Sie wollen Unterstuetzung bei Karrierefragen bekommen.", 0),
+    ],
+  },
+  4: {
+    "ads": [
+      "Anzeige A: Repair-Cafe Technik. Freiwillige helfen bei kleinen Geraetereparaturen am Samstag.",
+      "Anzeige B: Smart Home Messe. Neue Technik fuer Haushalt und Sicherheit, Eintritt frei.",
+      "Anzeige C: Buergersprechstunde Digital. Hilfe bei Online-Formularen und Behordenportalen.",
+    ],
+    "questions": [
+      ("Ihr Toaster ist kaputt und Sie wollen ihn nicht wegwerfen.", 0),
+      ("Sie interessieren sich fuer moderne Technik im Haushalt.", 1),
+      ("Sie verstehen ein Online-Formular der Stadt nicht.", 2),
+      ("Sie suchen ehrenamtliche Hilfe fuer eine kleine Reparatur.", 0),
+      ("Sie wollen neue technische Produkte kostenlos ansehen.", 1),
+      ("Sie brauchen Unterstuetzung bei digitalen Amtswegen.", 2),
+      ("Sie moechten ein Geraet gemeinsam mit Experten reparieren.", 0),
+      ("Sie wollen sich ueber Sicherheitstechnik informieren.", 1),
+      ("Sie kommen mit Online-Antraegen nicht zurecht.", 2),
+      ("Sie wollen nachhaltiger mit alten Geraeten umgehen.", 0),
+    ],
+  },
+  5: {
+    "ads": [
+      "Anzeige A: Flohmarkt ohne Plastik. Gebrauchte Haushaltswaren und Kleidung, Sonntag im Stadtpark.",
+      "Anzeige B: Solarberatung Zuhause. Kostenloser Energie-Check fuer Hausbesitzer mit Dach.",
+      "Anzeige C: Umweltgruppe Flussrein. Gemeinsame Muellsammelaktion am Samstagmorgen.",
+    ],
+    "questions": [
+      ("Sie wollen gebrauchte Dinge kaufen statt neue Produkte.", 0),
+      ("Sie denken ueber Solaranlagen fuer Ihr Haus nach.", 1),
+      ("Sie moechten aktiv bei einer Umweltaktion mitmachen.", 2),
+      ("Sie suchen nachhaltiges Shopping am Wochenende.", 0),
+      ("Sie brauchen Beratung zum Energiesparen im eigenen Haus.", 1),
+      ("Sie wollen am Samstag Muell in der Natur sammeln.", 2),
+      ("Sie suchen einen Markt mit Second-Hand-Artikeln.", 0),
+      ("Sie moechten wissen, ob sich Solarstrom fuer Ihr Dach lohnt.", 1),
+      ("Sie wollen zusammen mit anderen den Fluss sauber machen.", 2),
+      ("Sie moechten Ressourcen sparen und Dinge weiterverwenden.", 0),
+    ],
+  },
+}
+
+
+def build_anzeigen_questions(test_number: int):
+  payload = ANZEIGEN_BLOCKS[test_number]
+  context = "\n\n".join(payload["ads"])
+  result = []
+  for index, (prompt, correct) in enumerate(payload["questions"], start=1):
+    result.append({
+      "id": test_number * 100 + 45 + index,
+      "test": test_number,
+      "teil": 4,
+      "type": "mc",
+      "question": f"Welche Anzeige passt am besten? {prompt}",
+      "context": context,
+      "options": ["Anzeige A", "Anzeige B", "Anzeige C"],
+      "correct": correct,
+      "explanation": [
+        "Anzeige A passt am besten zu dieser Situation.",
+        "Anzeige B passt am besten zu dieser Situation.",
+        "Anzeige C passt am besten zu dieser Situation.",
+      ][correct],
+    })
+  return result
+
+
+ALL_TESTS = {
+  1: TEST1 + build_anzeigen_questions(1),
+  2: TEST2 + build_anzeigen_questions(2),
+  3: TEST3 + build_anzeigen_questions(3),
+  4: TEST4 + build_anzeigen_questions(4),
+  5: TEST5 + build_anzeigen_questions(5),
+}
+
+
+# TEIL 5 — SCHREIBEN (Brief schreiben) — 1 Aufgabe pro Test
 # Format entspricht dem echten Goethe B1-Prüfungsformat:
 # - Situation beschreiben
 # - 4 Leitpunkte bearbeiten
@@ -1748,7 +1882,7 @@ QUESTIONS = get_questions_for_test(1)  # backward compatibility
 SCHREIBEN_AUFGABEN = {
     1: {
         "test": 1,
-        "teil": 4,
+      "teil": 5,
         "type": "schreiben",
         "thema": "Brief an einen Freund — Einladung zu einer Party absagen",
         "situation": (
@@ -1776,7 +1910,7 @@ SCHREIBEN_AUFGABEN = {
     },
     2: {
         "test": 2,
-        "teil": 4,
+      "teil": 5,
         "type": "schreiben",
         "thema": "Brief an einen Vermieter — Wohnungsprobleme melden",
         "situation": (
@@ -1805,7 +1939,7 @@ SCHREIBEN_AUFGABEN = {
     },
     3: {
         "test": 3,
-        "teil": 4,
+      "teil": 5,
         "type": "schreiben",
         "thema": "Brief an einen Arbeitgeber — Krankmeldung",
         "situation": (
@@ -1833,7 +1967,7 @@ SCHREIBEN_AUFGABEN = {
     },
     4: {
         "test": 4,
-        "teil": 4,
+      "teil": 5,
         "type": "schreiben",
         "thema": "Brief an einen Kurs-Anbieter — Kursanmeldung",
         "situation": (
@@ -1860,7 +1994,7 @@ SCHREIBEN_AUFGABEN = {
     },
     5: {
         "test": 5,
-        "teil": 4,
+      "teil": 5,
         "type": "schreiben",
         "thema": "Brief an die Stadtverwaltung — Beschwerde über Lärm",
         "situation": (
