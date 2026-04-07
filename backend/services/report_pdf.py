@@ -44,8 +44,28 @@ def build_test_report_pdf(session, questions):
 
     total_points = (session.total_questions or 45) + 10
     finished = session.finished_at.isoformat() if session.finished_at else "-"
+    percentage = float(session.percentage or 0)
+    level = determine_level(percentage)
+    solved_tasks = count_solved_tasks(answers)
 
-    write_line("Deutsch B1 - Testbericht", size=16, bold=True, gap=20)
+    # Page 1: certificate page
+    write_line("ZERTIFIKAT", size=30, bold=True, gap=34)
+    write_line("Deutsch Test - Stepaniuk", size=16, bold=True, gap=30)
+    write_line(f"Hiermit wird bestaetigt, dass {session.user_name}", size=13, gap=20)
+    write_line("den Deutsch-Test erfolgreich abgeschlossen hat.", size=13, gap=20)
+    write_line(f"Session ID: {session.id}", size=12)
+    write_line(f"Abgeschlossen: {finished}", size=12)
+    write_line(f"Aufgaben erledigt: {solved_tasks}/{session.total_questions or 45} + Schreiben", size=12)
+    write_line(f"Punkte: {session.score}/{total_points} ({session.percentage}%)", size=12, bold=True)
+    write_line(f"Eingestuftes Niveau: {level}", size=14, bold=True, gap=24)
+    write_line("Vielen Dank fuer die Teilnahme am Test.", size=11, gap=26)
+    write_line("Ausgestellt von Stepaniuk", size=11)
+
+    # Page 2: detailed report with all answers and letter
+    c.showPage()
+    y = height - 40
+
+    write_line("Deutsch - Detaillierter Testbericht", size=16, bold=True, gap=20)
     write_line(f"Name: {session.user_name}")
     write_line(f"Test: {session.test_number or 1}")
     write_line(f"Session ID: {session.id}")
@@ -246,3 +266,24 @@ def collect_all_answer_items(questions, answers):
             "correct_answer_display": correct_display,
         })
     return items
+
+
+def determine_level(percentage):
+    if percentage >= 70:
+        return "B1"
+    if percentage >= 55:
+        return "A2"
+    return "A1"
+
+
+def count_solved_tasks(answers):
+    solved = 0
+    for key, value in answers.items():
+        if key == "schreiben":
+            continue
+        if value is None:
+            continue
+        if str(value).strip() == "":
+            continue
+        solved += 1
+    return solved
