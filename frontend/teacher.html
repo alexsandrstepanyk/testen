@@ -26,6 +26,12 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
 .header-nav a{color:rgba(255,255,255,.7);text-decoration:none;margin-left:18px;font-size:13px;transition:color .2s;}
 .header-nav a:hover{color:#fff;}
 
+.page-tabs{max-width:1200px;margin:20px auto 0;padding:0 24px;display:flex;gap:10px;flex-wrap:wrap;}
+.page-tab{padding:11px 16px;border-radius:999px;border:1px solid var(--border);background:#fff;color:var(--ink);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
+.page-tab.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+.page-panel{display:none;}
+.page-panel.active{display:block;}
+
 /* STATS */
 .stats-wrap{max-width:1200px;margin:24px auto;padding:0 24px;}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px;}
@@ -72,7 +78,6 @@ tbody tr:last-child td{border-bottom:none;}
 
 /* STUDENT INFO */
 .student-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px;background:#f9f7f2;border-radius:12px;padding:16px;}
-.si-item{}
 .si-val{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--ink);}
 .si-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;margin-top:4px;}
 
@@ -108,6 +113,34 @@ tbody tr:last-child td{border-bottom:none;}
 .loading-spinner{width:40px;height:40px;border:3px solid var(--gold-dim);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
+.builder-grid{display:grid;grid-template-columns:320px 1fr;gap:18px;align-items:start;}
+.builder-card{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.04);padding:18px;}
+.builder-card h3{font-family:'Playfair Display',serif;font-size:20px;margin-bottom:12px;}
+.builder-card h4{font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
+.builder-list{display:flex;flex-direction:column;gap:10px;max-height:70vh;overflow:auto;}
+.course-item{border:1px solid var(--border);border-radius:12px;padding:14px;background:#faf8f2;cursor:pointer;transition:all .2s;}
+.course-item.active{border-color:var(--gold);background:var(--gold-dim);}
+.course-title{font-weight:700;font-size:15px;}
+.course-meta{font-size:12px;color:var(--muted);margin-top:5px;}
+.builder-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.form-grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field.full{grid-column:1 / -1;}
+.field label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.field textarea{padding:10px 12px;border-radius:10px;border:1.5px solid var(--border);background:#faf8f2;font-family:inherit;font-size:14px;min-height:92px;resize:vertical;outline:none;transition:border-color .2s;}
+.field textarea:focus{border-color:var(--gold);}
+.checkbox-row{display:flex;align-items:center;gap:10px;padding-top:28px;}
+.checkbox-row input{width:16px;height:16px;}
+.muted-note{font-size:12px;color:var(--muted);margin-top:8px;}
+.question-list{display:flex;flex-direction:column;gap:10px;margin-top:18px;}
+.question-item{border:1px solid var(--border);border-radius:12px;padding:14px;background:#fff;}
+.question-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;}
+.question-type{display:inline-block;padding:4px 8px;border-radius:999px;background:var(--blue-dim);color:var(--blue);font-size:11px;font-weight:700;text-transform:uppercase;}
+.question-text{font-size:14px;font-weight:700;margin-top:8px;}
+.question-sub{font-size:12px;color:var(--muted);margin-top:6px;}
+.empty-box{padding:18px;border:1px dashed var(--border);border-radius:12px;color:var(--muted);background:#fcfbf8;text-align:center;}
+
 /* TOAST */
 .toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:12px 20px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:2000;display:none;}
 .toast.show{display:block;animation:fadein .3s ease;}
@@ -120,6 +153,8 @@ tbody tr:last-child td{border-bottom:none;}
   .filters{flex-direction:column;align-items:stretch;}
   .filter-grp{flex-direction:column;align-items:stretch;}
   .mq-row{flex-direction:column;}
+  .builder-grid,.form-grid,.form-grid-3{grid-template-columns:1fr;}
+  .checkbox-row{padding-top:0;}
 }
 </style>
 </head>
@@ -135,7 +170,12 @@ tbody tr:last-child td{border-bottom:none;}
   </div>
 </header>
 
-<div class="stats-wrap">
+<div class="page-tabs">
+  <button class="page-tab active" id="tabDashboard" onclick="showPanel('dashboard')">📊 Ergebnisse</button>
+  <button class="page-tab" id="tabBuilder" onclick="showPanel('builder')">🛠 Kurs-Builder</button>
+</div>
+
+<div class="stats-wrap page-panel active" id="panelDashboard">
   <!-- Stats Grid -->
   <div class="stats-grid" id="statsGrid">
     <div class="stat-card">
@@ -218,6 +258,154 @@ tbody tr:last-child td{border-bottom:none;}
   </div>
 </div>
 
+<div class="stats-wrap page-panel" id="panelBuilder">
+  <div class="builder-grid">
+    <div class="builder-card">
+      <h3>Kurse</h3>
+      <div class="builder-actions">
+        <button class="btn btn-pri" onclick="startNewCourse()">＋ Neuer Kurs</button>
+        <button class="btn btn-sec" onclick="loadCourses()">↻ Synchronisieren</button>
+      </div>
+      <div class="builder-list" id="courseList" style="margin-top:16px;">
+        <div class="empty-box">Noch keine eigenen Kurse erstellt.</div>
+      </div>
+    </div>
+
+    <div class="builder-card">
+      <h3>Kurs-Builder</h3>
+      <h4>Kursdaten</h4>
+      <input type="hidden" id="builderCourseId">
+      <div class="form-grid">
+        <div class="field">
+          <label for="courseTitle">Kurstitel</label>
+          <input type="text" id="courseTitle" placeholder="z.B. B1 Berufstraining">
+        </div>
+        <div class="field">
+          <label for="courseLevel">Niveau</label>
+          <select id="courseLevel">
+            <option value="A1">A1</option>
+            <option value="A2">A2</option>
+            <option value="B1" selected>B1</option>
+            <option value="B2">B2</option>
+            <option value="C1">C1</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label for="courseDescription">Beschreibung</label>
+          <textarea id="courseDescription" placeholder="Worum geht es in diesem Kurs? Welche Kompetenzen trainiert er?"></textarea>
+        </div>
+      </div>
+      <div class="form-grid-3" style="margin-top:12px;">
+        <div class="field">
+          <label for="courseTeil1">Teil 1 Aufgaben</label>
+          <input type="number" id="courseTeil1" min="0" value="20">
+        </div>
+        <div class="field">
+          <label for="courseTeil2">Teil 2 Aufgaben</label>
+          <input type="number" id="courseTeil2" min="0" value="10">
+        </div>
+        <div class="field">
+          <label for="courseTeil3">Teil 3 Aufgaben</label>
+          <input type="number" id="courseTeil3" min="0" value="15">
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top:12px;">
+        <div class="field">
+          <label for="courseTimeLimit">Zeitlimit (Minuten)</label>
+          <input type="number" id="courseTimeLimit" min="1" value="65">
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="courseWriting" checked>
+          <label for="courseWriting">Schreiben / Brief aktivieren</label>
+        </div>
+      </div>
+      <div class="checkbox-row" style="margin-top:8px;">
+        <input type="checkbox" id="coursePublished">
+        <label for="coursePublished">Kurs als aktiv / veroeffentlicht markieren</label>
+      </div>
+      <div class="builder-actions">
+        <button class="btn btn-pri" onclick="saveCourse()">💾 Kurs speichern</button>
+        <button class="btn btn-sec" onclick="resetCourseForm()">Neu beginnen</button>
+        <button class="btn btn-sec" onclick="deleteCourse()">🗑 Kurs loeschen</button>
+      </div>
+      <div class="muted-note" id="courseStatsNote">Kein Kurs ausgewaehlt.</div>
+
+      <h4 style="margin-top:26px;">Fragen-Builder</h4>
+      <input type="hidden" id="builderQuestionId">
+      <div class="form-grid-3">
+        <div class="field">
+          <label for="questionOrder">Reihenfolge</label>
+          <input type="number" id="questionOrder" min="1" value="1">
+        </div>
+        <div class="field">
+          <label for="questionTeil">Teil</label>
+          <select id="questionTeil">
+            <option value="1">Teil 1</option>
+            <option value="2">Teil 2</option>
+            <option value="3">Teil 3</option>
+            <option value="4">Teil 4</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="questionType">Fragetyp</label>
+          <select id="questionType" onchange="toggleQuestionFields()">
+            <option value="mc">Multiple Choice</option>
+            <option value="rf">Richtig / Falsch</option>
+            <option value="text">Textauswahl</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top:12px;">
+        <div class="field full">
+          <label for="questionText">Frage</label>
+          <textarea id="questionText" placeholder="Frage eingeben..."></textarea>
+        </div>
+        <div class="field full">
+          <label for="questionContext">Kontext / Lesetext</label>
+          <textarea id="questionContext" placeholder="Optionaler Kontext oder Textbasis..."></textarea>
+        </div>
+      </div>
+      <div class="form-grid-3" id="questionOptionsBlock" style="margin-top:12px;">
+        <div class="field">
+          <label for="optionA">Option A</label>
+          <input type="text" id="optionA">
+        </div>
+        <div class="field">
+          <label for="optionB">Option B</label>
+          <input type="text" id="optionB">
+        </div>
+        <div class="field">
+          <label for="optionC">Option C</label>
+          <input type="text" id="optionC">
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top:12px;">
+        <div class="field">
+          <label for="questionCorrect">Richtige Antwort</label>
+          <input type="text" id="questionCorrect" placeholder="z.B. 1 oder true">
+        </div>
+        <div class="field">
+          <label for="questionPoints">Punkte</label>
+          <input type="number" id="questionPoints" min="1" value="1">
+        </div>
+        <div class="field full">
+          <label for="questionExplanation">Erklaerung</label>
+          <textarea id="questionExplanation" placeholder="Warum ist diese Antwort richtig?"></textarea>
+        </div>
+      </div>
+      <div class="muted-note">Hinweis: fuer `mc` und `text` nutze als richtige Antwort den Index `0`, `1` oder `2`; fuer `rf` nutze `true` oder `false`.</div>
+      <div class="builder-actions">
+        <button class="btn btn-pri" onclick="saveQuestion()">💾 Frage speichern</button>
+        <button class="btn btn-sec" onclick="resetQuestionForm()">Neue Frage</button>
+      </div>
+
+      <div class="question-list" id="questionList">
+        <div class="empty-box">Waehle links einen Kurs, um Fragen zu bearbeiten.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Modal for Details -->
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
   <div class="modal">
@@ -236,6 +424,9 @@ tbody tr:last-child td{border-bottom:none;}
 <script>
 const API = '/api/teacher';
 let allSessions = [];
+let allCourses = [];
+let activePanel = 'dashboard';
+let activeCourseId = null;
 
 async function apiFetch(url) {
   const response = await fetch(url);
@@ -246,6 +437,31 @@ async function apiFetch(url) {
     throw new Error('request');
   }
   return response;
+}
+
+async function apiJson(url, options = {}) {
+  const response = await fetch(url, options);
+  if (response.status === 401) throw new Error('auth');
+  if (!response.ok) {
+    let detail = 'request';
+    try {
+      const payload = await response.json();
+      detail = payload.detail || detail;
+    } catch {}
+    throw new Error(detail);
+  }
+  return response.status === 204 ? null : response.json();
+}
+
+function showPanel(panel) {
+  activePanel = panel;
+  document.getElementById('tabDashboard').classList.toggle('active', panel === 'dashboard');
+  document.getElementById('tabBuilder').classList.toggle('active', panel === 'builder');
+  document.getElementById('panelDashboard').classList.toggle('active', panel === 'dashboard');
+  document.getElementById('panelBuilder').classList.toggle('active', panel === 'builder');
+  if (panel === 'builder' && allCourses.length === 0) {
+    loadCourses();
+  }
 }
 
 /* LOAD STATS */
@@ -515,6 +731,275 @@ function closeModal() {
   document.getElementById('modalOverlay').classList.remove('show');
 }
 
+/* COURSE BUILDER */
+function renderCourseList() {
+  const list = document.getElementById('courseList');
+  if (!allCourses.length) {
+    list.innerHTML = '<div class="empty-box">Noch keine eigenen Kurse erstellt.</div>';
+    return;
+  }
+
+  list.innerHTML = allCourses.map(course => `
+    <div class="course-item ${course.id === activeCourseId ? 'active' : ''}" onclick="selectCourse(${course.id})">
+      <div class="course-title">${esc(course.title)}</div>
+      <div class="course-meta">${esc(course.level)} · ${course.question_count} Fragen · ${course.is_published ? 'Aktiv' : 'Entwurf'}</div>
+      <div class="course-meta">Soll: T1 ${course.teil1_count}, T2 ${course.teil2_count}, T3 ${course.teil3_count}, Schreiben ${course.writing_required ? 'Ja' : 'Nein'}</div>
+      <div class="course-meta">Ist: T1 ${course.actual_counts?.teil1 || 0}, T2 ${course.actual_counts?.teil2 || 0}, T3 ${course.actual_counts?.teil3 || 0}, T4 ${course.actual_counts?.teil4 || 0}</div>
+    </div>
+  `).join('');
+}
+
+function fillCourseForm(course) {
+  document.getElementById('builderCourseId').value = course.id || '';
+  document.getElementById('courseTitle').value = course.title || '';
+  document.getElementById('courseDescription').value = course.description || '';
+  document.getElementById('courseLevel').value = course.level || 'B1';
+  document.getElementById('courseTeil1').value = course.teil1_count ?? 20;
+  document.getElementById('courseTeil2').value = course.teil2_count ?? 10;
+  document.getElementById('courseTeil3').value = course.teil3_count ?? 15;
+  document.getElementById('courseTimeLimit').value = course.time_limit_minutes ?? 65;
+  document.getElementById('courseWriting').checked = !!course.writing_required;
+  document.getElementById('coursePublished').checked = !!course.is_published;
+  document.getElementById('courseStatsNote').textContent = course.id
+    ? `Kurs #${course.id} · ${course.question_count} Fragen synchronisiert · zuletzt aktualisiert ${formatDate(course.updated_at)}`
+    : 'Neuer Kurs – bitte speichern.';
+}
+
+function resetCourseForm() {
+  activeCourseId = null;
+  document.getElementById('builderCourseId').value = '';
+  document.getElementById('courseTitle').value = '';
+  document.getElementById('courseDescription').value = '';
+  document.getElementById('courseLevel').value = 'B1';
+  document.getElementById('courseTeil1').value = 20;
+  document.getElementById('courseTeil2').value = 10;
+  document.getElementById('courseTeil3').value = 15;
+  document.getElementById('courseTimeLimit').value = 65;
+  document.getElementById('courseWriting').checked = true;
+  document.getElementById('coursePublished').checked = false;
+  document.getElementById('courseStatsNote').textContent = 'Neuer Kurs – noch nicht gespeichert.';
+  document.getElementById('questionList').innerHTML = '<div class="empty-box">Speichere zuerst den Kurs, dann kannst du Fragen anlegen.</div>';
+  resetQuestionForm();
+  renderCourseList();
+}
+
+function startNewCourse() {
+  showPanel('builder');
+  resetCourseForm();
+}
+
+async function loadCourses(preferredCourseId = null) {
+  try {
+    const data = await apiJson(API + '/courses');
+    allCourses = data.courses || [];
+    if (preferredCourseId) {
+      activeCourseId = preferredCourseId;
+    } else if (activeCourseId && allCourses.some(course => course.id === activeCourseId)) {
+      activeCourseId = activeCourseId;
+    } else {
+      activeCourseId = allCourses[0]?.id || null;
+    }
+    renderCourseList();
+    if (activeCourseId) {
+      await selectCourse(activeCourseId);
+    } else {
+      resetCourseForm();
+    }
+  } catch (e) {
+    toast(e.message === 'auth' ? '🔒 Bitte Seite neu laden und neu anmelden.' : '⚠️ Kursdaten konnten nicht geladen werden');
+  }
+}
+
+async function selectCourse(courseId) {
+  activeCourseId = courseId;
+  renderCourseList();
+  try {
+    const course = await apiJson(API + '/courses/' + courseId);
+    fillCourseForm(course);
+    renderQuestionList(course.questions || []);
+    resetQuestionForm(false);
+  } catch (e) {
+    toast(e.message === 'auth' ? '🔒 Bitte neu anmelden.' : '⚠️ Kurs konnte nicht geladen werden');
+  }
+}
+
+async function saveCourse() {
+  const id = document.getElementById('builderCourseId').value;
+  const payload = {
+    title: document.getElementById('courseTitle').value.trim(),
+    description: document.getElementById('courseDescription').value.trim(),
+    level: document.getElementById('courseLevel').value,
+    teil1_count: Number(document.getElementById('courseTeil1').value || 0),
+    teil2_count: Number(document.getElementById('courseTeil2').value || 0),
+    teil3_count: Number(document.getElementById('courseTeil3').value || 0),
+    writing_required: document.getElementById('courseWriting').checked,
+    time_limit_minutes: Number(document.getElementById('courseTimeLimit').value || 65),
+    is_published: document.getElementById('coursePublished').checked,
+  };
+
+  if (!payload.title) {
+    toast('⚠️ Bitte einen Kurstitel eingeben');
+    return;
+  }
+
+  try {
+    const saved = await apiJson(API + '/courses' + (id ? '/' + id : ''), {
+      method: id ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    toast('✅ Kurs gespeichert');
+    await loadCourses(saved.id);
+  } catch (e) {
+    toast(e.message === 'auth' ? '🔒 Bitte neu anmelden.' : `⚠️ ${e.message}`);
+  }
+}
+
+async function deleteCourse() {
+  const id = document.getElementById('builderCourseId').value;
+  if (!id) {
+    toast('⚠️ Kein Kurs ausgewaehlt');
+    return;
+  }
+  if (!confirm('Diesen Kurs wirklich loeschen? Alle Fragen werden entfernt.')) return;
+  try {
+    await apiJson(API + '/courses/' + id, { method: 'DELETE' });
+    toast('🗑 Kurs geloescht');
+    await loadCourses();
+  } catch (e) {
+    toast(e.message === 'auth' ? '🔒 Bitte neu anmelden.' : '⚠️ Kurs konnte nicht geloescht werden');
+  }
+}
+
+function toggleQuestionFields() {
+  const type = document.getElementById('questionType').value;
+  const optionsBlock = document.getElementById('questionOptionsBlock');
+  const correct = document.getElementById('questionCorrect');
+  optionsBlock.style.display = type === 'rf' ? 'none' : 'grid';
+  correct.placeholder = type === 'rf' ? 'true oder false' : '0, 1 oder 2';
+}
+
+function resetQuestionForm(clearList = true) {
+  document.getElementById('builderQuestionId').value = '';
+  const questions = activeCourseId ? (allCourses.find(course => course.id === activeCourseId)?.questions || []) : [];
+  document.getElementById('questionOrder').value = (questions.length || 0) + 1;
+  document.getElementById('questionTeil').value = '1';
+  document.getElementById('questionType').value = 'mc';
+  document.getElementById('questionText').value = '';
+  document.getElementById('questionContext').value = '';
+  document.getElementById('optionA').value = '';
+  document.getElementById('optionB').value = '';
+  document.getElementById('optionC').value = '';
+  document.getElementById('questionCorrect').value = '';
+  document.getElementById('questionPoints').value = '1';
+  document.getElementById('questionExplanation').value = '';
+  toggleQuestionFields();
+  if (clearList && !activeCourseId) {
+    document.getElementById('questionList').innerHTML = '<div class="empty-box">Waehle links einen Kurs, um Fragen zu bearbeiten.</div>';
+  }
+}
+
+function renderQuestionList(questions) {
+  const list = document.getElementById('questionList');
+  const active = allCourses.find(course => course.id === activeCourseId);
+  if (active) active.questions = questions;
+  if (!questions.length) {
+    list.innerHTML = '<div class="empty-box">Noch keine Fragen vorhanden. Lege rechts die erste Frage an.</div>';
+    return;
+  }
+  list.innerHTML = questions.map(question => `
+    <div class="question-item">
+      <div class="question-top">
+        <div>
+          <span class="question-type">Teil ${question.teil} · ${esc(question.question_type)}</span>
+          <div class="question-text">${esc(question.question_text)}</div>
+          <div class="question-sub">Reihenfolge ${question.order_index} · Punkte ${question.points} · Richtige Antwort: ${esc(question.correct_answer ?? '-')}</div>
+        </div>
+        <div class="builder-actions" style="margin-top:0;">
+          <button class="btn btn-sec" onclick="editQuestion(${question.id})">Bearbeiten</button>
+          <button class="btn btn-sec" onclick="deleteQuestion(${question.id})">Loeschen</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function editQuestion(questionId) {
+  const course = allCourses.find(item => item.id === activeCourseId);
+  const question = course?.questions?.find(item => item.id === questionId);
+  if (!question) return;
+  document.getElementById('builderQuestionId').value = question.id;
+  document.getElementById('questionOrder').value = question.order_index || 1;
+  document.getElementById('questionTeil').value = String(question.teil || 1);
+  document.getElementById('questionType').value = question.question_type || 'mc';
+  document.getElementById('questionText').value = question.question_text || '';
+  document.getElementById('questionContext').value = question.context_text || '';
+  const options = question.options_json || [];
+  document.getElementById('optionA').value = options[0] || '';
+  document.getElementById('optionB').value = options[1] || '';
+  document.getElementById('optionC').value = options[2] || '';
+  document.getElementById('questionCorrect').value = question.correct_answer ?? '';
+  document.getElementById('questionPoints').value = question.points || 1;
+  document.getElementById('questionExplanation').value = question.explanation || '';
+  toggleQuestionFields();
+}
+
+async function saveQuestion() {
+  if (!activeCourseId) {
+    toast('⚠️ Speichere zuerst einen Kurs');
+    return;
+  }
+  const questionId = document.getElementById('builderQuestionId').value;
+  const type = document.getElementById('questionType').value;
+  const options = [
+    document.getElementById('optionA').value.trim(),
+    document.getElementById('optionB').value.trim(),
+    document.getElementById('optionC').value.trim(),
+  ].filter(Boolean);
+  const payload = {
+    order_index: Number(document.getElementById('questionOrder').value || 1),
+    teil: Number(document.getElementById('questionTeil').value || 1),
+    question_type: type,
+    question_text: document.getElementById('questionText').value.trim(),
+    context_text: document.getElementById('questionContext').value.trim(),
+    options_json: type === 'rf' ? null : options,
+    correct_answer: document.getElementById('questionCorrect').value.trim(),
+    explanation: document.getElementById('questionExplanation').value.trim(),
+    points: Number(document.getElementById('questionPoints').value || 1),
+  };
+
+  if (!payload.question_text) {
+    toast('⚠️ Bitte eine Frage eingeben');
+    return;
+  }
+
+  try {
+    await apiJson(API + '/courses/' + activeCourseId + '/questions' + (questionId ? '/' + questionId : ''), {
+      method: questionId ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    toast('✅ Frage gespeichert');
+    await loadCourses(activeCourseId);
+    resetQuestionForm(false);
+  } catch (e) {
+    toast(e.message === 'auth' ? '🔒 Bitte neu anmelden.' : `⚠️ ${e.message}`);
+  }
+}
+
+async function deleteQuestion(questionId) {
+  if (!activeCourseId) return;
+  if (!confirm('Diese Frage wirklich loeschen?')) return;
+  try {
+    await apiJson(API + '/courses/' + activeCourseId + '/questions/' + questionId, { method: 'DELETE' });
+    toast('🗑 Frage geloescht');
+    await loadCourses(activeCourseId);
+    resetQuestionForm(false);
+  } catch (e) {
+    toast(e.message === 'auth' ? '🔒 Bitte neu anmelden.' : '⚠️ Frage konnte nicht geloescht werden');
+  }
+}
+
 /* EXPORT CSV */
 function exportCSV() {
   if (allSessions.length === 0) {
@@ -578,6 +1063,8 @@ function toast(msg) {
 /* INIT */
 loadStats();
 loadSessions();
+loadCourses();
+toggleQuestionFields();
 </script>
 <footer class="site-footer">
   Entwickelt von Stepaniuk Oleksandr · <a href="https://stepaniuk.shop" target="_blank" rel="noopener noreferrer">stepaniuk.shop</a>

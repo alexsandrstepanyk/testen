@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
 
-from routers import questions, sessions, results, schreiben, teacher
+from routers import questions, sessions, results, schreiben, teacher, course_builder
 from models.database import engine, Base
 
 Base.metadata.create_all(bind=engine)
@@ -28,6 +28,7 @@ app.include_router(sessions.router,   prefix="/api/sessions",   tags=["Sessions"
 app.include_router(results.router,    prefix="/api/results",    tags=["Results"])
 app.include_router(schreiben.router,  prefix="/api/schreiben",  tags=["Schreiben"])
 app.include_router(teacher.router,    prefix="/api/teacher",    tags=["Teacher"])
+app.include_router(course_builder.router, prefix="/api/teacher", tags=["Course Builder"])
 
 frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
 if os.path.exists(frontend_path):

@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import Optional, Dict, Any
+from pydantic import BaseModel, Field
+from typing import Optional, Dict, Any, List
 from datetime import datetime
 
 class SessionCreate(BaseModel):
@@ -32,5 +32,65 @@ class SessionOut(BaseModel):
     teil2_score: Optional[int]
     teil3_score: Optional[int]
     teil4_score: Optional[int]
+    class Config:
+        from_attributes = True
+
+
+class CustomQuestionBase(BaseModel):
+    order_index: int = Field(default=1, ge=1)
+    teil: int = Field(default=1, ge=1, le=4)
+    question_type: str = Field(default="mc")
+    question_text: str
+    context_text: Optional[str] = None
+    options_json: Optional[List[str]] = None
+    correct_answer: Optional[str] = None
+    explanation: Optional[str] = None
+    points: int = Field(default=1, ge=1, le=100)
+
+
+class CustomQuestionCreate(CustomQuestionBase):
+    pass
+
+
+class CustomQuestionUpdate(CustomQuestionBase):
+    pass
+
+
+class CustomQuestionOut(CustomQuestionBase):
+    id: int
+    course_id: int
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class CustomCourseBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    level: str = Field(default="B1")
+    teil1_count: int = Field(default=20, ge=0, le=200)
+    teil2_count: int = Field(default=10, ge=0, le=200)
+    teil3_count: int = Field(default=15, ge=0, le=200)
+    writing_required: bool = True
+    time_limit_minutes: int = Field(default=65, ge=1, le=600)
+    is_published: bool = False
+
+
+class CustomCourseCreate(CustomCourseBase):
+    pass
+
+
+class CustomCourseUpdate(CustomCourseBase):
+    pass
+
+
+class CustomCourseOut(CustomCourseBase):
+    id: int
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    questions: List[CustomQuestionOut] = []
+
     class Config:
         from_attributes = True
