@@ -15,11 +15,13 @@
 ### Core Testing Flow
 
 - [x] 5 повних статичних тестів
-- [x] 45 питань + Schreiben
+- [x] 5-частинна структура: Teil 1-4 (20+10+15+10) + Teil 5 Schreiben
+- [x] 55 тестових питань + Schreiben (максимум 65 балів)
 - [x] таймер проходження
 - [x] автоматична перевірка відповідей
 - [x] підрахунок балів і відсотка
 - [x] збереження завершених сесій у БД
+- [x] новий блок Teil 4: Anzeigen zuordnen
 
 ### Teacher Dashboard
 
@@ -41,6 +43,12 @@
 - [x] лист у PDF
 - [x] certificate page на першій сторінці
 - [x] красивий redesign certificate page
+- [x] PDF оновлено під 5 частин (включно з Teil 5 Schreiben)
+
+### Leaderboard
+
+- [x] global leaderboard
+- [x] приховано тестові QA-записи з рейтингу
 
 ### Telegram Integration
 
