@@ -304,17 +304,25 @@ def evaluate_answer(question, user_answer):
         return False, "Keine Antwort", correct_display
 
     if qtype == "rf":
-        u = str(user_answer).lower()
-        is_correct = (u == "true" and bool(correct)) or (u == "false" and not bool(correct))
-        user_display = "Richtig" if u == "true" else "Falsch"
+        # Handle both boolean and string representations
+        if isinstance(user_answer, bool):
+            u_bool = user_answer
+        else:
+            u = str(user_answer).lower()
+            u_bool = u == "true"
+        
+        is_correct = (u_bool and bool(correct)) or (not u_bool and not bool(correct))
+        user_display = "Richtig" if u_bool else "Falsch"
         correct_display = "Richtig" if bool(correct) else "Falsch"
         return is_correct, user_display, correct_display
 
+    # Handle MC/text answers
     ua_str = str(user_answer).lower()
     if ua_str.isdigit():
         u_idx = int(ua_str)
     else:
         u_idx = answer_map.get(ua_str, -1)
+    
     is_correct = (u_idx == correct)
     options = question.get("options") or []
     if 0 <= u_idx < len(options):

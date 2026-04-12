@@ -684,10 +684,24 @@ async function doSubmit(){
   
   submitted=true;stopTimer();stopTeilTimer();
   let fqs=questions;
-  try{const r=await fetch(API+'/questions/test/'+selTest+'/with-answers');if(r.ok)fqs=(await r.json()).questions;}catch{}
+  try{
+    const r=await fetch(API+'/questions/test/'+selTest+'/with-answers');
+    if(r.ok) fqs=(await r.json()).questions;
+    else {
+      toast('⚠️ Fehler beim Laden der korrekten Antworten. Bitte versuchen Sie es später erneut.');
+      console.error('Failed to load correct answers, status:', r.status);
+      return;
+    }
+  }catch(err){
+    toast('⚠️ Netzwerkfehler beim Laden der Antworten. Bitte überprüfen Sie Ihre Verbindung.');
+    console.error('Network error loading answers:', err);
+    return;
+  }
   let sc=0,s1=0,s2=0,s3=0,s4=0,s5=0;
   fqs.forEach(q=>{
-    const ua=answers[q.id],ok=(q.type==='rf')?(ua===q.correct):(ua===q.correct);
+    const ua=answers[q.id];
+    if(ua===undefined) return; // Skip unanswered questions
+    const ok=(q.type==='rf')?(ua===q.correct):(ua===q.correct);
     if(ok){
       sc++;
       if(q.teil===1)s1++;
@@ -734,8 +748,8 @@ async function doSubmit(){
   document.getElementById('rbSub').textContent='Punkte: '+sc+'/'+totalPoints+' ('+pct+'%) · Zeit: '+ft(timerSecs)+' · Test '+selTest+': '+TM[selTest].theme;
   document.getElementById('rbParts').innerHTML='<div class="rb-part"><strong>'+s1+'/20</strong>Teil 1</div><div class="rb-part"><strong>'+s2+'/10</strong>Teil 2</div><div class="rb-part"><strong>'+s3+'/15</strong>Teil 3</div><div class="rb-part"><strong>'+s4+'/10</strong>Teil 4</div><div class="rb-part"><strong>'+s5+'/10</strong>Teil 5</div>';
   
-  // Save brief text to answers
-  const answersWithBrief = {...Object.fromEntries(Object.entries(answers).map(([k,v])=>[k,String(v)])), 'schreiben': briefText};
+  // Save brief text to answers (keep original types for answers)
+  const answersWithBrief = {...answers, 'schreiben': briefText};
 
   let saved = false;
   if(sessionId){
