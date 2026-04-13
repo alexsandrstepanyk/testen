@@ -71,7 +71,11 @@ deutsch-b1-app/
 │       ├── report_pdf.py
 │       └── telegram.py
 ├── frontend/
+│   ├── datenschutz.html
+│   ├── impressum.html
 │   ├── index.html
+│   ├── robots.txt
+│   ├── sitemap.xml
 │   └── teacher.html
 ├── Dockerfile
 ├── render.yaml
@@ -219,6 +223,17 @@ TELEGRAM_CHAT_ID=...
 - додано новий Teil 4 (Anzeigen zuordnen) і перенесено Schreiben у Teil 5
 - оновлено student UI, teacher dashboard і PDF-звіт під 5 частин
 - додано фільтр тестових QA-записів у leaderboard
+- виправлено production баг у teacher details modal (стабільне відкриття деталей сесії)
+- додано SEO-базу для індексації:
+   - meta description, canonical, Open Graph, Twitter cards
+   - structured data (JSON-LD)
+   - `robots.txt` + `sitemap.xml`
+   - server routes для `/robots.txt` і `/sitemap.xml`
+- додано юридичні сторінки для DE/EU:
+   - `Impressum` (`/impressum`)
+   - `Datenschutzerklaerung` (`/datenschutz`)
+   - посилання на обидві сторінки у футері
+- закрито teacher dashboard від індексації (`noindex`)
 
 ## Поточні обмеження
 
@@ -233,7 +248,11 @@ TELEGRAM_CHAT_ID=...
 2. дати учням можливість проходити курси, створені викладачем
 3. додати оцінювання custom courses у results / PDF / Telegram
 4. винести teacher credentials у env vars
-5. додати automated tests
+5. додати cookie consent banner (GDPR) перед ads/analytics
+6. додати Google Analytics 4 + Consent Mode v2
+7. реалізувати нову частину `Hoeren` (аудіо -> питання по тексту)
+8. реалізувати задачі типу `Einkaufszentrum / Etagen-Suche` (на якому поверсі купити річ)
+9. додати automated tests
 
 ## Автор
 

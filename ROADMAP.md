@@ -50,6 +50,17 @@
 - [x] global leaderboard
 - [x] приховано тестові QA-записи з рейтингу
 
+### SEO and Legal (DE/EU)
+
+- [x] meta tags, canonical, OpenGraph, Twitter cards
+- [x] structured data (JSON-LD)
+- [x] `robots.txt` and `sitemap.xml`
+- [x] server routes for sitemap and robots
+- [x] `Impressum` page
+- [x] `Datenschutzerklaerung` page
+- [x] legal links in footer
+- [x] teacher page marked as `noindex`
+
 ### Telegram Integration
 
 - [x] повідомлення про старт тесту
@@ -90,6 +101,12 @@
 - [ ] audit trail для змін курсів
 - [ ] обмежити небезпечні teacher actions
 
+### 4. Compliance and Growth
+
+- [ ] cookie consent banner (GDPR compliant)
+- [ ] Google Analytics 4 + Consent Mode v2
+- [ ] AdSense integration only after consent
+
 ## Planned Versions
 
 ## Version 1.5 — Custom Course Delivery
@@ -117,7 +134,8 @@
 
 ## Version 2.0 — Full Exam Platform
 
-- [ ] Horen / audio tasks
+- [ ] Horen / audio tasks (listen first -> answer by audio transcript meaning)
+- [ ] shopping mall floor tasks (Etagen-Suche: where to buy item by floor options)
 - [ ] speaking simulation
 - [ ] writing evaluation assistant
 - [ ] multilingual interface
