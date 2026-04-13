@@ -446,6 +446,8 @@ const TM={
   5:{theme:'Umwelt & Zukunft',      e:'🌱'},
 };
 
+let testOptions=[];
+
 let questions=[],answers={},submitted=false,sessionId=null;
 let userName='',selTest=1,timerSecs=0,timerH=null,timerOn=false;
 let curTeil=1,lbFlt=0;
@@ -459,23 +461,70 @@ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 function toast(msg,ms=3200){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),ms);}
 function scr(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
 
+function getMeta(tn){
+  const n=Number(tn);
+  const fromOptions=testOptions.find(t=>Number(t.test_number)===n);
+  if(fromOptions){
+    if(fromOptions.is_custom){
+      return {
+        e:'🧩',
+        theme:fromOptions.title || ('Kurs '+(fromOptions.course_id||'')),
+        label:'Kurs '+(fromOptions.course_id || n)
+      };
+    }
+    if(TM[n]) return {...TM[n],label:'Test '+n};
+  }
+  if(TM[n]) return {...TM[n],label:'Test '+n};
+  return {e:'🧩',theme:'Spezialkurs',label:'Kurs'};
+}
+
+function getDefaultTests(){
+  return [1,2,3,4,5].map(n=>({
+    test_number:n,
+    title:TM[n].theme,
+    is_custom:false,
+    total_questions:55
+  }));
+}
+
+async function loadTestOptions(){
+  try{
+    const r=await fetch(API+'/questions/');
+    if(!r.ok) throw 0;
+    const data=await r.json();
+    if(Array.isArray(data.available_tests) && data.available_tests.length){
+      testOptions=data.available_tests;
+      return;
+    }
+  }catch{}
+  testOptions=getDefaultTests();
+}
+
 /* BUILD TEST GRID */
 function buildGrid(){
   const g=document.getElementById('testGrid');
   g.innerHTML='';
-  for(let n=1;n<=5;n++){
-    const m=TM[n];
+  const options=(testOptions&&testOptions.length)?testOptions:getDefaultTests();
+  options.forEach((opt,idx)=>{
+    const n=Number(opt.test_number);
+    const m=getMeta(n);
     const b=document.createElement('button');
-    b.className='tp-btn'+(n===1?' sel':'');
+    b.className='tp-btn'+(idx===0?' sel':'');
     b.id='tpB'+n;
+    b.dataset.testNumber=String(n);
     b.innerHTML=`<span class="tp-emoji">${m.e}</span><span class="tp-num">${n}</span><span class="tp-theme">${m.theme}</span>`;
     b.onclick=()=>selT(n);
     g.appendChild(b);
+  });
+  if(options.length){
+    selTest=Number(options[0].test_number);
   }
 }
 function selT(n){
   selTest=n;
-  for(let i=1;i<=5;i++) document.getElementById('tpB'+i).classList.toggle('sel',i===n);
+  document.querySelectorAll('.tp-btn').forEach(btn=>{
+    btn.classList.toggle('sel',Number(btn.dataset.testNumber)===Number(n));
+  });
 }
 function onName(){document.getElementById('btnStart').disabled=!document.getElementById('nameInp').value.trim();}
 
@@ -485,12 +534,13 @@ async function doStart(){
   if(!name) return;
   userName=name;
   await fetchQs(selTest);
+  const meta=getMeta(selTest);
   try{
     const r=await fetch(API+'/sessions/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_name:name,test_number:selTest})});
     if(r.ok) sessionId=(await r.json()).id;
   }catch{sessionId=null;}
-  document.getElementById('hLabel').textContent='Test '+selTest;
-  document.getElementById('hSub').textContent=name+' · '+TM[selTest].e+' '+TM[selTest].theme+' · 5 Teile (80 Min)';
+  document.getElementById('hLabel').textContent=meta.label+' '+selTest;
+  document.getElementById('hSub').textContent=name+' · '+meta.e+' '+meta.theme+' · 5 Teile (80 Min)';
   answers={};submitted=false;timerSecs=0;timerOn=false;aufgabe=null;briefSaved=false;
   teilTimers={1:0,2:0,3:0,4:0,5:0};
   document.getElementById('timerVal').textContent='15:00';
@@ -507,11 +557,12 @@ async function doStart(){
 
 /* FETCH */
 async function fetchQs(tn){
+  const meta=getMeta(tn);
   try{
     const r=await fetch(API+'/questions/test/'+tn);
     if(!r.ok) throw 0;
     questions=(await r.json()).questions;
-    toast('Test '+tn+' geladen — '+questions.length+' Aufgaben ✓');
+    toast(meta.label+' '+tn+' geladen — '+questions.length+' Aufgaben ✓');
   }catch{
     questions=fallback(tn);
     toast('Offline-Modus: lokale Fragen geladen.');
@@ -720,6 +771,7 @@ async function doSubmit(){
   sc += s5;
   const totalPoints = fqs.length + 10;
   const pct=Math.round(sc/totalPoints*100),pass=pct>=60;
+  const meta=getMeta(selTest);
   
   fqs.forEach(q=>{
     const c=document.getElementById('card'+q.id);if(!c)return;
@@ -745,7 +797,7 @@ async function doSubmit(){
   const ban=document.getElementById('resultBanner');ban.classList.add('show');
   document.getElementById('rbWrap').className='rb-wrap '+(pass?'rb-pass':'rb-fail');
   document.getElementById('rbTitle').textContent=pass?'🎉 Bestanden!':'❌ Nicht bestanden';
-  document.getElementById('rbSub').textContent='Punkte: '+sc+'/'+totalPoints+' ('+pct+'%) · Zeit: '+ft(timerSecs)+' · Test '+selTest+': '+TM[selTest].theme;
+  document.getElementById('rbSub').textContent='Punkte: '+sc+'/'+totalPoints+' ('+pct+'%) · Zeit: '+ft(timerSecs)+' · '+meta.label+' '+selTest+': '+meta.theme;
   document.getElementById('rbParts').innerHTML='<div class="rb-part"><strong>'+s1+'/20</strong>Teil 1</div><div class="rb-part"><strong>'+s2+'/10</strong>Teil 2</div><div class="rb-part"><strong>'+s3+'/15</strong>Teil 3</div><div class="rb-part"><strong>'+s4+'/10</strong>Teil 4</div><div class="rb-part"><strong>'+s5+'/10</strong>Teil 5</div>';
   
   // Save brief text to answers (keep original types for answers)
@@ -859,8 +911,10 @@ function renderLb(ents,stats){
     const med=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
     const rc=i===0?'rg':i===1?'rs':i===2?'rb':'';
     const tn=e.test_number||1;
+    const lbMeta=TM[tn] || {e:'🧩'};
+    const label=(e.test_label || ('Test '+tn));
     const total=(e.total_questions||55)+10;
-    return '<tr><td><span class="rn '+rc+'">'+(med||e.rank)+'</span></td><td><strong>'+esc(e.user_name)+'</strong></td><td><span class="tchip">'+TM[tn].e+' T'+tn+'</span></td><td><strong>'+e.score+'/'+total+'</strong></td><td>'+e.percentage+'%</td><td>'+ft(e.duration_seconds||0)+'</td><td><span class="'+(e.passed?'bpass':'bfail')+'">'+(e.passed?'✓':'✗')+'</span></td></tr>';
+    return '<tr><td><span class="rn '+rc+'">'+(med||e.rank)+'</span></td><td><strong>'+esc(e.user_name)+'</strong></td><td><span class="tchip">'+lbMeta.e+' '+esc(label)+'</span></td><td><strong>'+e.score+'/'+total+'</strong></td><td>'+e.percentage+'%</td><td>'+ft(e.duration_seconds||0)+'</td><td><span class="'+(e.passed?'bpass':'bfail')+'">'+(e.passed?'✓':'✗')+'</span></td></tr>';
   }).join('');
 }
 function lbBack(){if(questions.length)scr('scTest');else scr('scStart');}
@@ -1270,7 +1324,7 @@ function copyBrief() {
   });
 }
 
-buildGrid();
+loadTestOptions().then(buildGrid);
 </script>
 <footer class="site-footer">
   Entwickelt von Stepaniuk Oleksandr · <a href="https://stepaniuk.shop" target="_blank" rel="noopener noreferrer">stepaniuk.shop</a>

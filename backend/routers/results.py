@@ -4,9 +4,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc, func, not_, or_
 from models.database import get_db
 from models.models import TestSession
-from models.questions_data import get_questions_for_test
 import io
 from services.report_pdf import build_test_report_pdf
+from services.question_resolver import get_questions_by_test_number, get_test_label
 
 router = APIRouter()
 
@@ -45,6 +45,7 @@ def get_leaderboard(limit: int = Query(default=50, le=200),
     sessions = q.order_by(desc(TestSession.score), TestSession.duration_seconds).limit(limit).all()
     return {"leaderboard": [
         {"rank": i+1, "user_name": s.user_name, "test_number": s.test_number or 1,
+         "test_label": get_test_label(s.test_number or 1, db),
          "score": s.score, "total_questions": s.total_questions,
          "percentage": s.percentage, "duration_seconds": s.duration_seconds,
          "passed": s.passed, "teil1_score": s.teil1_score,
@@ -88,11 +89,11 @@ def download_result_pdf(
     if session.user_name.strip().lower() != user_name.strip().lower():
         raise HTTPException(status_code=403, detail="This report is not available for this user")
 
-    questions = get_questions_for_test(session.test_number or 1)
+    questions = get_questions_by_test_number(db, session.test_number or 1)
     pdf_bytes, _mistakes = build_test_report_pdf(session, questions)
     pdf_stream = io.BytesIO(pdf_bytes)
     safe_name = session.user_name.replace(" ", "_")
-    filename = f"Testbericht_T{session.test_number}_{safe_name}_{session.id}.pdf"
+    filename = f"Testbericht_{(get_test_label(session.test_number or 1, db)).replace(' ', '_')}_{safe_name}_{session.id}.pdf"
     return StreamingResponse(
         pdf_stream,
         media_type="application/pdf",

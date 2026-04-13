@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from models.questions_data import SCHREIBEN_AUFGABEN
+from services.question_resolver import decode_custom_test_number
 import io, textwrap
 from datetime import datetime
 
@@ -12,19 +13,51 @@ class BriefSubmit(BaseModel):
     user_name: str
     text: str
 
+
+def get_aufgabe_for_test(test_number: int):
+    if test_number in SCHREIBEN_AUFGABEN:
+        return SCHREIBEN_AUFGABEN[test_number]
+
+    custom_course_id = decode_custom_test_number(test_number)
+    if custom_course_id is None:
+        return None
+
+    return {
+        "test": test_number,
+        "thema": f"Spezialkurs {custom_course_id}",
+        "situation": "Sie schreiben eine formelle E-Mail zu einem alltagsnahen Problem (Termin, Wohnung, Arbeit oder Kurs).",
+        "leitpunkte": [
+            "Anlass klar nennen",
+            "Zwei konkrete Details beschreiben",
+            "Bitte oder Vorschlag formulieren",
+            "Hoeflichen Abschluss schreiben",
+        ],
+        "hinweise": "Schreiben Sie klar, strukturiert und in einem hoefflichen Stil.",
+        "bewertungskriterien": [
+            "Aufgabenbezug",
+            "Struktur und Kohaerenz",
+            "Wortschatz und Grammatik",
+            "Angemessener Stil",
+        ],
+        "woerter_min": 120,
+        "woerter_max": 200,
+        "beispiel_anrede": "Sehr geehrte Damen und Herren,",
+        "beispiel_gruss": "Mit freundlichen Gruessen",
+    }
+
 @router.get("/aufgabe/{test_number}")
 def get_aufgabe(test_number: int):
-    if test_number not in SCHREIBEN_AUFGABEN:
+    aufgabe = get_aufgabe_for_test(test_number)
+    if not aufgabe:
         raise HTTPException(status_code=404, detail="Test not found")
-    return SCHREIBEN_AUFGABEN[test_number]
+    return aufgabe
 
 @router.post("/download-pdf/{test_number}")
 def download_brief(test_number: int, data: BriefSubmit):
     """Generate a downloadable PDF of the written letter"""
-    if test_number not in SCHREIBEN_AUFGABEN:
+    aufgabe = get_aufgabe_for_test(test_number)
+    if not aufgabe:
         raise HTTPException(status_code=404, detail="Test not found")
-
-    aufgabe = SCHREIBEN_AUFGABEN[test_number]
     text = data.text.strip()
     word_count = len(text.split()) if text else 0
 

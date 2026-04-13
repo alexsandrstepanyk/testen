@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from models.database import get_db
 from models.models import TestSession
-from models.questions_data import get_questions_for_test
 from schemas.schemas import SessionCreate, SessionFinish, SessionOut
 from datetime import datetime, timezone
 from services.report_pdf import build_test_report_pdf
+from services.question_resolver import get_questions_by_test_number, get_test_label
 from services.telegram import is_enabled, send_message, send_pdf_document
 
 router = APIRouter()
@@ -30,7 +30,7 @@ def get_derived_teil5_score(session: TestSession) -> int:
 
 @router.post("/start", response_model=SessionOut)
 def start_session(data: SessionCreate, db: Session = Depends(get_db)):
-    total_questions = len(get_questions_for_test(data.test_number))
+    total_questions = len(get_questions_by_test_number(db, data.test_number))
     session = TestSession(
         user_name=data.user_name.strip(),
         test_number=data.test_number,
@@ -41,7 +41,7 @@ def start_session(data: SessionCreate, db: Session = Depends(get_db)):
         msg = (
             "Neue Test-Session gestartet\n"
             f"Name: {session.user_name}\n"
-            f"Test: {session.test_number or 1}\n"
+            f"Test: {get_test_label(session.test_number or 1, db)}\n"
             f"Session ID: {session.id}"
         )
         send_message(msg)
@@ -64,7 +64,8 @@ def finish_session(session_id: int, data: SessionFinish, db: Session = Depends(g
     session.teil2_score = data.teil2_score
     session.teil3_score = data.teil3_score
     session.teil4_score = data.teil4_score or 0
-    session.total_questions = len(get_questions_for_test(session.test_number or 1))
+    resolved_total = len(get_questions_by_test_number(db, session.test_number or 1))
+    session.total_questions = resolved_total or session.total_questions or 0
     db.commit(); db.refresh(session)
 
     response_payload = SessionOut.model_validate(session).model_dump()
@@ -72,11 +73,11 @@ def finish_session(session_id: int, data: SessionFinish, db: Session = Depends(g
 
     if is_enabled():
         try:
-            questions = get_questions_for_test(session.test_number or 1)
+            questions = get_questions_by_test_number(db, session.test_number or 1)
             pdf_bytes, mistakes = build_test_report_pdf(session, questions)
             filename = f"Testbericht_T{session.test_number}_{session.user_name.replace(' ', '_')}_{session.id}.pdf"
             caption = (
-                f"Neues Testergebnis: {session.user_name} (Test {session.test_number or 1})\n"
+                f"Neues Testergebnis: {session.user_name} ({get_test_label(session.test_number or 1, db)})\n"
                 f"Punkte: {session.score}/{(session.total_questions or 55) + 10} | {session.percentage}%\n"
                 f"Fehler: {len(mistakes)}"
             )

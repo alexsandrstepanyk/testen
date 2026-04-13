@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc, and_
 from models.database import get_db
 from models.models import TestSession
-from models.questions_data import get_questions_for_test
+from services.question_resolver import get_questions_by_test_number, get_test_label
 from datetime import datetime, date
 from typing import Optional, List, Dict, Any
 import json
@@ -107,6 +107,7 @@ def get_all_sessions(
                 "id": s.id,
                 "user_name": s.user_name,
                 "test_number": s.test_number or 1,
+                "test_label": get_test_label(s.test_number or 1, db),
                 "started_at": s.started_at.isoformat() if s.started_at else None,
                 "finished_at": s.finished_at.isoformat() if s.finished_at else None,
                 "duration_seconds": s.duration_seconds,
@@ -149,7 +150,7 @@ def get_session_details(session_id: int, db: Session = Depends(get_db)):
             return session_out.__dict__
         
         # Get questions for this test
-        questions = get_questions_for_test(session.test_number or 1)
+        questions = get_questions_by_test_number(db, session.test_number or 1)
         questions_by_id = {q["id"]: q for q in questions}
         
         # Analyze mistakes
