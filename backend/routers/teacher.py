@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, and_
 from models.database import get_db
@@ -136,7 +137,7 @@ def get_session_details(session_id: int, db: Session = Depends(get_db)):
         
         if not session.answers_json:
             session_out = TeacherSessionOut(session, [])
-            return session_out.__dict__
+            return jsonable_encoder(session_out.__dict__)
         
         # Parse JSON string to dict
         try:
@@ -147,7 +148,7 @@ def get_session_details(session_id: int, db: Session = Depends(get_db)):
         
         if not user_answers:
             session_out = TeacherSessionOut(session, [])
-            return session_out.__dict__
+            return jsonable_encoder(session_out.__dict__)
         
         # Get questions for this test
         questions = get_questions_by_test_number(db, session.test_number or 1)
@@ -187,7 +188,7 @@ def get_session_details(session_id: int, db: Session = Depends(get_db)):
                 mistakes.append(mistake_info)
         
         session_out = TeacherSessionOut(session, mistakes)
-        return session_out.__dict__
+        return jsonable_encoder(session_out.__dict__)
     except Exception as e:
         print(f"Error in get_session_details: {e}")
         import traceback
