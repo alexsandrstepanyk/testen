@@ -469,13 +469,14 @@ function getMeta(tn){
       return {
         e:'🧩',
         theme:fromOptions.title || ('Kurs '+(fromOptions.course_id||'')),
-        label:'Kurs '+(fromOptions.course_id || n)
+        label:'Kurs '+(fromOptions.course_id || n),
+        code:'K'+(fromOptions.course_id || n)
       };
     }
-    if(TM[n]) return {...TM[n],label:'Test '+n};
+    if(TM[n]) return {...TM[n],label:'Test '+n,code:String(n)};
   }
-  if(TM[n]) return {...TM[n],label:'Test '+n};
-  return {e:'🧩',theme:'Spezialkurs',label:'Kurs'};
+  if(TM[n]) return {...TM[n],label:'Test '+n,code:String(n)};
+  return {e:'🧩',theme:'Spezialkurs',label:'Kurs',code:'K'};
 }
 
 function getDefaultTests(){
@@ -512,7 +513,7 @@ function buildGrid(){
     b.className='tp-btn'+(idx===0?' sel':'');
     b.id='tpB'+n;
     b.dataset.testNumber=String(n);
-    b.innerHTML=`<span class="tp-emoji">${m.e}</span><span class="tp-num">${n}</span><span class="tp-theme">${m.theme}</span>`;
+    b.innerHTML=`<span class="tp-emoji">${m.e}</span><span class="tp-num">${m.code||n}</span><span class="tp-theme">${m.theme}</span>`;
     b.onclick=()=>selT(n);
     g.appendChild(b);
   });
@@ -539,7 +540,7 @@ async function doStart(){
     const r=await fetch(API+'/sessions/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_name:name,test_number:selTest})});
     if(r.ok) sessionId=(await r.json()).id;
   }catch{sessionId=null;}
-  document.getElementById('hLabel').textContent=meta.label+' '+selTest;
+  document.getElementById('hLabel').textContent=meta.label;
   document.getElementById('hSub').textContent=name+' · '+meta.e+' '+meta.theme+' · 5 Teile (80 Min)';
   answers={};submitted=false;timerSecs=0;timerOn=false;aufgabe=null;briefSaved=false;
   teilTimers={1:0,2:0,3:0,4:0,5:0};
@@ -562,7 +563,7 @@ async function fetchQs(tn){
     const r=await fetch(API+'/questions/test/'+tn);
     if(!r.ok) throw 0;
     questions=(await r.json()).questions;
-    toast(meta.label+' '+tn+' geladen — '+questions.length+' Aufgaben ✓');
+    toast(meta.label+' geladen — '+questions.length+' Aufgaben ✓');
   }catch{
     questions=fallback(tn);
     toast('Offline-Modus: lokale Fragen geladen.');
@@ -797,7 +798,7 @@ async function doSubmit(){
   const ban=document.getElementById('resultBanner');ban.classList.add('show');
   document.getElementById('rbWrap').className='rb-wrap '+(pass?'rb-pass':'rb-fail');
   document.getElementById('rbTitle').textContent=pass?'🎉 Bestanden!':'❌ Nicht bestanden';
-  document.getElementById('rbSub').textContent='Punkte: '+sc+'/'+totalPoints+' ('+pct+'%) · Zeit: '+ft(timerSecs)+' · '+meta.label+' '+selTest+': '+meta.theme;
+  document.getElementById('rbSub').textContent='Punkte: '+sc+'/'+totalPoints+' ('+pct+'%) · Zeit: '+ft(timerSecs)+' · '+meta.label+': '+meta.theme;
   document.getElementById('rbParts').innerHTML='<div class="rb-part"><strong>'+s1+'/20</strong>Teil 1</div><div class="rb-part"><strong>'+s2+'/10</strong>Teil 2</div><div class="rb-part"><strong>'+s3+'/15</strong>Teil 3</div><div class="rb-part"><strong>'+s4+'/10</strong>Teil 4</div><div class="rb-part"><strong>'+s5+'/10</strong>Teil 5</div>';
   
   // Save brief text to answers (keep original types for answers)
