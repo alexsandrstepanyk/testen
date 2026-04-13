@@ -17,7 +17,13 @@ if DATABASE_URL.startswith("postgres://"):
 
 # PostgreSQL requires different engine settings
 if DATABASE_URL.startswith("postgresql"):
-    engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+    engine = create_engine(
+        DATABASE_URL,
+        pool_pre_ping=True,
+        pool_size=10,
+        max_overflow=20,
+        pool_timeout=30,
+    )
 else:
     engine = create_engine(
         DATABASE_URL,

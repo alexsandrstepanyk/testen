@@ -536,11 +536,6 @@ async function loadSessions() {
         <td><button class="btn-view" onclick="viewDetails(${s.id})">👁 Ansehen</button></td>
       </tr>
     `).join('');
-    
-    // Load mistake counts
-    allSessions.forEach(s => {
-      loadMistakeCount(s.id);
-    });
   } catch (e) {
     console.error('Sessions error:', e);
     toast(e.message === 'auth' ? '🔒 Bitte Seite neu laden und mit admin / admin anmelden.' : '⚠️ Fehler beim Laden der Ergebnisse');
@@ -574,6 +569,14 @@ async function viewDetails(sessionId) {
   try {
     const r = await apiFetch(API + '/sessions/' + sessionId + '/details');
     const data = await r.json();
+
+    const countCell = document.getElementById('mistakes-' + sessionId);
+    if (countCell) {
+      const detailCount = data.mistakes ? data.mistakes.length : 0;
+      countCell.innerHTML = detailCount > 0
+        ? '<span style="color:var(--red);font-weight:600;">' + detailCount + ' Fehler</span>'
+        : '<span style="color:var(--green);font-weight:600;">Perfekt! ✓</span>';
+    }
 
     // Student info
     const infoHtml = `
