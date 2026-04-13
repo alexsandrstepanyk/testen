@@ -645,7 +645,7 @@ async function viewDetails(sessionId) {
     ` : '';
     
     // Mistakes by section
-    const mistakesByTeil = { 1: [], 2: [], 3: [], 4: [] };
+    const mistakesByTeil = { 1: [], 2: [], 3: [], 4: [], 5: [] };
     data.mistakes.forEach(m => {
       const teil = m.teil || 1;
       if (!mistakesByTeil[teil]) mistakesByTeil[teil] = [];
@@ -662,11 +662,12 @@ async function viewDetails(sessionId) {
     };
     
     for (let t = 1; t <= 5; t++) {
-      if (mistakesByTeil[t].length > 0) {
+      const teilMistakes = mistakesByTeil[t] || [];
+      if (teilMistakes.length > 0) {
         mistakesHtml += `
           <div class="mistakes-sec">
-            <h3>🔴 ${teilNames[t]} (${mistakesByTeil[t].length} Fehler)</h3>
-            ${mistakesByTeil[t].map(m => renderMistake(m)).join('')}
+            <h3>🔴 ${teilNames[t]} (${teilMistakes.length} Fehler)</h3>
+            ${teilMistakes.map(m => renderMistake(m)).join('')}
           </div>
         `;
       }
