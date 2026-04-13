@@ -46,6 +46,14 @@ if os.path.exists(frontend_path):
     def serve_sitemap():
         return FileResponse(os.path.join(frontend_path, "sitemap.xml"), media_type="application/xml")
 
+    @app.get("/impressum", include_in_schema=False)
+    def serve_impressum():
+        return FileResponse(os.path.join(frontend_path, "impressum.html"))
+
+    @app.get("/datenschutz", include_in_schema=False)
+    def serve_datenschutz():
+        return FileResponse(os.path.join(frontend_path, "datenschutz.html"))
+
     @app.get("/teacher", include_in_schema=False)
     def serve_teacher(_auth: str = Depends(teacher.require_teacher_auth)):
         return FileResponse(os.path.join(frontend_path, "teacher.html"))
