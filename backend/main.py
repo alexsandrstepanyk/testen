@@ -38,6 +38,14 @@ if os.path.exists(frontend_path):
     def serve_frontend():
         return FileResponse(os.path.join(frontend_path, "index.html"))
 
+    @app.get("/robots.txt", include_in_schema=False)
+    def serve_robots():
+        return FileResponse(os.path.join(frontend_path, "robots.txt"), media_type="text/plain")
+
+    @app.get("/sitemap.xml", include_in_schema=False)
+    def serve_sitemap():
+        return FileResponse(os.path.join(frontend_path, "sitemap.xml"), media_type="application/xml")
+
     @app.get("/teacher", include_in_schema=False)
     def serve_teacher(_auth: str = Depends(teacher.require_teacher_auth)):
         return FileResponse(os.path.join(frontend_path, "teacher.html"))
