@@ -52,13 +52,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
 <style>
 :root{
+  --mx:0px;--my:0px;--parallax-y:0px;
   --ink:#181825;--ink2:#2a2a40;--cream:#faf8f2;--gold:#c8a84b;--gold-dim:#f0e3bc;
   --blue:#1d4ed8;--blue-dim:#eff6ff;--green:#166534;--green-dim:#dcfce7;
   --red:#991b1b;--red-dim:#fee2e2;--violet:#5b21b6;--violet-dim:#ede9fe;
   --border:#e2ddd2;--muted:#6b7280;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:var(--ink);min-height:100vh;line-height:1.5;}
+body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:var(--ink);min-height:100vh;line-height:1.5;overflow-x:hidden;}
 .screen{display:none;}.screen.active{display:block;}
 .site-footer{padding:28px 16px 34px;text-align:center;color:var(--muted);font-size:13px;}
 .site-footer a{color:var(--ink);font-weight:600;text-decoration:none;border-bottom:1px solid rgba(24,24,37,.18);}
@@ -74,9 +75,18 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
 .start-bg{min-height:100vh;background:var(--ink);
   background-image:radial-gradient(ellipse 70% 55% at 12% 45%,rgba(200,168,75,.22) 0%,transparent 55%),
     radial-gradient(ellipse 55% 65% at 88% 18%,rgba(29,78,216,.20) 0%,transparent 55%);
-  display:flex;align-items:center;justify-content:center;padding:24px;}
+  display:flex;align-items:center;justify-content:center;padding:24px;position:relative;overflow:hidden;}
+.start-bg::before{content:'';position:absolute;inset:-18%;
+  background:radial-gradient(circle at 70% 20%,rgba(200,168,75,.22),transparent 42%),
+             radial-gradient(circle at 20% 75%,rgba(29,78,216,.16),transparent 38%);
+  transform:translate3d(calc(var(--mx) * -0.35),calc(var(--my) * -0.25),0) translateY(calc(var(--parallax-y) * 0.35));
+  pointer-events:none;}
+.parallax-orb{position:absolute;border-radius:999px;filter:blur(.3px);pointer-events:none;opacity:.55;}
+.orb-a{width:220px;height:220px;background:radial-gradient(circle at 30% 30%,rgba(200,168,75,.34),rgba(200,168,75,.04));top:9%;left:7%;transform:translate3d(calc(var(--mx) * -0.9),calc(var(--my) * -0.6),0);}
+.orb-b{width:280px;height:280px;background:radial-gradient(circle at 60% 35%,rgba(29,78,216,.28),rgba(29,78,216,.05));bottom:4%;right:8%;transform:translate3d(calc(var(--mx) * 0.7),calc(var(--my) * 0.45),0);}
 .start-card{max-width:540px;width:100%;background:rgba(255,255,255,.055);border:1px solid rgba(200,168,75,.30);
-  border-radius:20px;padding:44px 38px 38px;backdrop-filter:blur(24px);color:#fff;text-align:center;}
+  border-radius:20px;padding:44px 38px 38px;backdrop-filter:blur(24px);color:#fff;text-align:center;position:relative;z-index:2;
+  transition:transform .24s ease, box-shadow .24s ease;will-change:transform;}
 .eyebrow{display:inline-flex;align-items:center;gap:7px;background:rgba(200,168,75,.18);
   border:1px solid rgba(200,168,75,.38);color:var(--gold);font-size:10.5px;letter-spacing:2.5px;
   text-transform:uppercase;padding:5px 15px;border-radius:99px;margin-bottom:22px;}
@@ -237,7 +247,12 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
 
 /* LEADERBOARD */
 .lb-screen{min-height:100vh;background:var(--cream);}
-.lb-hero{background:var(--ink);padding:30px 20px 26px;text-align:center;color:#fff;}
+.lb-hero{background:var(--ink);padding:30px 20px 26px;text-align:center;color:#fff;position:relative;overflow:hidden;}
+.lb-hero::after{content:'';position:absolute;inset:-40% -10%;
+  background:radial-gradient(ellipse at 25% 40%,rgba(200,168,75,.2),transparent 52%),
+             radial-gradient(ellipse at 80% 20%,rgba(29,78,216,.16),transparent 46%);
+  transform:translate3d(calc(var(--mx) * -0.25),calc(var(--my) * -0.2),0);
+  pointer-events:none;}
 .lb-hero h1{font-family:'Playfair Display',serif;font-size:clamp(22px,5vw,34px);font-weight:900;margin-bottom:5px;}
 .lb-hero h1 em{color:var(--gold);font-style:normal;}
 .lb-hero p{font-size:13px;color:rgba(255,255,255,.36);font-style:italic;}
@@ -337,6 +352,15 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
   padding:9px 20px;border-radius:10px;font-size:13px;z-index:200;display:none;white-space:nowrap;
   box-shadow:0 4px 20px rgba(24,24,37,.25);}
 .toast.show{display:block;animation:fi .3s ease;}
+.reveal-ready{opacity:0;transform:translateY(18px);transition:opacity .55s ease, transform .55s ease;}
+.reveal-in{opacity:1;transform:translateY(0);}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.timer-box{animation:floaty 4.4s ease-in-out infinite;}
+@media (prefers-reduced-motion: reduce){
+  .timer-box{animation:none}
+  .reveal-ready,.reveal-in{opacity:1;transform:none;transition:none}
+  .start-card,.orb-a,.orb-b,.start-bg::before,.lb-hero::after{transform:none!important}
+}
 @media(max-width:560px){
   .start-card{padding:30px 18px 26px;}.test-grid{gap:6px;}
   .tp-btn{padding:11px 3px 9px;}.tp-emoji{font-size:16px;}.tp-num{font-size:14px;}
@@ -350,7 +374,7 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
 
 <!-- START SCREEN -->
 <div class="screen active" id="scStart">
-<div class="start-bg"><div class="start-card">
+<div class="start-bg"><span class="parallax-orb orb-a"></span><span class="parallax-orb orb-b"></span><div class="start-card">
   <div class="eyebrow">🇩🇪 Goethe-Zertifikat · Niveau B1</div>
   <h1>Deutsch <em>B1</em><br>Übungstests</h1>
   <p class="tagline">5 vollständige Tests · Lesen · Grammatik · Leseverstehen</p>
@@ -1370,6 +1394,52 @@ function copyBrief() {
   });
 }
 
+function initMotionFX(){
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const root = document.documentElement;
+
+  const startBg = document.querySelector('.start-bg');
+  const startCard = document.querySelector('.start-card');
+  if (!reduce && startBg && startCard) {
+    startBg.addEventListener('mousemove', (e) => {
+      const r = startBg.getBoundingClientRect();
+      const mx = (e.clientX - r.left) / r.width - 0.5;
+      const my = (e.clientY - r.top) / r.height - 0.5;
+      root.style.setProperty('--mx', `${(mx * 34).toFixed(2)}px`);
+      root.style.setProperty('--my', `${(my * 28).toFixed(2)}px`);
+      startCard.style.transform = `translate3d(${(mx * 10).toFixed(2)}px, ${(my * 8).toFixed(2)}px, 0)`;
+    });
+    startBg.addEventListener('mouseleave', () => {
+      root.style.setProperty('--mx', '0px');
+      root.style.setProperty('--my', '0px');
+      startCard.style.transform = 'translate3d(0,0,0)';
+    });
+  }
+
+  if (!reduce) {
+    window.addEventListener('scroll', () => {
+      root.style.setProperty('--parallax-y', `${(window.scrollY * 0.08).toFixed(2)}px`);
+    }, { passive: true });
+  }
+
+  const targets = document.querySelectorAll('.start-card, .teil-hd, .sch-card, .rb-wrap, .lbsg, .lbt-wrap');
+  if (!targets.length) return;
+  if (reduce || !('IntersectionObserver' in window)) {
+    targets.forEach((el) => el.classList.add('reveal-in'));
+    return;
+  }
+  targets.forEach((el) => el.classList.add('reveal-ready'));
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('reveal-in');
+      io.unobserve(entry.target);
+    });
+  }, { threshold: 0.16, rootMargin: '0px 0px -40px 0px' });
+  targets.forEach((el) => io.observe(el));
+}
+
+initMotionFX();
 loadTestOptions().then(buildGrid);
 </script>
 <footer class="site-footer">
