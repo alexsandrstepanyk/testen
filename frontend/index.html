@@ -60,7 +60,12 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:var(--ink);min-height:100vh;line-height:1.5;overflow-x:hidden;}
-.screen{display:none;}.screen.active{display:block;}
+.screen{display:none;opacity:0;transform:translateY(8px) scale(.996);}
+.screen.active{display:block;}
+.screen.enter{animation:screenIn .34s cubic-bezier(.2,.8,.2,1) both;}
+.screen.leave{animation:screenOut .2s ease both;}
+@keyframes screenIn{from{opacity:0;transform:translateY(12px) scale(.993)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes screenOut{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(-6px) scale(.997)}}
 .site-footer{padding:28px 16px 34px;text-align:center;color:var(--muted);font-size:13px;}
 .site-footer a{color:var(--ink);font-weight:600;text-decoration:none;border-bottom:1px solid rgba(24,24,37,.18);}
 .site-footer a:hover{border-bottom-color:var(--gold);color:var(--gold);}
@@ -178,6 +183,7 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
   overflow:hidden;transition:border-color .28s,box-shadow .28s;animation:su .3s ease both;}
 @keyframes su{from{opacity:0;transform:translateY(13px)}to{opacity:1;transform:translateY(0)}}
 .qcard:hover{box-shadow:0 2px 16px rgba(24,24,37,.08);}
+.qcard.tilt-enabled{transform-style:preserve-3d;will-change:transform;transition:transform .16s ease, box-shadow .28s, border-color .28s;}
 .qcard.qa{border-color:#93c5fd;}.qcard.qok{border-color:#86efac;}.qcard.qbad{border-color:#fca5a5;}
 .qhead{padding:15px 18px 13px;display:flex;gap:11px;align-items:flex-start;}
 .qbadge{flex-shrink:0;min-width:27px;height:27px;border-radius:50%;background:#f0ede6;color:#999;
@@ -352,12 +358,17 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
   padding:9px 20px;border-radius:10px;font-size:13px;z-index:200;display:none;white-space:nowrap;
   box-shadow:0 4px 20px rgba(24,24,37,.25);}
 .toast.show{display:block;animation:fi .3s ease;}
+.ripple-host{position:relative;overflow:hidden;isolation:isolate;}
+.ripple-dot{position:absolute;border-radius:50%;pointer-events:none;transform:translate(-50%,-50%) scale(0);background:rgba(255,255,255,.35);mix-blend-mode:soft-light;animation:ripple .55s ease-out forwards;}
+@keyframes ripple{to{transform:translate(-50%,-50%) scale(1);opacity:0}}
 .reveal-ready{opacity:0;transform:translateY(18px);transition:opacity .55s ease, transform .55s ease;}
 .reveal-in{opacity:1;transform:translateY(0);}
 @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 .timer-box{animation:floaty 4.4s ease-in-out infinite;}
 @media (prefers-reduced-motion: reduce){
+  .screen,.screen.active{animation:none!important;transform:none!important;opacity:1!important}
   .timer-box{animation:none}
+  .ripple-dot{display:none}
   .reveal-ready,.reveal-in{opacity:1;transform:none;transition:none}
   .start-card,.orb-a,.orb-b,.start-bg::before,.lb-hero::after{transform:none!important}
 }
@@ -528,7 +539,28 @@ let currentTeilTimer = null;
 function ft(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function toast(msg,ms=3200){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),ms);}
-function scr(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
+let screenAnimTimer=null;
+function scr(id){
+  const next=document.getElementById(id);
+  const current=document.querySelector('.screen.active');
+  if(!next||current===next) return;
+  if(screenAnimTimer) clearTimeout(screenAnimTimer);
+
+  if(current){
+    current.classList.remove('enter');
+    current.classList.add('leave');
+    screenAnimTimer=setTimeout(()=>{
+      current.classList.remove('active','leave');
+      next.classList.add('active','enter');
+      setTimeout(()=>next.classList.remove('enter'),360);
+      window.scrollTo({top:0,behavior:'smooth'});
+    },140);
+    return;
+  }
+  next.classList.add('active','enter');
+  setTimeout(()=>next.classList.remove('enter'),360);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
 
 function getMeta(tn){
   const n=Number(tn);
@@ -685,6 +717,7 @@ function renderAll(){
     const c=document.getElementById('qs'+t);
     c.innerHTML=questions.filter(q=>q.teil===t).map(buildCard).join('');
   }
+  bindCardTilt();
 }
 function buildCard(q){
   const ctx=q.context?`<div class="qctx">${esc(q.context)}</div>`:'';
@@ -1439,7 +1472,54 @@ function initMotionFX(){
   targets.forEach((el) => io.observe(el));
 }
 
+function initClickRipples(){
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const clickable = document.querySelectorAll('.tp-btn,.btn-start,.bsub,.bnav,.bother,.bctr,.lf-btn,.t-tab,.abtn,.rfbtn');
+  clickable.forEach((el)=>el.classList.add('ripple-host'));
+  if (reduce) return;
+  document.addEventListener('click', (event) => {
+    const host = event.target.closest('.ripple-host');
+    if (!host) return;
+    const rect = host.getBoundingClientRect();
+    const dot = document.createElement('span');
+    dot.className = 'ripple-dot';
+    const size = Math.max(rect.width, rect.height) * 1.2;
+    dot.style.width = `${size}px`;
+    dot.style.height = `${size}px`;
+    dot.style.left = `${event.clientX - rect.left}px`;
+    dot.style.top = `${event.clientY - rect.top}px`;
+    host.appendChild(dot);
+    setTimeout(() => dot.remove(), 560);
+  });
+}
+
+function bindCardTilt(){
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const desktop = window.matchMedia('(min-width: 1024px)').matches;
+  const cards = document.querySelectorAll('.qcard');
+  cards.forEach((card)=>{
+    card.classList.remove('tilt-enabled');
+    card.style.transform='';
+    card.onmousemove=null;
+    card.onmouseleave=null;
+  });
+  if (reduce || !desktop) return;
+  cards.forEach((card)=>{
+    card.classList.add('tilt-enabled');
+    card.onmousemove=(event)=>{
+      const r=card.getBoundingClientRect();
+      const x=((event.clientX-r.left)/r.width)-0.5;
+      const y=((event.clientY-r.top)/r.height)-0.5;
+      const rx=-(y*5);
+      const ry=(x*6);
+      card.style.transform=`perspective(900px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) translateZ(0)`;
+    };
+    card.onmouseleave=()=>{card.style.transform='perspective(900px) rotateX(0deg) rotateY(0deg)';};
+  });
+}
+
 initMotionFX();
+initClickRipples();
 loadTestOptions().then(buildGrid);
 </script>
 <footer class="site-footer">
