@@ -2,12 +2,26 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from sqlalchemy import inspect, text
 import os
 
 from routers import questions, sessions, results, schreiben, teacher, course_builder
 from models.database import engine, Base
 
 Base.metadata.create_all(bind=engine)
+
+
+def ensure_schema_updates() -> None:
+    inspector = inspect(engine)
+    columns = {column["name"] for column in inspector.get_columns("custom_questions")}
+    if "audio_url" in columns:
+        return
+
+    with engine.begin() as connection:
+        connection.execute(text("ALTER TABLE custom_questions ADD COLUMN audio_url TEXT"))
+
+
+ensure_schema_updates()
 
 app = FastAPI(
     title="Deutsch B1 Übungstest",

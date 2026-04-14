@@ -354,6 +354,7 @@ tbody tr:last-child td{border-bottom:none;}
             <option value="mc">Multiple Choice</option>
             <option value="rf">Richtig / Falsch</option>
             <option value="text">Textauswahl</option>
+            <option value="audio">Audio / Hoeren</option>
           </select>
         </div>
       </div>
@@ -365,6 +366,19 @@ tbody tr:last-child td{border-bottom:none;}
         <div class="field full">
           <label for="questionContext">Kontext / Lesetext</label>
           <textarea id="questionContext" placeholder="Optionaler Kontext oder Textbasis..."></textarea>
+        </div>
+        <div class="field full" id="audioUrlField" style="display:none;">
+          <label for="questionAudioUrl">Audio-URL</label>
+          <input type="text" id="questionAudioUrl" placeholder="/static/uploads/audio/datei.mp3 oder externe URL">
+        </div>
+        <div class="field full" id="audioUploadField" style="display:none;">
+          <label for="questionAudioFile">Audio-Datei hochladen</label>
+          <input type="file" id="questionAudioFile" accept=".mp3,.wav,.m4a,.ogg,.webm,audio/*">
+          <div class="builder-actions" style="margin-top:10px;">
+            <button class="btn btn-sec" type="button" onclick="uploadQuestionAudio()">⬆️ Audio hochladen</button>
+          </div>
+          <div class="muted-note" id="audioUploadNote">Noch keine Audio-Datei hochgeladen.</div>
+          <audio id="audioPreview" controls style="display:none;width:100%;margin-top:12px;"></audio>
         </div>
       </div>
       <div class="form-grid-3" id="questionOptionsBlock" style="margin-top:12px;">
@@ -886,8 +900,46 @@ function toggleQuestionFields() {
   const type = document.getElementById('questionType').value;
   const optionsBlock = document.getElementById('questionOptionsBlock');
   const correct = document.getElementById('questionCorrect');
+  const audioUrlField = document.getElementById('audioUrlField');
+  const audioUploadField = document.getElementById('audioUploadField');
+  const isAudio = type === 'audio';
   optionsBlock.style.display = type === 'rf' ? 'none' : 'grid';
+  audioUrlField.style.display = isAudio ? 'block' : 'none';
+  audioUploadField.style.display = isAudio ? 'block' : 'none';
   correct.placeholder = type === 'rf' ? 'true oder false' : '0, 1 oder 2';
+}
+
+async function uploadQuestionAudio() {
+  const fileInput = document.getElementById('questionAudioFile');
+  const note = document.getElementById('audioUploadNote');
+  const preview = document.getElementById('audioPreview');
+  const file = fileInput.files?.[0];
+
+  if (!file) {
+    toast('⚠️ Bitte zuerst eine Audio-Datei auswaehlen');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('file', file);
+  note.textContent = 'Upload laeuft...';
+
+  try {
+    const result = await apiJson(API + '/courses/uploads/audio', {
+      method: 'POST',
+      body: formData,
+    });
+    document.getElementById('questionAudioUrl').value = result.audio_url || '';
+    note.textContent = 'Hochgeladen: ' + (result.file_name || file.name);
+    if (result.audio_url) {
+      preview.src = result.audio_url;
+      preview.style.display = 'block';
+    }
+    toast('✅ Audio erfolgreich hochgeladen');
+  } catch (e) {
+    note.textContent = 'Upload fehlgeschlagen.';
+    toast(e.message === 'auth' ? '🔒 Bitte neu anmelden.' : `⚠️ ${e.message}`);
+  }
 }
 
 function resetQuestionForm(clearList = true) {
@@ -898,12 +950,17 @@ function resetQuestionForm(clearList = true) {
   document.getElementById('questionType').value = 'mc';
   document.getElementById('questionText').value = '';
   document.getElementById('questionContext').value = '';
+  document.getElementById('questionAudioUrl').value = '';
+  document.getElementById('questionAudioFile').value = '';
   document.getElementById('optionA').value = '';
   document.getElementById('optionB').value = '';
   document.getElementById('optionC').value = '';
   document.getElementById('questionCorrect').value = '';
   document.getElementById('questionPoints').value = '1';
   document.getElementById('questionExplanation').value = '';
+  document.getElementById('audioUploadNote').textContent = 'Noch keine Audio-Datei hochgeladen.';
+  document.getElementById('audioPreview').removeAttribute('src');
+  document.getElementById('audioPreview').style.display = 'none';
   toggleQuestionFields();
   if (clearList && !activeCourseId) {
     document.getElementById('questionList').innerHTML = '<div class="empty-box">Waehle links einen Kurs, um Fragen zu bearbeiten.</div>';
@@ -925,6 +982,7 @@ function renderQuestionList(questions) {
           <span class="question-type">Teil ${question.teil} · ${esc(question.question_type)}</span>
           <div class="question-text">${esc(question.question_text)}</div>
           <div class="question-sub">Reihenfolge ${question.order_index} · Punkte ${question.points} · Richtige Antwort: ${esc(question.correct_answer ?? '-')}</div>
+          ${question.audio_url ? `<div class="question-sub"><a href="${esc(question.audio_url)}" target="_blank" rel="noopener noreferrer">Audio oeffnen</a></div>` : ''}
         </div>
         <div class="builder-actions" style="margin-top:0;">
           <button class="btn btn-sec" onclick="editQuestion(${question.id})">Bearbeiten</button>
@@ -945,6 +1003,7 @@ function editQuestion(questionId) {
   document.getElementById('questionType').value = question.question_type || 'mc';
   document.getElementById('questionText').value = question.question_text || '';
   document.getElementById('questionContext').value = question.context_text || '';
+  document.getElementById('questionAudioUrl').value = question.audio_url || '';
   const options = question.options_json || [];
   document.getElementById('optionA').value = options[0] || '';
   document.getElementById('optionB').value = options[1] || '';
@@ -952,6 +1011,15 @@ function editQuestion(questionId) {
   document.getElementById('questionCorrect').value = question.correct_answer ?? '';
   document.getElementById('questionPoints').value = question.points || 1;
   document.getElementById('questionExplanation').value = question.explanation || '';
+  document.getElementById('audioUploadNote').textContent = question.audio_url ? 'Vorhandene Audio-Datei gesetzt.' : 'Noch keine Audio-Datei hochgeladen.';
+  const preview = document.getElementById('audioPreview');
+  if (question.audio_url) {
+    preview.src = question.audio_url;
+    preview.style.display = 'block';
+  } else {
+    preview.removeAttribute('src');
+    preview.style.display = 'none';
+  }
   toggleQuestionFields();
 }
 
@@ -973,6 +1041,7 @@ async function saveQuestion() {
     question_type: type,
     question_text: document.getElementById('questionText').value.trim(),
     context_text: document.getElementById('questionContext').value.trim(),
+    audio_url: document.getElementById('questionAudioUrl').value.trim() || null,
     options_json: type === 'rf' ? null : options,
     correct_answer: document.getElementById('questionCorrect').value.trim(),
     explanation: document.getElementById('questionExplanation').value.trim(),
@@ -981,6 +1050,11 @@ async function saveQuestion() {
 
   if (!payload.question_text) {
     toast('⚠️ Bitte eine Frage eingeben');
+    return;
+  }
+
+  if (type === 'audio' && !payload.audio_url) {
+    toast('⚠️ Bitte Audio hochladen oder eine Audio-URL eintragen');
     return;
   }
 

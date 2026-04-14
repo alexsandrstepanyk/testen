@@ -56,6 +56,7 @@ class CustomQuestion(Base):
     question_type = Column(String(20), nullable=False, default="mc")
     question_text = Column(Text, nullable=False)
     context_text = Column(Text, nullable=True)
+    audio_url = Column(Text, nullable=True)
     options_json = Column(JSON, nullable=True)
     correct_answer = Column(String(50), nullable=True)
     explanation = Column(Text, nullable=True)

@@ -1,6 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session, joinedload
 from typing import Union
+from uuid import uuid4
+from pathlib import Path
+import os
 
 from models.database import get_db
 from models.models import CustomCourse, CustomQuestion
@@ -16,6 +19,9 @@ from schemas.schemas import (
 
 
 router = APIRouter(prefix="/courses", tags=["Course Builder"], dependencies=[Depends(require_teacher_auth)])
+
+UPLOAD_DIR = Path(__file__).resolve().parents[2] / "frontend" / "uploads" / "audio"
+ALLOWED_AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".ogg", ".webm"}
 
 
 def serialize_question(question: CustomQuestion) -> dict:
@@ -35,11 +41,11 @@ def serialize_course(course: CustomCourse) -> dict:
 
 
 def validate_question_payload(payload: Union[CustomQuestionCreate, CustomQuestionUpdate]) -> None:
-    allowed_types = {"mc", "rf", "text"}
+    allowed_types = {"mc", "rf", "text", "audio"}
     if payload.question_type not in allowed_types:
-        raise HTTPException(status_code=400, detail="question_type must be mc, rf, or text")
+        raise HTTPException(status_code=400, detail="question_type must be mc, rf, text, or audio")
 
-    if payload.question_type in {"mc", "text"}:
+    if payload.question_type in {"mc", "text", "audio"}:
         options = payload.options_json or []
         if len(options) < 2:
             raise HTTPException(status_code=400, detail="At least 2 answer options are required")
@@ -48,6 +54,9 @@ def validate_question_payload(payload: Union[CustomQuestionCreate, CustomQuestio
     else:
         if str(payload.correct_answer).lower() not in {"true", "false"}:
             raise HTTPException(status_code=400, detail="correct_answer for rf must be true or false")
+
+    if payload.question_type == "audio" and not (payload.audio_url or "").strip():
+        raise HTTPException(status_code=400, detail="audio_url is required for audio questions")
 
 
 @router.get("")
@@ -165,3 +174,27 @@ def delete_question(course_id: int, question_id: int, db: Session = Depends(get_
     db.delete(question)
     db.commit()
     return {"ok": True}
+
+
+@router.post("/uploads/audio")
+def upload_audio(file: UploadFile = File(...)):
+    extension = Path(file.filename or "").suffix.lower()
+    if extension not in ALLOWED_AUDIO_EXTENSIONS:
+        raise HTTPException(status_code=400, detail="Only mp3, wav, m4a, ogg, and webm are allowed")
+
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    filename = f"{uuid4().hex}{extension}"
+    destination = UPLOAD_DIR / filename
+
+    with destination.open("wb") as output:
+        while True:
+            chunk = file.file.read(1024 * 1024)
+            if not chunk:
+                break
+            output.write(chunk)
+
+    return {
+        "ok": True,
+        "file_name": filename,
+        "audio_url": f"/static/uploads/audio/{filename}",
+    }

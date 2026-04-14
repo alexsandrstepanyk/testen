@@ -44,6 +44,7 @@ class CustomQuestionBase(BaseModel):
     question_type: str = Field(default="mc")
     question_text: str
     context_text: Optional[str] = None
+    audio_url: Optional[str] = None
     options_json: Optional[List[str]] = None
     correct_answer: Optional[str] = None
     explanation: Optional[str] = None
