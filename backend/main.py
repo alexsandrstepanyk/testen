@@ -45,12 +45,25 @@ app.include_router(teacher.router,    prefix="/api/teacher",    tags=["Teacher"]
 app.include_router(course_builder.router, prefix="/api/teacher", tags=["Course Builder"])
 
 frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
+
+
+def html_response(filename: str) -> FileResponse:
+    return FileResponse(
+        os.path.join(frontend_path, filename),
+        headers={
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        },
+    )
+
+
 if os.path.exists(frontend_path):
     app.mount("/static", StaticFiles(directory=frontend_path), name="static")
 
     @app.get("/", include_in_schema=False)
     def serve_frontend():
-        return FileResponse(os.path.join(frontend_path, "index.html"))
+        return html_response("index.html")
 
     @app.get("/robots.txt", include_in_schema=False)
     def serve_robots():
@@ -62,19 +75,19 @@ if os.path.exists(frontend_path):
 
     @app.get("/impressum", include_in_schema=False)
     def serve_impressum():
-        return FileResponse(os.path.join(frontend_path, "impressum.html"))
+        return html_response("impressum.html")
 
     @app.get("/datenschutz", include_in_schema=False)
     def serve_datenschutz():
-        return FileResponse(os.path.join(frontend_path, "datenschutz.html"))
+        return html_response("datenschutz.html")
 
     @app.get("/teacher", include_in_schema=False)
     def serve_teacher(_auth: str = Depends(teacher.require_teacher_auth)):
-        return FileResponse(os.path.join(frontend_path, "teacher.html"))
+        return html_response("teacher.html")
 
     @app.get("/leaderboard", include_in_schema=False)
     def serve_leaderboard():
-        return FileResponse(os.path.join(frontend_path, "index.html"))
+        return html_response("index.html")
 
 @app.get("/api/health")
 def health():
