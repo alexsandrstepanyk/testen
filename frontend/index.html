@@ -61,7 +61,7 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:var(--ink);min-height:100vh;line-height:1.5;overflow-x:hidden;}
 .screen{display:none;opacity:0;transform:translateY(8px) scale(.996);}
-.screen.active{display:block;}
+.screen.active{display:block;opacity:1;transform:none;}
 .screen.enter{animation:screenIn .34s cubic-bezier(.2,.8,.2,1) both;}
 .screen.leave{animation:screenOut .2s ease both;}
 @keyframes screenIn{from{opacity:0;transform:translateY(12px) scale(.993)}to{opacity:1;transform:translateY(0) scale(1)}}
