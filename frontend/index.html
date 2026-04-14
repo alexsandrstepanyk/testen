@@ -142,6 +142,8 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
 .prog-rail{background:rgba(255,255,255,.13);border-radius:99px;height:6px;overflow:hidden;}
 .prog-bar{background:linear-gradient(90deg,var(--gold),#d4952a);height:100%;border-radius:99px;
   width:0%;transition:width .55s cubic-bezier(.4,0,.2,1);}
+.prog-bar.prog-shift{animation:progShift .46s ease;}
+@keyframes progShift{0%{filter:brightness(1)}38%{filter:brightness(1.32)}100%{filter:brightness(1)}}
 
 /* TABS */
 .teil-nav{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:80;
@@ -160,6 +162,12 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
 #resultBanner{display:none;padding:14px 20px;}#resultBanner.show{display:block;}
 .rb-wrap{max-width:820px;margin:0 auto;border-radius:18px;padding:18px 26px;
   display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;color:#fff;}
+.rb-wrap.morph-in{animation:resultMorph .62s cubic-bezier(.2,.8,.2,1) both;}
+@keyframes resultMorph{
+  0%{opacity:.25;transform:translateY(14px) scale(.982);border-radius:28px;filter:saturate(.82)}
+  44%{opacity:1;transform:translateY(-2px) scale(1.012);border-radius:14px;filter:saturate(1.2)}
+  100%{opacity:1;transform:translateY(0) scale(1);border-radius:18px;filter:saturate(1)}
+}
 .rb-pass{background:linear-gradient(135deg,#15803d,#14532d);}
 .rb-fail{background:linear-gradient(135deg,#b91c1c,#7f1d1d);}
 .rb-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;}
@@ -171,6 +179,10 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
 /* MAIN */
 .main-area{max-width:820px;margin:0 auto;padding:22px 16px 118px;}
 .teil-sec{display:none;}.teil-sec.active{display:block;}
+.teil-sec.teil-enter-right{animation:teilSlideRight .34s cubic-bezier(.2,.8,.2,1) both;}
+.teil-sec.teil-enter-left{animation:teilSlideLeft .34s cubic-bezier(.2,.8,.2,1) both;}
+@keyframes teilSlideRight{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:translateX(0)}}
+@keyframes teilSlideLeft{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:translateX(0)}}
 .teil-hd{border-radius:14px;padding:16px 20px;margin-bottom:22px;border:1px solid;}
 .teil-hd h2{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:3px;}
 .teil-hd p{font-size:12.5px;opacity:.62;font-style:italic;}
@@ -200,6 +212,7 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
 .abtn{text-align:left;padding:10px 14px;border-radius:10px;border:2px solid var(--border);
   background:#faf8f2;color:var(--ink);font-family:'Source Serif 4',serif;font-size:14px;
   line-height:1.44;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:9px;}
+.abtn.stagger-in{opacity:0;animation:optIn .34s ease forwards;}
 .abtn:hover:not(:disabled){border-color:var(--gold);background:var(--gold-dim);transform:translateX(4px);}
 .abtn.asel{border-color:var(--blue);background:var(--blue-dim);color:var(--blue);font-weight:600;}
 .abtn.aok{border-color:var(--green)!important;background:var(--green-dim)!important;color:var(--green)!important;font-weight:600;}
@@ -213,6 +226,8 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
 .rfbtn{flex:1;text-align:center;padding:12px;border-radius:11px;border:2px solid var(--border);
   background:#faf8f2;font-family:'Source Serif 4',serif;font-size:15px;font-weight:600;
   cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:7px;}
+.rfbtn.stagger-in{opacity:0;animation:optIn .34s ease forwards;}
+@keyframes optIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
 .rfbtn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.1);}
 .rfbtn.rfr{border-color:var(--blue);background:var(--blue-dim);color:var(--blue);}
 .rfbtn.rff{border-color:var(--violet);background:var(--violet-dim);color:var(--violet);}
@@ -369,6 +384,7 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
   .screen,.screen.active{animation:none!important;transform:none!important;opacity:1!important}
   .timer-box{animation:none}
   .ripple-dot{display:none}
+  .teil-sec.teil-enter-right,.teil-sec.teil-enter-left,.rb-wrap.morph-in,.abtn.stagger-in,.rfbtn.stagger-in{animation:none!important;opacity:1!important;transform:none!important}
   .reveal-ready,.reveal-in{opacity:1;transform:none;transition:none}
   .start-card,.orb-a,.orb-b,.start-bg::before,.lb-hero::after{transform:none!important}
 }
@@ -725,12 +741,12 @@ function buildCard(q){
   let ans;
   if(q.type==='rf'){
     ans=`<div class="ans-wrap rf-row">
-      <button class="rfbtn" id="rfR${q.id}" onclick="doRF(${q.id},true)">✓ Richtig</button>
-      <button class="rfbtn" id="rfF${q.id}" onclick="doRF(${q.id},false)">✗ Falsch</button>
+      <button class="rfbtn stagger-in" style="animation-delay:.03s" id="rfR${q.id}" onclick="doRF(${q.id},true)">✓ Richtig</button>
+      <button class="rfbtn stagger-in" style="animation-delay:.1s" id="rfF${q.id}" onclick="doRF(${q.id},false)">✗ Falsch</button>
     </div>`;
   }else{
     ans='<div class="ans-wrap">'+
-      (q.options||[]).map((o,i)=>`<button class="abtn" id="ab${q.id}_${i}" onclick="doMC(${q.id},${i})"><span class="aic">${L[i]}</span><span>${esc(o)}</span></button>`).join('')+
+      (q.options||[]).map((o,i)=>`<button class="abtn stagger-in" style="animation-delay:${(0.04 + i*0.07).toFixed(2)}s" id="ab${q.id}_${i}" onclick="doMC(${q.id},${i})"><span class="aic">${L[i]}</span><span>${esc(o)}</span></button>`).join('')+
     '</div>';
   }
   return `<div class="qcard" id="card${q.id}">
@@ -899,6 +915,9 @@ async function doSubmit(){
   
   const ban=document.getElementById('resultBanner');ban.classList.add('show');
   document.getElementById('rbWrap').className='rb-wrap '+(pass?'rb-pass':'rb-fail');
+  const rb=document.getElementById('rbWrap');
+  rb.classList.add('morph-in');
+  setTimeout(()=>rb.classList.remove('morph-in'),700);
   document.getElementById('rbTitle').textContent=pass?'🎉 Bestanden!':'❌ Nicht bestanden';
   document.getElementById('rbSub').textContent='Punkte: '+sc+'/'+totalPoints+' ('+pct+'%) · Zeit: '+ft(timerSecs)+' · '+meta.label+': '+meta.theme;
   document.getElementById('rbParts').innerHTML='<div class="rb-part"><strong>'+s1+'/20</strong>Teil 1</div><div class="rb-part"><strong>'+s2+'/10</strong>Teil 2</div><div class="rb-part"><strong>'+s3+'/15</strong>Teil 3</div><div class="rb-part"><strong>'+s4+'/10</strong>Teil 4</div><div class="rb-part"><strong>'+s5+'/10</strong>Teil 5</div>';
@@ -955,13 +974,31 @@ async function downloadResultReportPdf(){
 function setTeil(t){
   // Stop timer for previous section
   stopTeilTimer();
-  
+
+  const prevTeil=curTeil;
   curTeil=t;
   for(let i=1;i<=5;i++){
     const sec=document.getElementById('teil'+i);
     const tab=document.getElementById('tab'+i);
-    if(sec) sec.classList.toggle('active',i===t);
+    if(sec){
+      sec.classList.toggle('active',i===t);
+      if(i===t){
+        const dir=t>=prevTeil?'teil-enter-right':'teil-enter-left';
+        sec.classList.remove('teil-enter-right','teil-enter-left');
+        void sec.offsetWidth;
+        sec.classList.add(dir);
+        setTimeout(()=>sec.classList.remove('teil-enter-right','teil-enter-left'),380);
+      }
+    }
     if(tab) tab.classList.toggle('active',i===t);
+  }
+
+  const pbar=document.getElementById('progBar');
+  if(pbar){
+    pbar.classList.remove('prog-shift');
+    void pbar.offsetWidth;
+    pbar.classList.add('prog-shift');
+    setTimeout(()=>pbar.classList.remove('prog-shift'),460);
   }
   
   // Load Teil 5 if needed
