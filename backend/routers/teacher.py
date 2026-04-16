@@ -1,18 +1,24 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.encoders import jsonable_encoder
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, and_
 from models.database import get_db
 from models.models import TestSession
 from services.question_resolver import get_questions_by_test_number, get_test_label
+from services.telegram import get_file_download_url
 from datetime import datetime, date
 from typing import Optional, List, Dict, Any
 import json
 import secrets
+from pydantic import BaseModel
 
 security = HTTPBasic()
 
+class PresentationFeedback(BaseModel):
+    presentation_score: int
+    feedback_text: str = ""
 
 def require_teacher_auth(credentials: HTTPBasicCredentials = Depends(security)):
     valid_username = secrets.compare_digest(credentials.username, "admin")
@@ -77,6 +83,9 @@ class TeacherSessionOut:
         self.teil3_score = session.teil3_score
         self.teil4_score = session.teil4_score or 0
         self.teil5_score = get_derived_teil5_score(session)
+        self.video_url = session.video_url
+        self.presentation_score = session.presentation_score or 0
+        self.feedback_text = session.feedback_text or ""
         self.mistakes = mistakes
         self.answers_json = session.answers_json or {}
 
@@ -120,11 +129,29 @@ def get_all_sessions(
                 "teil2_score": s.teil2_score,
                 "teil3_score": s.teil3_score,
                 "teil4_score": s.teil4_score or 0,
-                "teil5_score": get_derived_teil5_score(s)
+                "teil5_score": get_derived_teil5_score(s),
+                "video_url": s.video_url,
+                "presentation_score": s.presentation_score or 0,
+                "feedback_text": s.feedback_text or ""
             }
             for s in sessions
         ]
     }
+
+
+@router.get("/sessions/{session_id}/presentation-video")
+def get_presentation_video(session_id: int, db: Session = Depends(get_db)):
+    session = db.query(TestSession).filter(TestSession.id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if not session.video_url:
+        raise HTTPException(status_code=404, detail="Presentation video not found")
+
+    download_url = get_file_download_url(session.video_url)
+    if not download_url:
+        raise HTTPException(status_code=502, detail="Could not resolve Telegram video")
+
+    return RedirectResponse(url=download_url, status_code=307)
 
 
 @router.get("/sessions/{session_id}/details")
@@ -322,4 +349,32 @@ def get_students_list(
             key=lambda x: x["best_percentage"] or 0,
             reverse=True
         )
+    }
+
+
+@router.patch("/sessions/{session_id}/presentation-feedback")
+def save_presentation_feedback(
+    session_id: int,
+    feedback: PresentationFeedback,
+    db: Session = Depends(get_db)
+):
+    """Save presentation score and feedback for a session"""
+    session = db.query(TestSession).filter(TestSession.id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    if not (0 <= feedback.presentation_score <= 10):
+        raise HTTPException(status_code=400, detail="presentation_score must be between 0 and 10")
+
+    session.presentation_score = feedback.presentation_score
+    session.feedback_text = feedback.feedback_text or ""
+    db.commit()
+    db.refresh(session)
+
+    return {
+        "status": "ok",
+        "session_id": session.id,
+        "presentation_score": session.presentation_score,
+        "feedback_text": session.feedback_text,
+        "message": "Feedback saved successfully"
     }

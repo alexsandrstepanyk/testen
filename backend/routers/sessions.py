@@ -7,6 +7,8 @@ from datetime import datetime, timezone
 from services.report_pdf import build_test_report_pdf
 from services.question_resolver import get_questions_by_test_number, get_test_label
 from services.telegram import is_enabled, send_message, send_pdf_document
+from fastapi import File, UploadFile
+from services.telegram import send_video
 
 router = APIRouter()
 
@@ -95,3 +97,50 @@ def get_session(session_id: int, db: Session = Depends(get_db)):
     payload = SessionOut.model_validate(s).model_dump()
     payload["teil5_score"] = get_derived_teil5_score(s)
     return payload
+
+@router.post("/{session_id}/upload-video")
+def upload_presentation_video(session_id: int, video: UploadFile = File(...), db: Session = Depends(get_db)):
+    """Upload presentation video to Telegram and save file_id to session"""
+    session = db.query(TestSession).filter(TestSession.id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    try:
+        # Read video file
+        video_bytes = video.file.read()
+        if not video_bytes:
+            raise HTTPException(status_code=400, detail="Empty video file")
+        
+        # Limit file size to 20MB for Telegram
+        max_size = 20 * 1024 * 1024
+        if len(video_bytes) > max_size:
+            raise HTTPException(status_code=413, detail=f"Video too large (max 20MB, got {len(video_bytes) / (1024*1024):.1f}MB)")
+        
+        original_name = (video.filename or "presentation.webm").strip() or "presentation.webm"
+        safe_name = original_name.replace("/", "_").replace("\\", "_")
+        filename = f"presentation_{session.user_name.replace(' ', '_')}_{session_id}_{safe_name}"
+        caption = f"Präsentation von {session.user_name}\nSession ID: {session_id}"
+        content_type = (video.content_type or "video/mp4").strip()
+        
+        # Upload to Telegram
+        file_id = send_video(video_bytes, filename, caption, content_type=content_type)
+        
+        if not file_id:
+            raise HTTPException(status_code=500, detail="Failed to upload video to Telegram")
+        
+        # Save file_id to session
+        session.video_url = file_id
+        db.commit()
+        db.refresh(session)
+        
+        return {
+            "status": "ok",
+            "session_id": session.id,
+            "file_id": file_id,
+            "message": "Video uploaded successfully"
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Upload error: {str(e)[:100]}")

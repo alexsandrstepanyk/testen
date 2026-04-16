@@ -13,12 +13,18 @@ Base.metadata.create_all(bind=engine)
 
 def ensure_schema_updates() -> None:
     inspector = inspect(engine)
-    columns = {column["name"] for column in inspector.get_columns("custom_questions")}
-    if "audio_url" in columns:
-        return
-
     with engine.begin() as connection:
-        connection.execute(text("ALTER TABLE custom_questions ADD COLUMN audio_url TEXT"))
+        custom_question_columns = {column["name"] for column in inspector.get_columns("custom_questions")}
+        if "audio_url" not in custom_question_columns:
+            connection.execute(text("ALTER TABLE custom_questions ADD COLUMN audio_url TEXT"))
+
+        session_columns = {column["name"] for column in inspector.get_columns("test_sessions")}
+        if "video_url" not in session_columns:
+            connection.execute(text("ALTER TABLE test_sessions ADD COLUMN video_url TEXT"))
+        if "presentation_score" not in session_columns:
+            connection.execute(text("ALTER TABLE test_sessions ADD COLUMN presentation_score INTEGER DEFAULT 0"))
+        if "feedback_text" not in session_columns:
+            connection.execute(text("ALTER TABLE test_sessions ADD COLUMN feedback_text TEXT DEFAULT ''"))
 
 
 ensure_schema_updates()

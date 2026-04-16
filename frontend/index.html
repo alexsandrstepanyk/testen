@@ -316,6 +316,7 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
 .bctr.sol:hover{background:var(--ink2);}
 .thd4{background:#eef2ff;border-color:#c7d2fe;}.thd4 h2{color:#3730a3;}
 .thd5{background:#fff7ed;border-color:#fed7aa;}.thd5 h2{color:#c2410c;}
+.thd6{background:#ede9fe;border-color:#d8b4fe;}.thd6 h2{color:#5b21b6;}
 /* ── SCHREIBEN ── */
 .sch-wrap{display:flex;flex-direction:column;gap:18px;}
 .sch-card{background:#fff;border-radius:16px;border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 12px rgba(24,24,37,.06);}
@@ -459,6 +460,7 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
     <button class="t-tab"        id="tab3" onclick="setTeil(3)">Teil 3<span class="t-pill" id="pill3">0/15</span></button>
     <button class="t-tab" id="tab4" onclick="setTeil(4)">Teil 4<span class="t-pill" id="pill4">0/10</span></button>
     <button class="t-tab" id="tab5" onclick="setTeil(5)">Teil 5 ✍️<span class="t-pill" id="pill5">–</span></button>
+    <button class="t-tab" id="tab6" onclick="setTeil(6)">Teil 6 🎥<span class="t-pill" id="pill6">Video</span></button>
     <button class="t-tab t-tab-lb" onclick="goLb()">🏆 Rangliste</button>
   </div></nav>
 
@@ -505,7 +507,41 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
       <div id="schreibenArea">
         <!-- filled by JS -->
       </div>
-      <div class="nav-row"><button class="bnav" onclick="setTeil(4)">← Teil 4</button></div>
+      <div class="nav-row"><button class="bnav" onclick="setTeil(4)">← Teil 4</button><button class="bnav pri" onclick="setTeil(6)">Teil 6 →</button></div>
+    </div>
+
+    <!-- TEIL 6 — PRESENTATION VIDEO -->
+    <div class="teil-sec" id="teil6">
+      <div class="teil-hd thd6">
+        <h2>Teil 6 — Präsentation (2 Minuten Video)</h2>
+        <p>Stellen Sie sich selbst vor und beschreiben Sie die Bilder. Video wird zu unserem Team hochgeladen.</p>
+      </div>
+      <div id="presentationArea" style="display:flex;flex-direction:column;gap:20px;">
+        <div id="promptContainer" style="text-align:center;margin:20px 0;">
+          <p style="font-size:14px;color:#999;">Presentation prompts coming soon...</p>
+        </div>
+        <div id="recordingSection" style="border:1px solid #ddd;border-radius:10px;padding:20px;background:#f9f9f9;">
+          <div style="text-align:center;margin-bottom:15px;">
+            <p style="font-size:14px;color:#666;margin-bottom:10px;"><strong>Video Recording (2 min max)</strong></p>
+            <canvas id="recordingCanvas" width="320" height="240" style="border:1px solid #ccc;border-radius:6px;background:#000;display:none;margin:10px auto;"></canvas>
+            <video id="recordedVideo" width="320" height="240" style="border:1px solid #ccc;border-radius:6px;background:#000;margin:10px auto;display:none;"></video>
+            <div id="timerDisplay" style="font-size:24px;font-weight:bold;color:#c8a84b;margin:10px 0;">0:00</div>
+          </div>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+            <button id="startRecordBtn" class="bnav" onclick="startVideoRecording()" style="background:#166534;color:#fff;">🎥 Start Recording</button>
+            <button id="stopRecordBtn" class="bnav" onclick="stopVideoRecording()" style="background:#991b1b;color:#fff;display:none;">⏹️ Stop Recording</button>
+            <button id="previewRecordBtn" class="bnav" onclick="previewVideoRecording()" style="background:#1d4ed8;color:#fff;display:none;">▶️ Preview</button>
+          </div>
+          <div id="recordingStatus" style="text-align:center;font-size:13px;color:#666;margin-top:10px;"></div>
+        </div>
+        <div id="uploadSection" style="display:none;">
+          <div style="text-align:center;">
+            <button id="uploadVideoBtn" class="bnav pri" onclick="uploadPresentationVideo()" style="background:#166534;color:#fff;width:100%;">📤 Upload Video</button>
+            <div id="uploadStatus" style="text-align:center;font-size:13px;color:#666;margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-row"><button class="bnav" onclick="setTeil(5)">← Teil 5</button></div>
     </div>
   </div>
 
@@ -561,8 +597,8 @@ let questions=[],answers={},submitted=false,sessionId=null;
 let userName='',selTest=1,timerSecs=0,timerH=null,timerOn=false;
 let curTeil=1,lbFlt=0;
 // Section timers: Teil 1-4 = 15 min, Teil 5 = 20 min
-const TEIL_TIME_LIMITS = {1: 15*60, 2: 15*60, 3: 15*60, 4: 15*60, 5: 20*60};
-let teilTimers = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}; // seconds spent per section
+const TEIL_TIME_LIMITS = {1: 15*60, 2: 15*60, 3: 15*60, 4: 15*60, 5: 20*60, 6: 2*60};
+let teilTimers = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}; // seconds spent per section
 let currentTeilTimer = null;
 
 function ft(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
@@ -1016,7 +1052,7 @@ function setTeil(t){
 
   const prevTeil=curTeil;
   curTeil=t;
-  for(let i=1;i<=5;i++){
+  for(let i=1;i<=6;i++){
     const sec=document.getElementById('teil'+i);
     const tab=document.getElementById('tab'+i);
     if(sec){
@@ -1058,6 +1094,170 @@ function togExp(qid){
   const b=document.getElementById('ebox'+qid),t=document.getElementById('etog'+qid);
   const o=b.classList.toggle('vis');
   t.textContent=o?'▲ Erklärung verbergen':'▼ Erklärung anzeigen';
+}
+
+/* VIDEO RECORDING */
+let mediaStream = null;
+let mediaRecorder = null;
+let recordingChunks = [];
+let recordingStartTime = null;
+let recordingTimerInterval = null;
+let recordedMimeType = 'video/mp4';
+
+async function startVideoRecording() {
+  try {
+    const preview = document.getElementById('recordedVideo');
+    mediaStream = await navigator.mediaDevices.getUserMedia({ 
+      video: { width: 320, height: 240, facingMode: 'user' },
+      audio: true 
+    });
+
+    const mimeCandidates = ['video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+    const mimeType = mimeCandidates.find(type => typeof MediaRecorder.isTypeSupported === 'function' && MediaRecorder.isTypeSupported(type)) || '';
+    recordedMimeType = mimeType || 'video/webm';
+    mediaRecorder = mimeType ? new MediaRecorder(mediaStream, { mimeType }) : new MediaRecorder(mediaStream);
+    recordingChunks = [];
+    recordingStartTime = Date.now();
+
+    preview.pause();
+    preview.removeAttribute('src');
+    preview.srcObject = mediaStream;
+    preview.muted = true;
+    preview.playsInline = true;
+    preview.style.display = 'block';
+    await preview.play().catch(() => {});
+    
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) recordingChunks.push(e.data);
+    };
+    
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordingChunks, { type: recordedMimeType || mediaRecorder.mimeType || 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      preview.srcObject = null;
+      preview.src = url;
+      preview.muted = false;
+      preview.controls = true;
+      preview.style.display = 'block';
+    };
+    
+    mediaRecorder.start();
+    
+    // Update timer
+    recordingTimerInterval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+      const mins = Math.floor(elapsed / 60);
+      const secs = elapsed % 60;
+      document.getElementById('timerDisplay').textContent = 
+        mins + ':' + (secs < 10 ? '0' : '') + secs;
+      
+      // Stop at 2 minutes
+      if (elapsed >= 120) {
+        stopVideoRecording();
+      }
+    }, 100);
+    
+    document.getElementById('startRecordBtn').style.display = 'none';
+    document.getElementById('stopRecordBtn').style.display = 'inline-block';
+    document.getElementById('recordingStatus').textContent = '🔴 Recording...';
+  } catch (err) {
+    toast('⚠️ Kamera nicht verfügbar: ' + err.message);
+  }
+}
+
+function stopVideoRecording() {
+  const preview = document.getElementById('recordedVideo');
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+    
+    if (recordingTimerInterval) {
+      clearInterval(recordingTimerInterval);
+      recordingTimerInterval = null;
+    }
+    
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(track => track.stop());
+      mediaStream = null;
+    }
+  }
+  preview.controls = true;
+  
+  document.getElementById('startRecordBtn').style.display = 'inline-block';
+  document.getElementById('stopRecordBtn').style.display = 'none';
+  document.getElementById('previewRecordBtn').style.display = 'inline-block';
+  document.getElementById('recordingStatus').textContent = '✓ Aufzeichnung abgeschlossen';
+  document.getElementById('uploadSection').style.display = 'block';
+}
+
+function previewVideoRecording() {
+  const video = document.getElementById('recordedVideo');
+  if (video.paused) {
+    video.play();
+  } else {
+    video.pause();
+  }
+}
+
+async function uploadPresentationVideo() {
+  if (!sessionId) {
+    toast('⚠️ Kein aktive Session gefunden.');
+    return;
+  }
+  
+  const video = document.getElementById('recordedVideo');
+  if (!video.src) {
+    toast('⚠️ Kein Video aufgezeichnet.');
+    return;
+  }
+  
+  const uploadBtn = document.getElementById('uploadVideoBtn');
+  const uploadStatus = document.getElementById('uploadStatus');
+  const originalText = uploadBtn.textContent;
+  
+  try {
+    uploadBtn.disabled = true;
+    uploadBtn.textContent = '⏳ Wird hochgeladen…';
+    uploadStatus.textContent = '';
+    
+    // Get blob from video element
+    const videoBlob = await fetch(video.src).then(r => r.blob());
+    
+    // Upload to backend
+    const ext = recordedMimeType.includes('mp4') ? 'mp4' : 'webm';
+    const formData = new FormData();
+    formData.append('video', videoBlob, 'presentation.' + ext);
+    
+    const res = await fetch(API + '/sessions/' + sessionId + '/upload-video', {
+      method: 'POST',
+      credentials: 'same-origin',
+      body: formData
+    });
+    
+    if (!res.ok) {
+      throw new Error(await res.text());
+    }
+    
+    const data = await res.json();
+    uploadStatus.textContent = '✓ Video erfolgreich hochgeladen!';
+    toast('✓ Video hochgeladen und zu unserem Team gesendet.');
+    
+    // Reset form
+    setTimeout(() => {
+      document.getElementById('recordedVideo').style.display = 'none';
+      document.getElementById('previewRecordBtn').style.display = 'none';
+      document.getElementById('uploadSection').style.display = 'none';
+      document.getElementById('startRecordBtn').style.display = 'inline-block';
+      document.getElementById('timerDisplay').textContent = '0:00';
+      document.getElementById('recordingStatus').textContent = '';
+      uploadStatus.textContent = '';
+    }, 2000);
+  } catch (err) {
+    uploadStatus.textContent = '⚠️ Upload fehlgeschlagen: ' + String(err).slice(0, 80);
+    toast('⚠️ Fehler beim Upload: ' + String(err).slice(0, 50));
+  } finally {
+    uploadBtn.disabled = false;
+    uploadBtn.textContent = originalText;
+  }
 }
 
 /* LEADERBOARD */

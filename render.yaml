@@ -24,7 +24,7 @@ services:
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: TELEGRAM_CHAT_ID
-        sync: false
+        value: 312248641
 
 databases:
   # PostgreSQL Database
