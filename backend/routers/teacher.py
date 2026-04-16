@@ -16,6 +16,51 @@ from pydantic import BaseModel
 
 security = HTTPBasic()
 
+VIDEO_KIND_LABELS = {
+    "self-intro": "Selbstvorstellung",
+    "image-description": "Bildbeschreibung",
+}
+
+
+def resolve_video_field(video_kind: str) -> str:
+    if video_kind == "self-intro":
+        return "self_intro_video_url"
+    if video_kind == "image-description":
+        return "image_description_video_url"
+    raise HTTPException(status_code=400, detail="video_kind must be 'self-intro' or 'image-description'")
+
+
+def resolve_score_field(video_kind: str) -> str:
+    if video_kind == "self-intro":
+        return "self_intro_score"
+    if video_kind == "image-description":
+        return "image_description_score"
+    raise HTTPException(status_code=400, detail="video_kind must be 'self-intro' or 'image-description'")
+
+
+def resolve_feedback_field(video_kind: str) -> str:
+    if video_kind == "self-intro":
+        return "self_intro_feedback_text"
+    if video_kind == "image-description":
+        return "image_description_feedback_text"
+    raise HTTPException(status_code=400, detail="video_kind must be 'self-intro' or 'image-description'")
+
+
+def get_reviewed_presentation_scores(session: TestSession) -> List[int]:
+    scores = []
+    if session.self_intro_video_url or (session.self_intro_feedback_text or "").strip() or (session.self_intro_score or 0) > 0:
+        scores.append(session.self_intro_score or 0)
+    if session.image_description_video_url or session.video_url or (session.image_description_feedback_text or "").strip() or (session.image_description_score or 0) > 0:
+        scores.append(session.image_description_score or 0)
+    return scores
+
+
+def get_presentation_score_summary(session: TestSession) -> int:
+    scores = get_reviewed_presentation_scores(session)
+    if scores:
+        return round(sum(scores) / len(scores))
+    return session.presentation_score or 0
+
 class PresentationFeedback(BaseModel):
     presentation_score: int
     feedback_text: str = ""
@@ -84,8 +129,14 @@ class TeacherSessionOut:
         self.teil4_score = session.teil4_score or 0
         self.teil5_score = get_derived_teil5_score(session)
         self.video_url = session.video_url
-        self.presentation_score = session.presentation_score or 0
+        self.self_intro_video_url = session.self_intro_video_url
+        self.image_description_video_url = session.image_description_video_url or session.video_url
+        self.presentation_score = get_presentation_score_summary(session)
+        self.self_intro_score = session.self_intro_score or 0
+        self.image_description_score = session.image_description_score or 0
         self.feedback_text = session.feedback_text or ""
+        self.self_intro_feedback_text = session.self_intro_feedback_text or ""
+        self.image_description_feedback_text = session.image_description_feedback_text or ""
         self.mistakes = mistakes
         self.answers_json = session.answers_json or {}
 
@@ -131,8 +182,14 @@ def get_all_sessions(
                 "teil4_score": s.teil4_score or 0,
                 "teil5_score": get_derived_teil5_score(s),
                 "video_url": s.video_url,
-                "presentation_score": s.presentation_score or 0,
-                "feedback_text": s.feedback_text or ""
+                "self_intro_video_url": s.self_intro_video_url,
+                "image_description_video_url": s.image_description_video_url or s.video_url,
+                "presentation_score": get_presentation_score_summary(s),
+                "self_intro_score": s.self_intro_score or 0,
+                "image_description_score": s.image_description_score or 0,
+                "feedback_text": s.feedback_text or "",
+                "self_intro_feedback_text": s.self_intro_feedback_text or "",
+                "image_description_feedback_text": s.image_description_feedback_text or ""
             }
             for s in sessions
         ]
@@ -147,7 +204,33 @@ def get_presentation_video(session_id: int, db: Session = Depends(get_db)):
     if not session.video_url:
         raise HTTPException(status_code=404, detail="Presentation video not found")
 
+    if str(session.video_url).startswith("/static/"):
+        return RedirectResponse(url=session.video_url, status_code=307)
+
     download_url = get_file_download_url(session.video_url)
+    if not download_url:
+        raise HTTPException(status_code=502, detail="Could not resolve Telegram video")
+
+    return RedirectResponse(url=download_url, status_code=307)
+
+
+@router.get("/sessions/{session_id}/presentation-video/{video_kind}")
+def get_presentation_video_by_kind(session_id: int, video_kind: str, db: Session = Depends(get_db)):
+    session = db.query(TestSession).filter(TestSession.id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    video_field = resolve_video_field(video_kind)
+    file_id = getattr(session, video_field)
+    if video_kind == "image-description" and not file_id:
+        file_id = session.video_url
+    if not file_id:
+        raise HTTPException(status_code=404, detail=f"{VIDEO_KIND_LABELS[video_kind]} video not found")
+
+    if str(file_id).startswith("/static/"):
+        return RedirectResponse(url=file_id, status_code=307)
+
+    download_url = get_file_download_url(file_id)
     if not download_url:
         raise HTTPException(status_code=502, detail="Could not resolve Telegram video")
 
@@ -376,5 +459,45 @@ def save_presentation_feedback(
         "session_id": session.id,
         "presentation_score": session.presentation_score,
         "feedback_text": session.feedback_text,
+        "message": "Feedback saved successfully"
+    }
+
+
+@router.patch("/sessions/{session_id}/presentation-feedback/{video_kind}")
+def save_presentation_feedback_by_kind(
+    session_id: int,
+    video_kind: str,
+    feedback: PresentationFeedback,
+    db: Session = Depends(get_db)
+):
+    session = db.query(TestSession).filter(TestSession.id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    if not (0 <= feedback.presentation_score <= 10):
+        raise HTTPException(status_code=400, detail="presentation_score must be between 0 and 10")
+
+    score_field = resolve_score_field(video_kind)
+    feedback_field = resolve_feedback_field(video_kind)
+    setattr(session, score_field, feedback.presentation_score)
+    setattr(session, feedback_field, feedback.feedback_text or "")
+
+    scores = get_reviewed_presentation_scores(session)
+    session.presentation_score = round(sum(scores) / len(scores)) if scores else 0
+    session.feedback_text = "\n\n".join(
+        part for part in [session.self_intro_feedback_text or "", session.image_description_feedback_text or ""] if part.strip()
+    )
+
+    db.commit()
+    db.refresh(session)
+
+    return {
+        "status": "ok",
+        "session_id": session.id,
+        "video_kind": video_kind,
+        "presentation_score": session.presentation_score,
+        "part_score": getattr(session, score_field),
+        "feedback_text": session.feedback_text,
+        "part_feedback_text": getattr(session, feedback_field),
         "message": "Feedback saved successfully"
     }

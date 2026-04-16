@@ -21,8 +21,14 @@ class TestSession(Base):
     teil3_score = Column(Integer, nullable=True)
     teil4_score = Column(Integer, nullable=True, default=0)
     video_url = Column(String(500), nullable=True)
+    self_intro_video_url = Column(String(500), nullable=True)
+    image_description_video_url = Column(String(500), nullable=True)
     presentation_score = Column(Integer, nullable=True, default=0)
+    self_intro_score = Column(Integer, nullable=True, default=0)
+    image_description_score = Column(Integer, nullable=True, default=0)
     feedback_text = Column(Text, nullable=True, default="")
+    self_intro_feedback_text = Column(Text, nullable=True, default="")
+    image_description_feedback_text = Column(Text, nullable=True, default="")
 
 
 class CustomCourse(Base):

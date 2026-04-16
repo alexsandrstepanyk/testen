@@ -460,7 +460,8 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
     <button class="t-tab"        id="tab3" onclick="setTeil(3)">Teil 3<span class="t-pill" id="pill3">0/15</span></button>
     <button class="t-tab" id="tab4" onclick="setTeil(4)">Teil 4<span class="t-pill" id="pill4">0/10</span></button>
     <button class="t-tab" id="tab5" onclick="setTeil(5)">Teil 5 ✍️<span class="t-pill" id="pill5">–</span></button>
-    <button class="t-tab" id="tab6" onclick="setTeil(6)">Teil 6 🎥<span class="t-pill" id="pill6">Video</span></button>
+    <button class="t-tab" id="tab6" onclick="setTeil(6)">Teil 6 🗣️<span class="t-pill" id="pill6">Intro</span></button>
+    <button class="t-tab" id="tab7" onclick="setTeil(7)">Teil 7 🎥<span class="t-pill" id="pill7">Bild</span></button>
     <button class="t-tab t-tab-lb" onclick="goLb()">🏆 Rangliste</button>
   </div></nav>
 
@@ -510,38 +511,82 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
       <div class="nav-row"><button class="bnav" onclick="setTeil(4)">← Teil 4</button><button class="bnav pri" onclick="setTeil(6)">Teil 6 →</button></div>
     </div>
 
-    <!-- TEIL 6 — PRESENTATION VIDEO -->
+    <!-- TEIL 6 — SELBSTVORSTELLUNG -->
     <div class="teil-sec" id="teil6">
       <div class="teil-hd thd6">
-        <h2>Teil 6 — Präsentation (2 Minuten Video)</h2>
-        <p>Stellen Sie sich selbst vor und beschreiben Sie die Bilder. Video wird zu unserem Team hochgeladen.</p>
+        <h2>Teil 6 — Selbstvorstellung</h2>
+        <p>Nehmen Sie hier ein eigenes kurzes Video auf, in dem Sie sich auf Deutsch vorstellen.</p>
       </div>
       <div id="presentationArea" style="display:flex;flex-direction:column;gap:20px;">
+        <div style="background:#ffffff;border:1px solid var(--border);border-radius:12px;padding:16px 18px;line-height:1.65;">
+          <p style="font-size:14px;color:var(--ink);margin-bottom:8px;"><strong>Worueber sollen Sie sprechen?</strong></p>
+          <p style="font-size:13px;color:var(--ink2);margin-bottom:8px;">1) <strong>Name und Wohnort</strong>: Stellen Sie sich kurz vor.</p>
+          <p style="font-size:13px;color:var(--ink2);margin-bottom:8px;">2) <strong>Beruf / Studium</strong>: Was machen Sie im Alltag?</p>
+          <p style="font-size:13px;color:var(--ink2);margin-bottom:8px;">3) <strong>Hobbys und Interessen</strong>: Was machen Sie gern in Ihrer Freizeit?</p>
+          <p style="font-size:13px;color:var(--ink2);margin-bottom:0;">4) <strong>Deutsch lernen</strong>: Warum lernen Sie Deutsch und was ist Ihr Ziel?</p>
+          <p style="font-size:12px;color:var(--muted);margin-top:10px;">Sprechen Sie frei und natuerlich. Dieses Video wird spaeter getrennt von Teil 7 bewertet.</p>
+        </div>
+        <div id="selfIntroRecordingSection" style="border:1px solid #ddd;border-radius:10px;padding:20px;background:#f9f9f9;">
+          <div style="text-align:center;margin-bottom:15px;">
+            <p style="font-size:14px;color:#666;margin-bottom:10px;"><strong>Videoaufnahme Teil 6 (max. 60 Sek.)</strong></p>
+            <video id="selfIntroRecordedVideo" width="320" height="240" style="border:1px solid #ccc;border-radius:6px;background:#000;margin:10px auto;display:none;"></video>
+            <div id="selfIntroTimerDisplay" style="font-size:24px;font-weight:bold;color:#c8a84b;margin:10px 0;">0:00</div>
+          </div>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+            <button id="startSelfIntroRecordBtn" class="bnav" onclick="startVideoRecording('selfIntro')" style="background:#166534;color:#fff;">🎥 Start Recording</button>
+            <button id="stopSelfIntroRecordBtn" class="bnav" onclick="stopVideoRecording('selfIntro')" style="background:#991b1b;color:#fff;display:none;">⏹️ Stop Recording</button>
+            <button id="previewSelfIntroRecordBtn" class="bnav" onclick="previewVideoRecording('selfIntro')" style="background:#1d4ed8;color:#fff;display:none;">▶️ Preview</button>
+          </div>
+          <div id="selfIntroRecordingStatus" style="text-align:center;font-size:13px;color:#666;margin-top:10px;"></div>
+        </div>
+        <div id="selfIntroUploadSection" style="display:none;">
+          <div style="text-align:center;">
+            <button id="uploadSelfIntroVideoBtn" class="bnav pri" onclick="uploadPresentationVideo('selfIntro')" style="background:#166534;color:#fff;width:100%;">📤 Upload Selbstvorstellung</button>
+            <div id="selfIntroUploadStatus" style="text-align:center;font-size:13px;color:#666;margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-row"><button class="bnav" onclick="setTeil(5)">← Teil 5</button><button class="bnav pri" onclick="setTeil(7)">Teil 7 →</button></div>
+    </div>
+
+    <!-- TEIL 7 — BILDBESCHREIBUNG -->
+    <div class="teil-sec" id="teil7">
+      <div class="teil-hd thd6">
+        <h2>Teil 7 — Bildbeschreibung</h2>
+        <p>Nehmen Sie hier ein eigenes Video auf und beschreiben Sie das ausgewaehlte Bild.</p>
+      </div>
+      <div id="presentationRecordingArea" style="display:flex;flex-direction:column;gap:20px;">
+        <div style="background:#ffffff;border:1px solid var(--border);border-radius:12px;padding:16px 18px;line-height:1.65;">
+          <p style="font-size:14px;color:var(--ink);margin-bottom:8px;"><strong>Was soll in Ihrem Video vorkommen?</strong></p>
+          <p style="font-size:13px;color:var(--ink2);margin-bottom:8px;">1) <strong>Einleitung</strong>: Nennen Sie kurz das Thema des Bildes.</p>
+          <p style="font-size:13px;color:var(--ink2);margin-bottom:8px;">2) <strong>Beschreibung</strong>: Was sehen Sie? Wer ist auf dem Bild? Was passiert gerade?</p>
+          <p style="font-size:13px;color:var(--ink2);margin-bottom:0;">3) <strong>Meinung</strong>: Wie finden Sie die Situation? Warum?</p>
+          <p style="font-size:12px;color:var(--muted);margin-top:10px;">Klicken Sie auf <strong>Start Recording</strong>, sprechen Sie bis zu 2 Minuten, dann <strong>Stop Recording</strong> und danach <strong>Upload Video</strong>.</p>
+        </div>
         <div id="promptContainer" style="text-align:center;margin:20px 0;">
           <p style="font-size:14px;color:#999;">Presentation prompts coming soon...</p>
         </div>
-        <div id="recordingSection" style="border:1px solid #ddd;border-radius:10px;padding:20px;background:#f9f9f9;">
+        <div id="imageDescriptionRecordingSection" style="border:1px solid #ddd;border-radius:10px;padding:20px;background:#f9f9f9;">
           <div style="text-align:center;margin-bottom:15px;">
-            <p style="font-size:14px;color:#666;margin-bottom:10px;"><strong>Video Recording (2 min max)</strong></p>
-            <canvas id="recordingCanvas" width="320" height="240" style="border:1px solid #ccc;border-radius:6px;background:#000;display:none;margin:10px auto;"></canvas>
-            <video id="recordedVideo" width="320" height="240" style="border:1px solid #ccc;border-radius:6px;background:#000;margin:10px auto;display:none;"></video>
-            <div id="timerDisplay" style="font-size:24px;font-weight:bold;color:#c8a84b;margin:10px 0;">0:00</div>
+            <p style="font-size:14px;color:#666;margin-bottom:10px;"><strong>Videoaufnahme Teil 7 (max. 2 Min.)</strong></p>
+            <video id="imageDescriptionRecordedVideo" width="320" height="240" style="border:1px solid #ccc;border-radius:6px;background:#000;margin:10px auto;display:none;"></video>
+            <div id="imageDescriptionTimerDisplay" style="font-size:24px;font-weight:bold;color:#c8a84b;margin:10px 0;">0:00</div>
           </div>
           <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-            <button id="startRecordBtn" class="bnav" onclick="startVideoRecording()" style="background:#166534;color:#fff;">🎥 Start Recording</button>
-            <button id="stopRecordBtn" class="bnav" onclick="stopVideoRecording()" style="background:#991b1b;color:#fff;display:none;">⏹️ Stop Recording</button>
-            <button id="previewRecordBtn" class="bnav" onclick="previewVideoRecording()" style="background:#1d4ed8;color:#fff;display:none;">▶️ Preview</button>
+            <button id="startImageDescriptionRecordBtn" class="bnav" onclick="startVideoRecording('imageDescription')" style="background:#166534;color:#fff;">🎥 Start Recording</button>
+            <button id="stopImageDescriptionRecordBtn" class="bnav" onclick="stopVideoRecording('imageDescription')" style="background:#991b1b;color:#fff;display:none;">⏹️ Stop Recording</button>
+            <button id="previewImageDescriptionRecordBtn" class="bnav" onclick="previewVideoRecording('imageDescription')" style="background:#1d4ed8;color:#fff;display:none;">▶️ Preview</button>
           </div>
-          <div id="recordingStatus" style="text-align:center;font-size:13px;color:#666;margin-top:10px;"></div>
+          <div id="imageDescriptionRecordingStatus" style="text-align:center;font-size:13px;color:#666;margin-top:10px;"></div>
         </div>
-        <div id="uploadSection" style="display:none;">
+        <div id="imageDescriptionUploadSection" style="display:none;">
           <div style="text-align:center;">
-            <button id="uploadVideoBtn" class="bnav pri" onclick="uploadPresentationVideo()" style="background:#166534;color:#fff;width:100%;">📤 Upload Video</button>
-            <div id="uploadStatus" style="text-align:center;font-size:13px;color:#666;margin-top:10px;"></div>
+            <button id="uploadImageDescriptionVideoBtn" class="bnav pri" onclick="uploadPresentationVideo('imageDescription')" style="background:#166534;color:#fff;width:100%;">📤 Upload Bildbeschreibung</button>
+            <div id="imageDescriptionUploadStatus" style="text-align:center;font-size:13px;color:#666;margin-top:10px;"></div>
           </div>
         </div>
       </div>
-      <div class="nav-row"><button class="bnav" onclick="setTeil(5)">← Teil 5</button></div>
+      <div class="nav-row"><button class="bnav" onclick="setTeil(6)">← Teil 6</button></div>
     </div>
   </div>
 
@@ -596,10 +641,48 @@ let testOptions=[];
 let questions=[],answers={},submitted=false,sessionId=null;
 let userName='',selTest=1,timerSecs=0,timerH=null,timerOn=false;
 let curTeil=1,lbFlt=0;
-// Section timers: Teil 1-4 = 15 min, Teil 5 = 20 min
-const TEIL_TIME_LIMITS = {1: 15*60, 2: 15*60, 3: 15*60, 4: 15*60, 5: 20*60, 6: 2*60};
-let teilTimers = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}; // seconds spent per section
+// Section timers: Teil 1-4 = 15 min, Teil 5 = 20 min, Teil 6/7 = speaking videos
+const TEIL_TIME_LIMITS = {1: 15*60, 2: 15*60, 3: 15*60, 4: 15*60, 5: 20*60, 6: 60, 7: 2*60};
+let teilTimers = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}; // seconds spent per section
 let currentTeilTimer = null;
+const RECORDING_CONFIGS = {
+  selfIntro: {
+    videoKind: 'self-intro',
+    label: 'Selbstvorstellung',
+    maxSeconds: 60,
+    videoId: 'selfIntroRecordedVideo',
+    timerId: 'selfIntroTimerDisplay',
+    startBtnId: 'startSelfIntroRecordBtn',
+    stopBtnId: 'stopSelfIntroRecordBtn',
+    previewBtnId: 'previewSelfIntroRecordBtn',
+    recordingStatusId: 'selfIntroRecordingStatus',
+    uploadSectionId: 'selfIntroUploadSection',
+    uploadBtnId: 'uploadSelfIntroVideoBtn',
+    uploadStatusId: 'selfIntroUploadStatus',
+    pillId: 'pill6',
+    tabId: 'tab6'
+  },
+  imageDescription: {
+    videoKind: 'image-description',
+    label: 'Bildbeschreibung',
+    maxSeconds: 120,
+    videoId: 'imageDescriptionRecordedVideo',
+    timerId: 'imageDescriptionTimerDisplay',
+    startBtnId: 'startImageDescriptionRecordBtn',
+    stopBtnId: 'stopImageDescriptionRecordBtn',
+    previewBtnId: 'previewImageDescriptionRecordBtn',
+    recordingStatusId: 'imageDescriptionRecordingStatus',
+    uploadSectionId: 'imageDescriptionUploadSection',
+    uploadBtnId: 'uploadImageDescriptionVideoBtn',
+    uploadStatusId: 'imageDescriptionUploadStatus',
+    pillId: 'pill7',
+    tabId: 'tab7'
+  }
+};
+const recordingStates = {
+  selfIntro: { mediaStream: null, mediaRecorder: null, recordingChunks: [], recordingStartTime: null, recordingTimerInterval: null, recordedMimeType: 'video/mp4', objectUrl: null },
+  imageDescription: { mediaStream: null, mediaRecorder: null, recordingChunks: [], recordingStartTime: null, recordingTimerInterval: null, recordedMimeType: 'video/mp4', objectUrl: null }
+};
 
 function ft(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -692,6 +775,7 @@ function selT(n){
   document.querySelectorAll('.tp-btn').forEach(btn=>{
     btn.classList.toggle('sel',Number(btn.dataset.testNumber)===Number(n));
   });
+  renderPresentationPrompt();
 }
 function onName(){document.getElementById('btnStart').disabled=!document.getElementById('nameInp').value.trim();}
 
@@ -707,10 +791,16 @@ async function doStart(){
     if(r.ok) sessionId=(await r.json()).id;
   }catch{sessionId=null;}
   document.getElementById('hLabel').textContent=meta.label;
-  document.getElementById('hSub').textContent=name+' · '+meta.e+' '+meta.theme+' · 5 Teile (80 Min)';
+  document.getElementById('hSub').textContent=name+' · '+meta.e+' '+meta.theme+' · 7 Teilbereiche';
   answers={};submitted=false;timerSecs=0;timerOn=false;aufgabe=null;briefSaved=false;
-  teilTimers={1:0,2:0,3:0,4:0,5:0};
+  teilTimers={1:0,2:0,3:0,4:0,5:0,6:0,7:0};
   document.getElementById('timerVal').textContent='15:00';
+  document.getElementById('pill6').textContent='Intro';
+  document.getElementById('pill7').textContent='Bild';
+  document.getElementById('tab6').classList.remove('done');
+  document.getElementById('tab7').classList.remove('done');
+  resetRecordingUi('selfIntro', true);
+  resetRecordingUi('imageDescription', true);
   document.getElementById('btnSub').style.display='';
   document.getElementById('btnSub').disabled=true;
   document.getElementById('btnBack').style.display='none';
@@ -718,8 +808,49 @@ async function doStart(){
   document.getElementById('resultBanner').classList.remove('show');
   scr('scTest');
   renderAll();
+  await renderPresentationPrompt();
   updProg();
   setTeil(1);
+}
+
+async function renderPresentationPrompt(){
+  const box=document.getElementById('promptContainer');
+  if(!box) return;
+  const testNum=Number(selTest)||1;
+  const meta=getMeta(testNum);
+
+  try{
+    const r=await fetch(API+'/presentation/images/'+testNum);
+    if(!r.ok) throw new Error('load_failed');
+    const data=await r.json();
+    const images=Array.isArray(data.images)?data.images:[];
+
+    if(!images.length){
+      const folderName = data.folder || ('test'+testNum);
+      box.innerHTML='<p style="font-size:14px;color:#999;">Noch keine Bilder für diese Aufgabe. Laden Sie 4 Bilder in uploads/presentation/'+folderName+'/ hoch.</p>';
+      return;
+    }
+
+    const lastKey='presentation:last:'+testNum;
+    const last=window.sessionStorage.getItem(lastKey);
+    let candidates=images;
+    if(images.length>1 && last){
+      const filtered=images.filter(u=>u!==last);
+      if(filtered.length) candidates=filtered;
+    }
+
+    const picked=candidates[Math.floor(Math.random()*candidates.length)];
+    window.sessionStorage.setItem(lastKey,picked);
+
+    box.innerHTML=''
+      +'<div style="text-align:left;background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px;">'
+      +'<p style="font-size:13px;color:var(--muted);margin-bottom:8px;">Thema: <strong>'+esc(meta.theme)+'</strong></p>'
+      +'<p style="font-size:13px;color:var(--ink2);margin-bottom:10px;">Beschreiben Sie dieses Bild im Video (Personen, Situation, Ort, Handlung, Ihre Meinung).</p>'
+      +'<img src="'+picked+'" alt="Bildbeschreibung Aufgabe" style="width:100%;max-height:360px;object-fit:contain;border-radius:10px;border:1px solid #ddd;background:#fafafa;">'
+      +'</div>';
+  }catch{
+    box.innerHTML='<p style="font-size:14px;color:#999;">Bild konnte nicht geladen werden. Bitte später erneut versuchen.</p>';
+  }
 }
 
 /* FETCH */
@@ -765,7 +896,7 @@ function startTeilTimer(teil) {
     if (remaining <= 0) {
       clearInterval(currentTeilTimer);
       toast('⏰ Zeit für Teil ' + teil + ' ist abgelaufen!');
-      if (teil < 5) {
+      if (teil < 7) {
         setTimeout(() => setTeil(teil + 1), 2000);
       }
     }
@@ -1052,7 +1183,7 @@ function setTeil(t){
 
   const prevTeil=curTeil;
   curTeil=t;
-  for(let i=1;i<=6;i++){
+  for(let i=1;i<=7;i++){
     const sec=document.getElementById('teil'+i);
     const tab=document.getElementById('tab'+i);
     if(sec){
@@ -1083,6 +1214,9 @@ function setTeil(t){
       setTimeout(updProg, 500);
     });
   }
+  if(t===7){
+    renderPresentationPrompt();
+  }
   
   // Start section timer
   startTeilTimer(t);
@@ -1097,43 +1231,111 @@ function togExp(qid){
 }
 
 /* VIDEO RECORDING */
-let mediaStream = null;
-let mediaRecorder = null;
-let recordingChunks = [];
-let recordingStartTime = null;
-let recordingTimerInterval = null;
-let recordedMimeType = 'video/mp4';
+function getRecordingConfig(kind){
+  return RECORDING_CONFIGS[kind] || null;
+}
 
-async function startVideoRecording() {
+function getRecordingState(kind){
+  return recordingStates[kind] || null;
+}
+
+function resetRecordingUi(kind, clearUploadState=false){
+  const config=getRecordingConfig(kind);
+  const state=getRecordingState(kind);
+  if(!config || !state) return;
+  const video=document.getElementById(config.videoId);
+  const timer=document.getElementById(config.timerId);
+  const startBtn=document.getElementById(config.startBtnId);
+  const stopBtn=document.getElementById(config.stopBtnId);
+  const previewBtn=document.getElementById(config.previewBtnId);
+  const recordingStatus=document.getElementById(config.recordingStatusId);
+  const uploadSection=document.getElementById(config.uploadSectionId);
+  const uploadStatus=document.getElementById(config.uploadStatusId);
+  if(state.recordingTimerInterval){
+    clearInterval(state.recordingTimerInterval);
+    state.recordingTimerInterval=null;
+  }
+  if(state.mediaStream){
+    state.mediaStream.getTracks().forEach(track=>track.stop());
+    state.mediaStream=null;
+  }
+  state.mediaRecorder=null;
+  state.recordingChunks=[];
+  state.recordingStartTime=null;
+  if(video){
+    video.pause();
+    video.controls=true;
+    video.muted=false;
+    video.srcObject=null;
+    if(state.objectUrl){
+      URL.revokeObjectURL(state.objectUrl);
+      state.objectUrl=null;
+    }
+    video.removeAttribute('src');
+    video.style.display='none';
+  }
+  if(timer) timer.textContent='0:00';
+  if(startBtn) startBtn.style.display='inline-block';
+  if(stopBtn) stopBtn.style.display='none';
+  if(previewBtn) previewBtn.style.display='none';
+  if(recordingStatus) recordingStatus.textContent='';
+  if(uploadSection) uploadSection.style.display='none';
+  if(clearUploadState && uploadStatus) uploadStatus.textContent='';
+}
+
+async function startVideoRecording(kind) {
+  const config=getRecordingConfig(kind);
+  const state=getRecordingState(kind);
+  if(!config || !state) return;
+  const activeKind=Object.keys(recordingStates).find(key=>{
+    const current=recordingStates[key];
+    return current && current.mediaRecorder && current.mediaRecorder.state !== 'inactive';
+  });
+  if(activeKind && activeKind !== kind){
+    toast('⚠️ Beenden Sie zuerst die andere Aufnahme.');
+    return;
+  }
   try {
-    const preview = document.getElementById('recordedVideo');
-    mediaStream = await navigator.mediaDevices.getUserMedia({ 
+    const preview = document.getElementById(config.videoId);
+    const timerDisplay = document.getElementById(config.timerId);
+    const startBtn = document.getElementById(config.startBtnId);
+    const stopBtn = document.getElementById(config.stopBtnId);
+    const recordingStatus = document.getElementById(config.recordingStatusId);
+    const uploadSection = document.getElementById(config.uploadSectionId);
+    if(state.objectUrl){
+      URL.revokeObjectURL(state.objectUrl);
+      state.objectUrl=null;
+    }
+    state.mediaStream = await navigator.mediaDevices.getUserMedia({ 
       video: { width: 320, height: 240, facingMode: 'user' },
       audio: true 
     });
 
     const mimeCandidates = ['video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
     const mimeType = mimeCandidates.find(type => typeof MediaRecorder.isTypeSupported === 'function' && MediaRecorder.isTypeSupported(type)) || '';
-    recordedMimeType = mimeType || 'video/webm';
-    mediaRecorder = mimeType ? new MediaRecorder(mediaStream, { mimeType }) : new MediaRecorder(mediaStream);
-    recordingChunks = [];
-    recordingStartTime = Date.now();
+    state.recordedMimeType = mimeType || 'video/webm';
+    state.mediaRecorder = mimeType ? new MediaRecorder(state.mediaStream, { mimeType }) : new MediaRecorder(state.mediaStream);
+    state.recordingChunks = [];
+    state.recordingStartTime = Date.now();
 
     preview.pause();
     preview.removeAttribute('src');
-    preview.srcObject = mediaStream;
+    preview.srcObject = state.mediaStream;
     preview.muted = true;
     preview.playsInline = true;
     preview.style.display = 'block';
+    preview.controls = false;
     await preview.play().catch(() => {});
+    if(uploadSection) uploadSection.style.display = 'none';
     
-    mediaRecorder.ondataavailable = (e) => {
-      if (e.data.size > 0) recordingChunks.push(e.data);
+    state.mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) state.recordingChunks.push(e.data);
     };
     
-    mediaRecorder.onstop = () => {
-      const blob = new Blob(recordingChunks, { type: recordedMimeType || mediaRecorder.mimeType || 'video/webm' });
+    state.mediaRecorder.onstop = () => {
+      const blob = new Blob(state.recordingChunks, { type: state.recordedMimeType || state.mediaRecorder.mimeType || 'video/webm' });
       const url = URL.createObjectURL(blob);
+      state.objectUrl = url;
       preview.srcObject = null;
       preview.src = url;
       preview.muted = false;
@@ -1141,56 +1343,63 @@ async function startVideoRecording() {
       preview.style.display = 'block';
     };
     
-    mediaRecorder.start();
+    state.mediaRecorder.start();
     
-    // Update timer
-    recordingTimerInterval = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+    state.recordingTimerInterval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - state.recordingStartTime) / 1000);
       const mins = Math.floor(elapsed / 60);
       const secs = elapsed % 60;
-      document.getElementById('timerDisplay').textContent = 
-        mins + ':' + (secs < 10 ? '0' : '') + secs;
+      if(timerDisplay) timerDisplay.textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
       
-      // Stop at 2 minutes
-      if (elapsed >= 120) {
-        stopVideoRecording();
+      if (elapsed >= config.maxSeconds) {
+        stopVideoRecording(kind);
       }
     }, 100);
     
-    document.getElementById('startRecordBtn').style.display = 'none';
-    document.getElementById('stopRecordBtn').style.display = 'inline-block';
-    document.getElementById('recordingStatus').textContent = '🔴 Recording...';
+    if(startBtn) startBtn.style.display = 'none';
+    if(stopBtn) stopBtn.style.display = 'inline-block';
+    if(recordingStatus) recordingStatus.textContent = '🔴 Recording...';
   } catch (err) {
     toast('⚠️ Kamera nicht verfügbar: ' + err.message);
   }
 }
 
-function stopVideoRecording() {
-  const preview = document.getElementById('recordedVideo');
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-    mediaRecorder.stop();
+function stopVideoRecording(kind) {
+  const config=getRecordingConfig(kind);
+  const state=getRecordingState(kind);
+  if(!config || !state) return;
+  const preview = document.getElementById(config.videoId);
+  const startBtn = document.getElementById(config.startBtnId);
+  const stopBtn = document.getElementById(config.stopBtnId);
+  const previewBtn = document.getElementById(config.previewBtnId);
+  const recordingStatus = document.getElementById(config.recordingStatusId);
+  const uploadSection = document.getElementById(config.uploadSectionId);
+  if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
+    state.mediaRecorder.stop();
     
-    if (recordingTimerInterval) {
-      clearInterval(recordingTimerInterval);
-      recordingTimerInterval = null;
+    if (state.recordingTimerInterval) {
+      clearInterval(state.recordingTimerInterval);
+      state.recordingTimerInterval = null;
     }
     
-    if (mediaStream) {
-      mediaStream.getTracks().forEach(track => track.stop());
-      mediaStream = null;
+    if (state.mediaStream) {
+      state.mediaStream.getTracks().forEach(track => track.stop());
+      state.mediaStream = null;
     }
   }
-  preview.controls = true;
+  if(preview) preview.controls = true;
   
-  document.getElementById('startRecordBtn').style.display = 'inline-block';
-  document.getElementById('stopRecordBtn').style.display = 'none';
-  document.getElementById('previewRecordBtn').style.display = 'inline-block';
-  document.getElementById('recordingStatus').textContent = '✓ Aufzeichnung abgeschlossen';
-  document.getElementById('uploadSection').style.display = 'block';
+  if(startBtn) startBtn.style.display = 'inline-block';
+  if(stopBtn) stopBtn.style.display = 'none';
+  if(previewBtn) previewBtn.style.display = 'inline-block';
+  if(recordingStatus) recordingStatus.textContent = '✓ Aufzeichnung abgeschlossen';
+  if(uploadSection) uploadSection.style.display = 'block';
 }
 
-function previewVideoRecording() {
-  const video = document.getElementById('recordedVideo');
+function previewVideoRecording(kind) {
+  const config=getRecordingConfig(kind);
+  if(!config) return;
+  const video = document.getElementById(config.videoId);
   if (video.paused) {
     video.play();
   } else {
@@ -1198,20 +1407,23 @@ function previewVideoRecording() {
   }
 }
 
-async function uploadPresentationVideo() {
+async function uploadPresentationVideo(kind) {
+  const config=getRecordingConfig(kind);
+  const state=getRecordingState(kind);
+  if(!config || !state) return;
   if (!sessionId) {
     toast('⚠️ Kein aktive Session gefunden.');
     return;
   }
   
-  const video = document.getElementById('recordedVideo');
+  const video = document.getElementById(config.videoId);
   if (!video.src) {
     toast('⚠️ Kein Video aufgezeichnet.');
     return;
   }
   
-  const uploadBtn = document.getElementById('uploadVideoBtn');
-  const uploadStatus = document.getElementById('uploadStatus');
+  const uploadBtn = document.getElementById(config.uploadBtnId);
+  const uploadStatus = document.getElementById(config.uploadStatusId);
   const originalText = uploadBtn.textContent;
   
   try {
@@ -1223,11 +1435,11 @@ async function uploadPresentationVideo() {
     const videoBlob = await fetch(video.src).then(r => r.blob());
     
     // Upload to backend
-    const ext = recordedMimeType.includes('mp4') ? 'mp4' : 'webm';
+    const ext = state.recordedMimeType.includes('mp4') ? 'mp4' : 'webm';
     const formData = new FormData();
-    formData.append('video', videoBlob, 'presentation.' + ext);
+    formData.append('video', videoBlob, config.videoKind.replace(/-/g, '_') + '.' + ext);
     
-    const res = await fetch(API + '/sessions/' + sessionId + '/upload-video', {
+    const res = await fetch(API + '/sessions/' + sessionId + '/upload-video/' + config.videoKind, {
       method: 'POST',
       credentials: 'same-origin',
       body: formData
@@ -1237,19 +1449,13 @@ async function uploadPresentationVideo() {
       throw new Error(await res.text());
     }
     
-    const data = await res.json();
     uploadStatus.textContent = '✓ Video erfolgreich hochgeladen!';
-    toast('✓ Video hochgeladen und zu unserem Team gesendet.');
+    document.getElementById(config.pillId).textContent = 'Gesendet';
+    document.getElementById(config.tabId).classList.add('done');
+    toast('✓ ' + config.label + ' hochgeladen und an die Lehrkraft gesendet.');
     
-    // Reset form
     setTimeout(() => {
-      document.getElementById('recordedVideo').style.display = 'none';
-      document.getElementById('previewRecordBtn').style.display = 'none';
-      document.getElementById('uploadSection').style.display = 'none';
-      document.getElementById('startRecordBtn').style.display = 'inline-block';
-      document.getElementById('timerDisplay').textContent = '0:00';
-      document.getElementById('recordingStatus').textContent = '';
-      uploadStatus.textContent = '';
+      resetRecordingUi(kind, true);
     }, 2000);
   } catch (err) {
     uploadStatus.textContent = '⚠️ Upload fehlgeschlagen: ' + String(err).slice(0, 80);

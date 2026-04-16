@@ -692,42 +692,31 @@ async function viewDetails(sessionId) {
     if (data.mistakes.length === 0) {
       mistakesHtml = '<div class="empty-state"><h3>🎉 Perfekt!</h3><p>Keine Fehler gefunden. Ausgezeichnete Arbeit!</p></div>';
     }
-        // Presentation video feedback section
-        let presentationHtml = '';
-        if (data.video_url) {
-          presentationHtml = `
-            <div class="mistakes-sec">
-              <h3>🎥 Teil 6 — Präsentation</h3>
-              <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:12px;">
-                <div style="text-align:center;margin-bottom:16px;">
-                  <video controls preload="metadata" style="width:100%;max-height:320px;border-radius:8px;border:1px solid #ddd;background:#000;">
-                    <source src="${API}/sessions/${sessionId}/presentation-video">
-                  </video>
-                </div>
-                <div style="display:flex;flex-direction:column;gap:12px;">
-                  <div>
-                    <label style="display:block;font-weight:600;margin-bottom:6px;color:var(--ink);">Bewertung (0-10):</label>
-                    <input type="number" id="pres-score-${sessionId}" min="0" max="10" 
-                      value="${data.presentation_score || 0}" 
-                      style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--border);">
-                  </div>
-                  <div>
-                    <label style="display:block;font-weight:600;margin-bottom:6px;color:var(--ink);">Feedback:</label>
-                    <textarea id="pres-feedback-${sessionId}" 
-                      style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);font-family:inherit;font-size:13px;min-height:100px;resize:vertical;"
-                      placeholder="Feedback zur Präsentation eingeben…">${data.feedback_text || ''}</textarea>
-                  </div>
-                  <button onclick="savePresentationFeedback(${sessionId})" 
-                    class="btn" style="background:var(--green);color:#fff;border:none;">
-                    💾 Feedback speichern
-                  </button>
-                </div>
-              </div>
-            </div>
-          `;
-        } else {
-          presentationHtml = '<div class="mistakes-sec"><h3>🎥 Teil 6 — Präsentation</h3><p style="color:var(--muted);font-size:14px;">Kein Video eingereicht.</p></div>';
-        }
+        const selfIntroVideoUrl = data.self_intro_video_url || '';
+        const imageDescriptionVideoUrl = data.image_description_video_url || data.video_url || '';
+        const presentationHtml = `
+          <div class="mistakes-sec">
+            <h3>🎥 Sprechen — Video Review</h3>
+            ${renderPresentationReviewCard({
+              sessionId,
+              partKey: 'self-intro',
+              title: 'Teil 6 — Selbstvorstellung',
+              videoUrl: selfIntroVideoUrl,
+              score: data.self_intro_score || 0,
+              feedback: data.self_intro_feedback_text || '',
+              emptyText: 'Kein Video fuer die Selbstvorstellung eingereicht.'
+            })}
+            ${renderPresentationReviewCard({
+              sessionId,
+              partKey: 'image-description',
+              title: 'Teil 7 — Bildbeschreibung',
+              videoUrl: imageDescriptionVideoUrl,
+              score: data.image_description_score || 0,
+              feedback: data.image_description_feedback_text || '',
+              emptyText: 'Kein Video fuer die Bildbeschreibung eingereicht.'
+            })}
+          </div>
+        `;
 
         modalBody.innerHTML = infoHtml + briefHtml + mistakesHtml + presentationHtml;
   } catch (e) {
@@ -788,13 +777,48 @@ function renderMistake(m) {
   `;
 }
 
+function renderPresentationReviewCard({ sessionId, partKey, title, videoUrl, score, feedback, emptyText }) {
+  const scoreId = `pres-${partKey}-score-${sessionId}`;
+  const feedbackId = `pres-${partKey}-feedback-${sessionId}`;
+  const hasVideo = !!videoUrl;
+  return `
+    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:12px;">
+      <h4 style="margin:0 0 12px 0;color:var(--ink);">${title}</h4>
+      ${hasVideo ? `
+        <div style="text-align:center;margin-bottom:16px;">
+          <video controls preload="metadata" style="width:100%;max-height:320px;border-radius:8px;border:1px solid #ddd;background:#000;">
+            <source src="${API}/sessions/${sessionId}/presentation-video/${partKey}">
+          </video>
+        </div>
+      ` : `<p style="color:var(--muted);font-size:14px;margin:0 0 16px 0;">${emptyText}</p>`}
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div>
+          <label style="display:block;font-weight:600;margin-bottom:6px;color:var(--ink);">Bewertung (0-10):</label>
+          <input type="number" id="${scoreId}" min="0" max="10" value="${score}"
+            style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--border);">
+        </div>
+        <div>
+          <label style="display:block;font-weight:600;margin-bottom:6px;color:var(--ink);">Feedback:</label>
+          <textarea id="${feedbackId}"
+            style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);font-family:inherit;font-size:13px;min-height:100px;resize:vertical;"
+            placeholder="Feedback eingeben…">${esc(feedback)}</textarea>
+        </div>
+        <button onclick="savePresentationFeedback(${sessionId}, '${partKey}')"
+          class="btn" style="background:var(--green);color:#fff;border:none;">
+          💾 Feedback speichern
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 function closeModal() {
   document.getElementById('modalOverlay').classList.remove('show');
 }
 
-async function savePresentationFeedback(sessionId) {
-  const scoreInput = document.getElementById('pres-score-' + sessionId);
-  const feedbackInput = document.getElementById('pres-feedback-' + sessionId);
+async function savePresentationFeedback(sessionId, partKey) {
+  const scoreInput = document.getElementById(`pres-${partKey}-score-${sessionId}`);
+  const feedbackInput = document.getElementById(`pres-${partKey}-feedback-${sessionId}`);
   if (!scoreInput || !feedbackInput) return;
 
   const score = Number(scoreInput.value);
@@ -805,7 +829,7 @@ async function savePresentationFeedback(sessionId) {
   }
 
   try {
-    const res = await apiFetch(API + '/sessions/' + sessionId + '/presentation-feedback', {
+    const res = await apiFetch(API + '/sessions/' + sessionId + '/presentation-feedback/' + partKey, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ presentation_score: score, feedback_text: feedback })
@@ -816,8 +840,14 @@ async function savePresentationFeedback(sessionId) {
     alert('Feedback gespeichert.');
     const session = allSessions.find(s => s.id === sessionId);
     if (session) {
-      session.presentation_score = score;
-      session.feedback_text = feedback;
+      if (partKey === 'self-intro') {
+        session.self_intro_score = score;
+        session.self_intro_feedback_text = feedback;
+      }
+      if (partKey === 'image-description') {
+        session.image_description_score = score;
+        session.image_description_feedback_text = feedback;
+      }
     }
   } catch (err) {
     console.error('savePresentationFeedback', err);

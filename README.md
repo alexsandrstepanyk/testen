@@ -6,7 +6,7 @@
 
 - 5 готових повних тестів на теми B1
 - 5-частинна структура іспиту: Teil 1-4 (20+10+15+10 завдань) + Teil 5 Schreiben
-- додатковий Teil 6: 2-хвилинна відео-презентація з відправкою в Telegram
+- додаткові speaking tasks: Teil 6 `Selbstvorstellung` + Teil 7 `Bildbeschreibung`
 - 55 тестових питань + Schreiben (максимум 65 балів загалом)
 - таймер проходження тесту
 - автоматичний підрахунок балів і відсотка
@@ -91,11 +91,13 @@ deutsch-b1-app/
 - проходження всіх 5 частин іспиту
 - новий блок Teil 4: Anzeigen zuordnen (оголошення -> запитання)
 - написання листа в Teil 5
-- запис презентаційного відео з вебкамери в Teil 6
+- запис двох окремих speaking-відео з вебкамери:
+   - Teil 6: Selbstvorstellung
+   - Teil 7: Bildbeschreibung
 - миттєвий результат після сабміту
 - PDF зі звітом і сертифікатом
 - збереження результату в БД
-- відправка презентаційного відео в Telegram після запису
+- відправка speaking-відео в Telegram після запису
 
 ## Основні можливості для викладача
 
@@ -104,8 +106,8 @@ deutsch-b1-app/
 - фільтрація за тестом, статусом, іменем
 - перегляд деталей кожної спроби
 - перегляд листа учня
-- перегляд презентаційного відео учня
-- виставлення оцінки за презентацію та текстового feedback
+- перегляд двох speaking-відео учня
+- окреме оцінювання `Selbstvorstellung` і `Bildbeschreibung`
 - аналіз помилок по кожному питанню
 - CSV export
 - статистика по тестах
@@ -135,7 +137,8 @@ PDF містить:
 
 1. старт тесту: повідомлення в Telegram
 2. завершення тесту: PDF-документ у Telegram
-3. завантаження Teil 6: student video у Telegram + збереження file_id в БД
+3. завантаження Teil 6: student self-introduction video у Telegram + збереження file_id в БД
+4. завантаження Teil 7: student image-description video у Telegram + збереження file_id в БД
 
 Потрібні environment variables:
 
@@ -229,6 +232,11 @@ TELEGRAM_CHAT_ID=...
 - додано teacher `Kurs-Builder` з БД-синхронізацією
 - додано новий Teil 4 (Anzeigen zuordnen) і перенесено Schreiben у Teil 5
 - оновлено student UI, teacher dashboard і PDF-звіт під 5 частин
+- speaking flow розділено на два окремі video tasks:
+   - Teil 6: Selbstvorstellung
+   - Teil 7: Bildbeschreibung
+- teacher dashboard оновлено під два speaking video blocks і два окремі feedback fields
+- локально speaking video може зберігатися через fallback у static storage, якщо Telegram не налаштований
 - додано фільтр тестових QA-записів у leaderboard
 - виправлено production баг у teacher details modal (стабільне відкриття деталей сесії)
 - додано SEO-базу для індексації:

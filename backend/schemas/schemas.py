@@ -35,8 +35,14 @@ class SessionOut(BaseModel):
     teil4_score: Optional[int]
     teil5_score: Optional[int] = 0
     video_url: Optional[str] = None
+    self_intro_video_url: Optional[str] = None
+    image_description_video_url: Optional[str] = None
     presentation_score: Optional[int] = 0
+    self_intro_score: Optional[int] = 0
+    image_description_score: Optional[int] = 0
     feedback_text: Optional[str] = ""
+    self_intro_feedback_text: Optional[str] = ""
+    image_description_feedback_text: Optional[str] = ""
     class Config:
         from_attributes = True
 

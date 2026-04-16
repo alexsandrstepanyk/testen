@@ -66,6 +66,8 @@
 - [x] повідомлення про старт тесту
 - [x] PDF у Telegram після завершення тесту
 - [x] налаштування через env vars
+- [x] окремі speaking uploads для Teil 6 і Teil 7
+- [x] teacher review для двох speaking videos
 
 ### Course Builder
 
@@ -106,6 +108,12 @@
 - [ ] cookie consent banner (GDPR compliant)
 - [ ] Google Analytics 4 + Consent Mode v2
 - [ ] AdSense integration only after consent
+
+### 5. Speaking Reliability
+
+- [ ] винести speaking video storage у persistent external storage для production
+- [ ] прибрати залежність від ephemeral local filesystem fallback на Render
+- [ ] додати явний delivery status для Telegram uploads
 
 ## Planned Versions
 

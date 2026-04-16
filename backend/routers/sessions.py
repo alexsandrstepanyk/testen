@@ -9,8 +9,45 @@ from services.question_resolver import get_questions_by_test_number, get_test_la
 from services.telegram import is_enabled, send_message, send_pdf_document
 from fastapi import File, UploadFile
 from services.telegram import send_video
+from pathlib import Path
+import os
 
 router = APIRouter()
+
+FRONTEND_PATH = Path(__file__).resolve().parents[2] / "frontend"
+LOCAL_VIDEO_DIR = FRONTEND_PATH / "uploads" / "presentation_videos"
+
+VIDEO_KIND_LABELS = {
+    "self-intro": "Selbstvorstellung",
+    "image-description": "Bildbeschreibung",
+}
+
+
+def resolve_video_field(video_kind: str) -> str:
+    if video_kind == "self-intro":
+        return "self_intro_video_url"
+    if video_kind == "image-description":
+        return "image_description_video_url"
+    raise HTTPException(status_code=400, detail="video_kind must be 'self-intro' or 'image-description'")
+
+
+def store_video_for_kind(session: TestSession, video_kind: str, file_id: str) -> None:
+    field_name = resolve_video_field(video_kind)
+    setattr(session, field_name, file_id)
+    if video_kind == "image-description":
+        session.video_url = file_id
+
+
+def save_video_locally(session: TestSession, video_kind: str, video_bytes: bytes, filename: str) -> str:
+    safe_name = filename.replace("/", "_").replace("\\", "_")
+    suffix = Path(safe_name).suffix or ".webm"
+    kind_folder = "self_intro" if video_kind == "self-intro" else "image_description"
+    target_dir = LOCAL_VIDEO_DIR / kind_folder
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target_name = f"session_{session.id}_{session.user_name.replace(' ', '_')}{suffix}"
+    target_path = target_dir / target_name
+    target_path.write_bytes(video_bytes)
+    return f"/static/uploads/presentation_videos/{kind_folder}/{target_name}"
 
 
 def get_derived_teil5_score(session: TestSession) -> int:
@@ -98,9 +135,7 @@ def get_session(session_id: int, db: Session = Depends(get_db)):
     payload["teil5_score"] = get_derived_teil5_score(s)
     return payload
 
-@router.post("/{session_id}/upload-video")
-def upload_presentation_video(session_id: int, video: UploadFile = File(...), db: Session = Depends(get_db)):
-    """Upload presentation video to Telegram and save file_id to session"""
+def upload_video_for_kind(session_id: int, video_kind: str, video: UploadFile, db: Session) -> dict:
     session = db.query(TestSession).filter(TestSession.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -118,25 +153,32 @@ def upload_presentation_video(session_id: int, video: UploadFile = File(...), db
         
         original_name = (video.filename or "presentation.webm").strip() or "presentation.webm"
         safe_name = original_name.replace("/", "_").replace("\\", "_")
-        filename = f"presentation_{session.user_name.replace(' ', '_')}_{session_id}_{safe_name}"
-        caption = f"Präsentation von {session.user_name}\nSession ID: {session_id}"
+        prefix = "self_intro" if video_kind == "self-intro" else "image_description"
+        label = VIDEO_KIND_LABELS[video_kind]
+        filename = f"{prefix}_{session.user_name.replace(' ', '_')}_{session_id}_{safe_name}"
+        caption = f"{label} von {session.user_name}\nSession ID: {session_id}"
         content_type = (video.content_type or "video/mp4").strip()
         
-        # Upload to Telegram
-        file_id = send_video(video_bytes, filename, caption, content_type=content_type)
-        
+        file_id = None
+        upload_mode = "telegram"
+
+        if is_enabled():
+            file_id = send_video(video_bytes, filename, caption, content_type=content_type)
+
         if not file_id:
-            raise HTTPException(status_code=500, detail="Failed to upload video to Telegram")
+            file_id = save_video_locally(session, video_kind, video_bytes, filename)
+            upload_mode = "local"
         
-        # Save file_id to session
-        session.video_url = file_id
+        store_video_for_kind(session, video_kind, file_id)
         db.commit()
         db.refresh(session)
         
         return {
             "status": "ok",
             "session_id": session.id,
+            "video_kind": video_kind,
             "file_id": file_id,
+            "storage": upload_mode,
             "message": "Video uploaded successfully"
         }
     
@@ -144,3 +186,20 @@ def upload_presentation_video(session_id: int, video: UploadFile = File(...), db
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Upload error: {str(e)[:100]}")
+
+
+@router.post("/{session_id}/upload-video")
+def upload_presentation_video(session_id: int, video: UploadFile = File(...), db: Session = Depends(get_db)):
+    """Legacy upload endpoint kept for compatibility."""
+    return upload_video_for_kind(session_id, "image-description", video, db)
+
+
+@router.post("/{session_id}/upload-video/{video_kind}")
+def upload_presentation_video_by_kind(
+    session_id: int,
+    video_kind: str,
+    video: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """Upload a speaking video for a specific part and save file_id to session."""
+    return upload_video_for_kind(session_id, video_kind, video, db)

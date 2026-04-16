@@ -2,8 +2,10 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi import HTTPException
 from sqlalchemy import inspect, text
 import os
+from pathlib import Path
 
 from routers import questions, sessions, results, schreiben, teacher, course_builder
 from models.database import engine, Base
@@ -21,10 +23,22 @@ def ensure_schema_updates() -> None:
         session_columns = {column["name"] for column in inspector.get_columns("test_sessions")}
         if "video_url" not in session_columns:
             connection.execute(text("ALTER TABLE test_sessions ADD COLUMN video_url TEXT"))
+        if "self_intro_video_url" not in session_columns:
+            connection.execute(text("ALTER TABLE test_sessions ADD COLUMN self_intro_video_url TEXT"))
+        if "image_description_video_url" not in session_columns:
+            connection.execute(text("ALTER TABLE test_sessions ADD COLUMN image_description_video_url TEXT"))
         if "presentation_score" not in session_columns:
             connection.execute(text("ALTER TABLE test_sessions ADD COLUMN presentation_score INTEGER DEFAULT 0"))
+        if "self_intro_score" not in session_columns:
+            connection.execute(text("ALTER TABLE test_sessions ADD COLUMN self_intro_score INTEGER DEFAULT 0"))
+        if "image_description_score" not in session_columns:
+            connection.execute(text("ALTER TABLE test_sessions ADD COLUMN image_description_score INTEGER DEFAULT 0"))
         if "feedback_text" not in session_columns:
             connection.execute(text("ALTER TABLE test_sessions ADD COLUMN feedback_text TEXT DEFAULT ''"))
+        if "self_intro_feedback_text" not in session_columns:
+            connection.execute(text("ALTER TABLE test_sessions ADD COLUMN self_intro_feedback_text TEXT DEFAULT ''"))
+        if "image_description_feedback_text" not in session_columns:
+            connection.execute(text("ALTER TABLE test_sessions ADD COLUMN image_description_feedback_text TEXT DEFAULT ''"))
 
 
 ensure_schema_updates()
@@ -98,3 +112,30 @@ if os.path.exists(frontend_path):
 @app.get("/api/health")
 def health():
     return {"status": "ok", "version": "2.0.0", "message": "Deutsch B1 API läuft 🇩🇪"}
+
+
+@app.get("/api/presentation/images/{test_number}")
+def presentation_images(test_number: int):
+    if test_number < 1 or test_number > 5:
+        raise HTTPException(status_code=400, detail="test_number must be between 1 and 5")
+
+    folder_map = {
+        1: "alltag-grammatik",
+        2: "freizeit-reisen",
+        3: "arbeit-bildung",
+        4: "gesellschaft-technik",
+        5: "umwelt-zukunft",
+    }
+    folder_name = folder_map[test_number]
+    folder = Path(frontend_path) / "uploads" / "presentation" / folder_name
+    if not folder.exists():
+        return {"test_number": test_number, "images": []}
+
+    allowed = {".jpg", ".jpeg", ".png", ".webp"}
+    files = sorted(
+        [p for p in folder.iterdir() if p.is_file() and p.suffix.lower() in allowed],
+        key=lambda p: p.name.lower(),
+    )
+
+    urls = [f"/static/uploads/presentation/{folder_name}/{p.name}" for p in files]
+    return {"test_number": test_number, "folder": folder_name, "images": urls}
