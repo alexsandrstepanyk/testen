@@ -116,6 +116,8 @@ class TeacherSessionOut:
     def __init__(self, session: TestSession, mistakes: List[Dict[str, Any]]):
         self.id = session.id
         self.user_name = session.user_name
+        self.user_email = session.user_email
+        self.user_phone = session.user_phone
         self.test_number = session.test_number or 1
         self.started_at = session.started_at.isoformat() if session.started_at else None
         self.finished_at = session.finished_at.isoformat() if session.finished_at else None
@@ -168,6 +170,8 @@ def get_all_sessions(
             {
                 "id": s.id,
                 "user_name": s.user_name,
+                "user_email": s.user_email,
+                "user_phone": s.user_phone,
                 "test_number": s.test_number or 1,
                 "test_label": get_test_label(s.test_number or 1, db),
                 "started_at": s.started_at.isoformat() if s.started_at else None,
