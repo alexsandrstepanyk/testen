@@ -988,13 +988,47 @@ function doMC(qid,idx){
     b.querySelector('.aic').textContent=i===idx?'●':L[i];
   });
   markCard(qid);updProg();
+  
+  // Auto-scroll to next question
+  setTimeout(() => {
+    const qIndex = questions.findIndex(x => x.id === qid);
+    if (qIndex !== -1 && qIndex < questions.length - 1) {
+      const nextQ = questions[qIndex + 1];
+      // Only scroll if next question is in the same Teil
+      if (nextQ.teil === q.teil) {
+        const nextCard = document.getElementById('card' + nextQ.id);
+        if (nextCard) {
+          nextCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Highlight next card briefly
+          nextCard.style.ring = '2px solid var(--accent)';
+          setTimeout(() => nextCard.style.ring = '', 1000);
+        }
+      }
+    }
+  }, 300);
 }
+
 function doRF(qid,val){
   if(submitted)return; startTimer();
   answers[qid]=val;
   document.getElementById('rfR'+qid).className='rfbtn'+(val?' rfr':'');
   document.getElementById('rfF'+qid).className='rfbtn'+(!val?' rff':'');
   markCard(qid);updProg();
+
+  // Auto-scroll to next question
+  setTimeout(() => {
+    const qIndex = questions.findIndex(x => x.id === qid);
+    if (qIndex !== -1 && qIndex < questions.length - 1) {
+      const q = questions[qIndex];
+      const nextQ = questions[qIndex + 1];
+      if (nextQ.teil === q.teil) {
+        const nextCard = document.getElementById('card' + nextQ.id);
+        if (nextCard) {
+          nextCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }
+  }, 300);
 }
 function markCard(qid){
   const c=document.getElementById('card'+qid);
