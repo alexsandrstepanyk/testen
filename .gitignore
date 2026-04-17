@@ -49,6 +49,9 @@ Thumbs.db
 *.sqlite
 *.sqlite3
 instance/*.db
+# Large media folders
+frontend/uploads/
+frontend/presentation/
 
 # Environment variables
 .env
