@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from services.report_pdf import build_test_report_pdf, build_speaking_report_pdf
 from services.question_resolver import get_questions_by_test_number, get_test_label
 from services.telegram import is_enabled, send_message, send_pdf_document, send_video
+from fastapi import File, UploadFile
 from pathlib import Path
 import os
 
