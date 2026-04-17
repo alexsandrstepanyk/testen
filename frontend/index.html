@@ -1156,14 +1156,15 @@ async function doSubmit(){
     if(tog&&box&&q.explanation){box.textContent='💡 '+q.explanation;tog.classList.add('vis');}
   });
   
+  // Show Result Banner immediately for Parts 1-5
   const ban=document.getElementById('resultBanner');ban.classList.add('show');
   document.getElementById('rbWrap').className='rb-wrap '+(pass?'rb-pass':'rb-fail');
   const rb=document.getElementById('rbWrap');
   rb.classList.add('morph-in');
   setTimeout(()=>rb.classList.remove('morph-in'),700);
   if(pass) burstConfetti();
-  document.getElementById('rbTitle').textContent=pass?'🎉 Bestanden!':'❌ Nicht bestanden';
-  document.getElementById('rbSub').textContent='Punkte: '+sc+'/'+totalPoints+' ('+pct+'%) · Zeit: '+ft(timerSecs)+' · '+meta.label+': '+meta.theme;
+  document.getElementById('rbTitle').textContent=pass?'🎉 Teil 1-5 Bestanden!':'❌ Teil 1-5 Ergebnisse';
+  document.getElementById('rbSub').textContent='Punkte: '+sc+'/'+totalPoints+' ('+pct+'%) · '+meta.label;
   document.getElementById('rbParts').innerHTML='<div class="rb-part"><strong>'+s1+'/20</strong>Teil 1</div><div class="rb-part"><strong>'+s2+'/10</strong>Teil 2</div><div class="rb-part"><strong>'+s3+'/15</strong>Teil 3</div><div class="rb-part"><strong>'+s4+'/10</strong>Teil 4</div><div class="rb-part"><strong>'+s5+'/10</strong>Teil 5</div>';
   
   // Save brief text to answers (keep original types for answers)
@@ -1177,12 +1178,18 @@ async function doSubmit(){
     }catch{}
   }
   document.getElementById('btnSub').style.display='none';
-  document.getElementById('btnBack').style.display='';
-  document.getElementById('btnPdf').style.display = (sessionId && saved) ? '' : 'none';
+  document.getElementById('btnPdf').style.display = (sessionId && saved) ? 'inline-block' : 'none';
+  
   const st=document.getElementById('abStat');
-  st.textContent=sc+'/'+totalPoints+' ('+pct+'%) — '+(pass?'Bestanden ✓':'Nicht bestanden ✗');
-  st.className='ab-stat'+(pass?' done':'');
+  st.textContent='Teil 1-5: '+sc+'/'+totalPoints+' ('+pct+'%)';
+  st.className='ab-stat done';
   ban.scrollIntoView({behavior:'smooth',block:'nearest'});
+
+  // Prompt to continue to Speaking
+  setTimeout(() => {
+    toast('🎓 Teil 1-5 abgeschlossen! Jetzt folgen Teil 6 & 7 (Sprechen).');
+    setTeil(6);
+  }, 3500);
 }
 
 async function downloadResultReportPdf(){
@@ -1490,7 +1497,20 @@ async function uploadPresentationVideo(kind) {
     uploadStatus.textContent = '✓ Video erfolgreich hochgeladen!';
     document.getElementById(config.pillId).textContent = 'Gesendet';
     document.getElementById(config.tabId).classList.add('done');
-    toast('✓ ' + config.label + ' hochgeladen und an die Lehrkraft gesendet.');
+    toast('✓ ' + config.label + ' hochgeladen і надіслано вчителю.');
+    
+    // Check if both speaking parts are done
+    setTimeout(() => {
+      const selfIntroDone = document.getElementById('tab6').classList.contains('done');
+      const imageDescDone = document.getElementById('tab7').classList.contains('done');
+      
+      if (selfIntroDone && imageDescDone) {
+        showFinalSpeakingEndMessage();
+      } else if (kind === 'self-intro') {
+        setTeil(7);
+        toast('👉 Тепер перейдіть до Частини 7 (Опис картинки)');
+      }
+    }, 500);
     
     setTimeout(() => {
       resetRecordingUi(kind, true);
@@ -1502,6 +1522,32 @@ async function uploadPresentationVideo(kind) {
     uploadBtn.disabled = false;
     uploadBtn.textContent = originalText;
   }
+}
+
+function showFinalSpeakingEndMessage() {
+  const overlay = document.createElement('div');
+  overlay.style.position = 'fixed'; overlay.style.top = '0'; overlay.style.left = '0';
+  overlay.style.width = '100vw'; overlay.style.height = '100vh';
+  overlay.style.background = 'rgba(0,0,0,0.85)'; overlay.style.display = 'flex';
+  overlay.style.alignItems = 'center'; overlay.style.justifyContent = 'center';
+  overlay.style.zIndex = '10000'; overlay.style.padding = '20px'; overlay.style.backdropFilter = 'blur(10px)';
+  
+  overlay.innerHTML = `
+    <div style="background:white; padding:40px; border-radius:30px; max-width:500px; text-align:center; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
+      <div style="font-size:60px; margin-bottom:20px;">🎓</div>
+      <h2 style="color:#1a1a1a; margin-bottom:15px; font-size:24px;">Тест повністю завершено!</h2>
+      <p style="color:#4a4a4a; line-height:1.6; font-size:16px; margin-bottom:25px;">
+        Ви успішно пройшли всі 7 частин іспиту. 
+        Ваші відео (Частини 6 та 7) були надіслані вчителю на перевірку.
+      </p>
+      <div style="background:#f8f9fa; border:1px solid #e9ecef; padding:15px; border-radius:15px; margin-bottom:25px; text-align:left;">
+        <p style="margin:5px 0; font-size:14px; display:flex; gap:10px;"><span>📧</span> Результати тесту — оцінка за Sprechen та фінальний сертифікат будуть надіслані на ваш <strong>Email</strong> та <strong>Telegram</strong> після перевірки вчителем.</p>
+        <p style="margin:5px 0; font-size:14px; color:#6b7280;"><em>Очікуйте на повідомлення протягом 24 годин.</em></p>
+      </div>
+      <button onclick="window.location.reload()" style="background:#c8a84b; color:white; border:none; padding:15px 35px; border-radius:15px; font-weight:bold; cursor:pointer; width:100%; font-size:16px;">Повернутися на головну</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
 }
 
 /* LEADERBOARD */
