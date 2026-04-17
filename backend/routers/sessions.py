@@ -4,11 +4,9 @@ from models.database import get_db
 from models.models import TestSession
 from schemas.schemas import SessionCreate, SessionFinish, SessionOut
 from datetime import datetime, timezone
-from services.report_pdf import build_test_report_pdf
+from services.report_pdf import build_test_report_pdf, build_speaking_report_pdf
 from services.question_resolver import get_questions_by_test_number, get_test_label
-from services.telegram import is_enabled, send_message, send_pdf_document
-from fastapi import File, UploadFile
-from services.telegram import send_video
+from services.telegram import is_enabled, send_message, send_pdf_document, send_video
 from pathlib import Path
 import os
 
@@ -72,6 +70,8 @@ def start_session(data: SessionCreate, db: Session = Depends(get_db)):
     total_questions = len(get_questions_by_test_number(db, data.test_number))
     session = TestSession(
         user_name=data.user_name.strip(),
+        user_email=data.user_email.strip() if data.user_email else None,
+        user_phone=data.user_phone.strip() if data.user_phone else None,
         test_number=data.test_number,
         total_questions=total_questions,
     )
@@ -80,6 +80,8 @@ def start_session(data: SessionCreate, db: Session = Depends(get_db)):
         msg = (
             "Neue Test-Session gestartet\n"
             f"Name: {session.user_name}\n"
+            f"E-Mail: {session.user_email or '-'}\n"
+            f"Tel: {session.user_phone or '-'}\n"
             f"Test: {get_test_label(session.test_number or 1, db)}\n"
             f"Session ID: {session.id}"
         )
@@ -173,6 +175,9 @@ def upload_video_for_kind(session_id: int, video_kind: str, video: UploadFile, d
         db.commit()
         db.refresh(session)
         
+        # We NO LONGER auto-send the speaking certificate here.
+        # It must be sent manually by the teacher after review.
+
         return {
             "status": "ok",
             "session_id": session.id,

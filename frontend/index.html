@@ -428,6 +428,23 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
   <div class="flabel">Ihr Name</div>
   <input class="name-inp" id="nameInp" type="text" placeholder="Name eingeben…" maxlength="60"
     oninput="onName()" onkeydown="if(event.key==='Enter')doStart()">
+  
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;">
+    <div>
+      <div class="flabel">E-Mail (optional)</div>
+      <input class="name-inp" id="emailInp" type="email" placeholder="mail@beispiel.de" maxlength="80"
+        oninput="onName()" style="margin-bottom:0;">
+    </div>
+    <div>
+      <div class="flabel">Telefon (optional)</div>
+      <input class="name-inp" id="phoneInp" type="tel" placeholder="+49..." maxlength="30"
+        oninput="onName()" style="margin-bottom:0;">
+    </div>
+  </div>
+  <div id="contactHint" style="font-size:10px;color:#fca5a5;margin-top:-18px;margin-bottom:20px;text-align:left;display:none;">
+    Bitte geben Sie eine E-Mail oder Telefonnummer an.
+  </div>
+
   <div class="flabel">Test auswählen</div>
   <div class="test-grid" id="testGrid"></div>
   <button class="btn-start" id="btnStart" onclick="doStart()" disabled>Test starten →</button>
@@ -777,17 +794,38 @@ function selT(n){
   });
   renderPresentationPrompt();
 }
-function onName(){document.getElementById('btnStart').disabled=!document.getElementById('nameInp').value.trim();}
+function onName(){
+  const name = document.getElementById('nameInp').value.trim();
+  const email = document.getElementById('emailInp').value.trim();
+  const phone = document.getElementById('phoneInp').value.trim();
+  
+  const hasName = !!name;
+  const hasContact = !!(email || phone);
+  
+  document.getElementById('btnStart').disabled = !hasName || !hasContact;
+  document.getElementById('contactHint').style.display = (hasName && !hasContact) ? 'block' : 'none';
+}
 
 /* START */
 async function doStart(){
   const name=document.getElementById('nameInp').value.trim();
-  if(!name) return;
+  const email=document.getElementById('emailInp').value.trim();
+  const phone=document.getElementById('phoneInp').value.trim();
+  if(!name || (!email && !phone)) return;
   userName=name;
   await fetchQs(selTest);
   const meta=getMeta(selTest);
   try{
-    const r=await fetch(API+'/sessions/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_name:name,test_number:selTest})});
+    const r=await fetch(API+'/sessions/start',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        user_name:name,
+        user_email:email || null,
+        user_phone:phone || null,
+        test_number:selTest
+      })
+    });
     if(r.ok) sessionId=(await r.json()).id;
   }catch{sessionId=null;}
   document.getElementById('hLabel').textContent=meta.label;

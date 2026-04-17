@@ -4,6 +4,8 @@ from datetime import datetime
 
 class SessionCreate(BaseModel):
     user_name: str
+    user_email: Optional[str] = None
+    user_phone: Optional[str] = None
     test_number: int = 1
 
 class SessionFinish(BaseModel):
@@ -21,6 +23,8 @@ class SessionFinish(BaseModel):
 class SessionOut(BaseModel):
     id: int
     user_name: str
+    user_email: Optional[str] = None
+    user_phone: Optional[str] = None
     test_number: Optional[int]
     started_at: datetime
     finished_at: Optional[datetime]

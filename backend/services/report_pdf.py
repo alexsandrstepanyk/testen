@@ -198,17 +198,108 @@ def build_test_report_pdf(session, questions):
 
     schreiben_text = extract_schreiben_text(answers)
     ensure_space(120)
-    y -= 4
+    y -= 10
     write_line("Teil 5 - Ihr Brief", bold=True, gap=16)
     if schreiben_text:
         write_wrapped(schreiben_text, size=10, width_chars=100)
     else:
         write_line("Kein Brieftext gespeichert.", size=10)
 
-    c.showPage()
+    # Promotion for Test 6 & 7
+    y -= 30
+    ensure_space(150)
+    c.setStrokeColor(accent)
+    c.setLineWidth(1)
+    c.setFillColor(light)
+    c.roundRect(40, y - 80, width - 80, 100, 10, stroke=1, fill=1)
+    
+    y -= 25
+    write_line("NAECHSTER SCHRITT: KOMMUNIKATIONSTRAINING", size=14, bold=True, indent=20, color=dark)
+    write_wrapped("Sie haben die ersten 5 Teile erfolgreich abgeschlossen! Jetzt koennen Sie Ihr Profil vervollstaendigen.", size=11, indent=20, width_chars=80)
+    write_wrapped("Bestehen Sie die Aufgaben 6 & 7 zum Thema 'Sprechen & Kommunikation', чтобы получить", size=11, indent=20, width_chars=80)
+    write_wrapped("додатковий сертифікат, що підтверджує ваші навички спілкування та мовний рівень.", size=11, indent=20, width_chars=80, bold=True, color=accent)
+
     c.save()
     pdf_stream.seek(0)
     return pdf_stream.getvalue(), mistakes
+
+
+def build_speaking_report_pdf(session):
+    """
+    Generates a specialized certificate for Speaking tasks (Teil 6 & 7).
+    """
+    pdf_stream = io.BytesIO()
+    c = canvas.Canvas(pdf_stream, pagesize=A4)
+    width, height = A4
+
+    accent = colors.HexColor("#7C3AED") # Purple for Speaking
+    light = colors.HexColor("#F5F3FF")
+    dark = colors.HexColor("#4C1D95")
+
+    def center_text(text, y_pos, size=12, bold=False, color=colors.black):
+        font = "Helvetica-Bold" if bold else "Helvetica"
+        c.setFont(font, size)
+        c.setFillColor(color)
+        text_width = c.stringWidth(text, font, size)
+        c.drawString((width - text_width) / 2, y_pos, text)
+        c.setFillColor(colors.black)
+
+    # Double frame
+    c.setStrokeColor(accent)
+    c.setLineWidth(2)
+    c.rect(28, 28, width - 56, height - 56)
+    c.setLineWidth(0.8)
+    c.rect(40, 40, width - 80, height - 80)
+
+    # Header
+    c.setFillColor(light)
+    c.rect(42, height - 150, width - 84, 94, stroke=0, fill=1)
+    center_text("SPEAKING & COMMUNICATION", height - 95, size=24, bold=True, color=dark)
+    center_text("B1 Deutsch Kompetenzzertifikat", height - 120, size=13, bold=True, color=accent)
+
+    center_text("This certifies that", height - 195, size=13, color=dark)
+    center_text(session.user_name, height - 235, size=30, bold=True, color=colors.HexColor("#111827"))
+    
+    c.setStrokeColor(accent)
+    c.setLineWidth(1)
+    c.line(120, height - 242, width - 120, height - 242)
+
+    center_text("has demonstrated proficiency in oral communication", height - 278, size=12)
+
+    # Skills Assessment
+    y = height - 340
+    center_text("ASSESSED SKILLS", y, size=14, bold=True, color=dark)
+    y -= 30
+
+    skills = [
+        ("Selbstvorstellung (Self-Intro)", "Fluent and structured personal presentation"),
+        ("Bildbeschreibung (Image Description)", "Detailed description and personal opinion"),
+        ("Interaction & Vocabulary", "Rich vocabulary and complex sentence structures"),
+        ("Pronunciation & Fluency", "Clear articulation and natural speech tempo")
+    ]
+
+    for label, desc in skills:
+        c.setFont("Helvetica-Bold", 11)
+        c.setFillColor(dark)
+        c.drawString(80, y, f"• {label}:")
+        c.setFont("Helvetica", 11)
+        c.setFillColor(colors.black)
+        c.drawString(80 + c.stringWidth(f"• {label}: ", "Helvetica-Bold", 11), y, desc)
+        y -= 25
+
+    # Badge
+    badge_y = 150
+    c.setFillColor(accent)
+    c.roundRect((width - 200)/2, badge_y, 200, 45, 10, stroke=0, fill=1)
+    center_text("COMMUNICATION LEVEL: B1", badge_y + 15, size=14, bold=True, color=colors.white)
+
+    # Footer
+    center_text(f"Session ID: {session.id}", 100, size=9, color=colors.HexColor("#6B7280"))
+    center_text(f"Verified on: {datetime.now().strftime('%d.%m.%Y')}", 85, size=9, color=colors.HexColor("#6B7280"))
+
+    c.save()
+    pdf_stream.seek(0)
+    return pdf_stream.getvalue()
 
 
 def parse_answers(answers_json):

@@ -174,6 +174,7 @@ tbody tr:last-child td{border-bottom:none;}
 
 <div class="page-tabs">
   <button class="page-tab active" id="tabDashboard" onclick="showPanel('dashboard')">📊 Ergebnisse</button>
+  <button class="page-tab" id="tabSprechen" onclick="showPanel('speaking')">🗣 Sprechen</button>
   <button class="page-tab" id="tabBuilder" onclick="showPanel('builder')">🛠 Kurs-Builder</button>
 </div>
 
@@ -257,6 +258,20 @@ tbody tr:last-child td{border-bottom:none;}
         </tbody>
       </table>
     </div>
+  </div>
+</div>
+
+<div class="stats-wrap page-panel" id="panelSpeaking">
+  <div class="filters">
+    <div class="filter-grp">
+      <label>Suchen:</label>
+      <input type="text" id="filterSpeaking" placeholder="Name oder E-Mail..." oninput="renderSpeakingList()">
+    </div>
+    <button class="btn btn-sec" onclick="loadSessions()">↻ Aktualisieren</button>
+  </div>
+  
+  <div id="speakingList" class="question-list">
+    <div class="loading"><div class="loading-spinner"></div>Lade Videos...</div>
   </div>
 </div>
 
@@ -471,12 +486,21 @@ async function apiJson(url, options = {}) {
 
 function showPanel(panel) {
   activePanel = panel;
-  document.getElementById('tabDashboard').classList.toggle('active', panel === 'dashboard');
-  document.getElementById('tabBuilder').classList.toggle('active', panel === 'builder');
+  const tabs = ['Dashboard', 'Builder', 'Sprechen'];
+  tabs.forEach(t => {
+    const el = document.getElementById('tab' + t);
+    if (el) el.classList.toggle('active', panel === (t === 'Sprechen' ? 'speaking' : t.toLowerCase()));
+  });
+
   document.getElementById('panelDashboard').classList.toggle('active', panel === 'dashboard');
   document.getElementById('panelBuilder').classList.toggle('active', panel === 'builder');
+  document.getElementById('panelSpeaking').classList.toggle('active', panel === 'speaking');
+
   if (panel === 'builder' && allCourses.length === 0) {
     loadCourses();
+  }
+  if (panel === 'speaking') {
+    renderSpeakingList();
   }
 }
 
@@ -552,6 +576,7 @@ async function loadSessions() {
         <td><button class="btn-view" onclick="viewDetails(${s.id})">👁 Ansehen</button></td>
       </tr>
     `).join('');
+    renderSpeakingList();
   } catch (e) {
     console.error('Sessions error:', e);
     toast(e.message === 'auth' ? '🔒 Bitte Seite neu laden und mit admin / admin anmelden.' : '⚠️ Fehler beim Laden der Ergebnisse');
@@ -614,24 +639,12 @@ async function viewDetails(sessionId) {
           <div class="si-lbl">Status</div>
         </div>
         <div class="si-item">
-          <div class="si-val">${data.teil1_score || 0}/20</div>
-          <div class="si-lbl">Teil 1</div>
+          <div class="si-val" style="font-size:14px;word-break:break-all;">${esc(data.user_email || '-')}</div>
+          <div class="si-lbl">E-Mail</div>
         </div>
         <div class="si-item">
-          <div class="si-val">${data.teil2_score || 0}/10</div>
-          <div class="si-lbl">Teil 2</div>
-        </div>
-        <div class="si-item">
-          <div class="si-val">${data.teil3_score || 0}/15</div>
-          <div class="si-lbl">Teil 3</div>
-        </div>
-        <div class="si-item">
-          <div class="si-val">${data.teil4_score || 0}/10</div>
-          <div class="si-lbl">Teil 4</div>
-        </div>
-        <div class="si-item">
-          <div class="si-val">${data.teil5_score || 0}/10</div>
-          <div class="si-lbl">Teil 5</div>
+          <div class="si-val" style="font-size:14px;">${esc(data.user_phone || '-')}</div>
+          <div class="si-lbl">Telefon</div>
         </div>
         <div class="si-item">
           <div class="si-val">${data.mistakes.length}</div>
@@ -812,6 +825,99 @@ function renderPresentationReviewCard({ sessionId, partKey, title, videoUrl, sco
   `;
 }
 
+function renderSpeakingList() {
+  const list = document.getElementById('speakingList');
+  const query = document.getElementById('filterSpeaking').value.toLowerCase();
+  
+  const speakingSessions = allSessions.filter(s => 
+    (s.self_intro_video_url || s.image_description_video_url) &&
+    (s.user_name.toLowerCase().includes(query) || (s.user_email || '').toLowerCase().includes(query))
+  );
+
+  if (speakingSessions.length === 0) {
+    list.innerHTML = `<div class="empty-box">${allSessions.some(s => s.self_intro_video_url || s.image_description_video_url) ? 'Keine Treffer fuer die Suche.' : 'Noch keine Sprechen-Videos hochgeladen.'}</div>`;
+    return;
+  }
+
+  list.innerHTML = speakingSessions.map(s => `
+    <div class="builder-card" style="margin-bottom:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px;border-bottom:1px solid var(--border);padding-bottom:10px;">
+        <div>
+          <h3 style="margin:0;">${esc(s.user_name)}</h3>
+          <p style="font-size:13px;color:var(--muted);margin:4px 0;">
+            ${esc(s.user_email || 'Keine E-Mail')} • ${esc(s.user_phone || 'Kein Telefon')} • Test ${s.test_number}
+          </p>
+        </div>
+        <div style="text-align:right;">
+          <span class="badge ${s.passed ? 'badge-pass' : 'badge-fail'}">${s.passed ? 'Bestanden' : 'Nicht bestanden'}</span>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;">${formatDate(s.finished_at)}</div>
+        </div>
+      </div>
+      
+      <div class="form-grid">
+        <div class="field">
+          ${renderPresentationReviewCard({
+            sessionId: s.id,
+            partKey: 'self-intro',
+            title: 'Teil 6 — Selbstvorstellung',
+            videoUrl: s.self_intro_video_url,
+            score: s.self_intro_score || 0,
+            feedback: s.self_intro_feedback_text || '',
+            emptyText: 'Kein Video vorhanden.'
+          })}
+        </div>
+        <div class="field">
+          ${renderPresentationReviewCard({
+            sessionId: s.id,
+            partKey: 'image-description',
+            title: 'Teil 7 — Bildbeschreibung',
+            videoUrl: s.image_description_video_url,
+            score: s.image_description_score || 0,
+            feedback: s.image_description_feedback_text || '',
+            emptyText: 'Kein Video vorhanden.'
+          })}
+        </div>
+      </div>
+      
+      <div style="margin-top:20px;padding-top:15px;border-top:1.5px dashed var(--border);display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <p style="margin:0;font-size:14px;font-weight:700;">Gesamtbewertung: ${s.presentation_score || 0}/10</p>
+          <p style="margin:4px 0 0 0;font-size:12px;color:var(--muted);">Das Zertifikat wird nach dem Klicken auf den Button generiert und gesendet.</p>
+        </div>
+        <button class="btn btn-pri" onclick="submitAndGenerateCertificate(${s.id})">
+          🖨️ Submit and Generate Certificate
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function submitAndGenerateCertificate(sessionId) {
+  const session = allSessions.find(s => s.id === sessionId);
+  if (!session) return;
+
+  if (!confirm('Gesamtbewertung speichern und Zertifikat generieren?')) return;
+
+  try {
+    // We call the main endpoint which triggers the certificate generation
+    const res = await apiFetch(API + '/sessions/' + sessionId + '/presentation-feedback', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        presentation_score: session.presentation_score || 0, 
+        feedback_text: session.feedback_text || '' 
+      })
+    });
+    
+    if (!res.ok) throw new Error('submit_failed');
+    
+    toast('✅ Zertifikat wurde generiert und gesendet!');
+  } catch (err) {
+    console.error('submitAndGenerateCertificate', err);
+    toast('⚠️ Fehler beim Generieren des Zertifikats');
+  }
+}
+
 function closeModal() {
   document.getElementById('modalOverlay').classList.remove('show');
 }
@@ -829,29 +935,32 @@ async function savePresentationFeedback(sessionId, partKey) {
   }
 
   try {
-    const res = await apiFetch(API + '/sessions/' + sessionId + '/presentation-feedback/' + partKey, {
+    const res = await apiJson(API + '/sessions/' + sessionId + '/presentation-feedback/' + partKey, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ presentation_score: score, feedback_text: feedback })
     });
-    if (!res.ok) {
-      throw new Error('save_failed');
-    }
-    alert('Feedback gespeichert.');
+    
+    // Update local session data to reflect changes
     const session = allSessions.find(s => s.id === sessionId);
     if (session) {
       if (partKey === 'self-intro') {
         session.self_intro_score = score;
         session.self_intro_feedback_text = feedback;
-      }
-      if (partKey === 'image-description') {
+      } else if (partKey === 'image-description') {
         session.image_description_score = score;
         session.image_description_feedback_text = feedback;
       }
+      // Re-calculate average presentation score from updated data
+      session.presentation_score = res.presentation_score || 0;
+      session.feedback_text = res.feedback_text || '';
     }
+    
+    toast('✅ Feedback gespeichert');
+    renderSpeakingList();
   } catch (err) {
     console.error('savePresentationFeedback', err);
-    alert('Feedback konnte nicht gespeichert werden.');
+    toast('⚠️ Fehlgeschlagen');
   }
 }
 

@@ -7,6 +7,8 @@ class TestSession(Base):
     __tablename__ = "test_sessions"
     id = Column(Integer, primary_key=True, index=True)
     user_name = Column(String(100), nullable=False)
+    user_email = Column(String(150), nullable=True)
+    user_phone = Column(String(50), nullable=True)
     test_number = Column(Integer, default=1)
     started_at = Column(DateTime(timezone=True), server_default=func.now())
     finished_at = Column(DateTime(timezone=True), nullable=True)

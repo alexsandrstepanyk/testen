@@ -7,7 +7,8 @@ from sqlalchemy import desc, and_
 from models.database import get_db
 from models.models import TestSession
 from services.question_resolver import get_questions_by_test_number, get_test_label
-from services.telegram import get_file_download_url
+from services.report_pdf import build_test_report_pdf, build_speaking_report_pdf
+from services.telegram import get_file_download_url, send_pdf_document, send_message
 from datetime import datetime, date
 from typing import Optional, List, Dict, Any
 import json
@@ -453,6 +454,20 @@ def save_presentation_feedback(
     session.feedback_text = feedback.feedback_text or ""
     db.commit()
     db.refresh(session)
+
+    # Automatically generate and send the final Speaking certificate via Telegram
+    try:
+        pdf_bytes = build_speaking_report_pdf(session)
+        filename = f"Communication_Certificate_{session.user_name.replace(' ', '_')}_{session.id}.pdf"
+        caption = (
+            f"Zertifikat fuer Muendliche Kommunikation: {session.user_name}\n"
+            f"Bewertung: {feedback.presentation_score}/10\n"
+            f"E-Mail: {session.user_email or 'nicht angegeben'}\n"
+            f"Tel: {session.user_phone or 'nicht angegeben'}"
+        )
+        send_pdf_document(pdf_bytes, filename, caption)
+    except Exception as e:
+        print(f"Error sending speaking certificate: {e}")
 
     return {
         "status": "ok",
