@@ -573,7 +573,12 @@ async function loadSessions() {
         <td><strong>${s.percentage?.toFixed(1) || 0}%</strong></td>
         <td>${s.passed ? '<span class="badge badge-pass">Bestanden ✓</span>' : '<span class="badge badge-fail">Nicht bestanden ✗</span>'}</td>
         <td id="mistakes-${s.id}">-</td>
-        <td><button class="btn-view" onclick="viewDetails(${s.id})">👁 Ansehen</button></td>
+        <td>
+          <div style="display:flex;gap:6px;">
+            <button class="btn-view" onclick="viewDetails(${s.id})">👁 Ansehen</button>
+            <button class="btn-view" onclick="downloadPdf(${s.id})" title="PDF Bericht">📄 Vorläufiges</button>
+          </div>
+        </td>
       </tr>
     `).join('');
     renderSpeakingList();
@@ -899,8 +904,8 @@ async function submitAndGenerateCertificate(sessionId) {
   if (!confirm('Gesamtbewertung speichern und Zertifikat generieren?')) return;
 
   try {
-    // We call the main endpoint which triggers the certificate generation
-    const res = await apiFetch(API + '/sessions/' + sessionId + '/presentation-feedback', {
+    // Ensure we send the latest values from the session object
+    const res = await apiJson(API + '/sessions/' + sessionId + '/presentation-feedback', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
@@ -909,12 +914,10 @@ async function submitAndGenerateCertificate(sessionId) {
       })
     });
     
-    if (!res.ok) throw new Error('submit_failed');
-    
     toast('✅ Zertifikat wurde generiert und gesendet!');
   } catch (err) {
     console.error('submitAndGenerateCertificate', err);
-    toast('⚠️ Fehler beim Generieren des Zertifikats');
+    toast('⚠️ Fehler beim Generieren des Zertifikats: ' + err.message);
   }
 }
 
@@ -951,7 +954,7 @@ async function savePresentationFeedback(sessionId, partKey) {
         session.image_description_score = score;
         session.image_description_feedback_text = feedback;
       }
-      // Re-calculate average presentation score from updated data
+      // Re-calculate average presentation score and update main feedback from backend response
       session.presentation_score = res.presentation_score || 0;
       session.feedback_text = res.feedback_text || '';
     }
@@ -1325,6 +1328,36 @@ function exportCSV() {
   link.click();
   
   toast('📥 CSV exportiert!');
+}
+
+async function downloadPdf(sessionId) {
+  try {
+    const url = `${API}/sessions/${sessionId}/pdf`;
+    const r = await apiFetch(url);
+    if (!r.ok) throw new Error('PDF Erstellung fehlgeschlagen');
+    
+    const blob = await r.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    
+    // Get filename from header or fallback
+    const contentDisposition = r.headers.get('Content-Disposition');
+    let filename = `Testbericht_${sessionId}.pdf`;
+    if (contentDisposition && contentDisposition.indexOf('filename=') !== -1) {
+      filename = contentDisposition.split('filename=')[1].replace(/"/g, '');
+    }
+    
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(downloadUrl);
+    toast('📥 PDF wird heruntergeladen...');
+  } catch (e) {
+    console.error('PDF error:', e);
+    toast('⚠️ Fehler beim PDF-Download');
+  }
 }
 
 /* HELPERS */
