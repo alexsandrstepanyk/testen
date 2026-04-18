@@ -523,3 +523,30 @@ def save_presentation_feedback_by_kind(
         "part_feedback_text": getattr(session, feedback_field),
         "message": "Feedback saved successfully"
     }
+
+
+@router.get("/sessions/{session_id}/pdf")
+def download_session_pdf(session_id: int, db: Session = Depends(get_db)):
+    """Teacher endpoint to download full result PDF without requiring user name match"""
+    import io
+    from fastapi.responses import StreamingResponse
+
+    session = db.query(TestSession).filter(TestSession.id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if session.score is None:
+        raise HTTPException(status_code=400, detail="Session is not finished yet")
+
+    questions = get_questions_by_test_number(db, session.test_number or 1)
+    pdf_bytes, _mistakes = build_test_report_pdf(session, questions)
+    pdf_stream = io.BytesIO(pdf_bytes)
+    
+    safe_name = (session.user_name or "Unknown").replace(" ", "_")
+    test_label = get_test_label(session.test_number or 1, db)
+    filename = f"Testbericht_{test_label.replace(' ', '_')}_{safe_name}_{session.id}.pdf"
+    
+    return StreamingResponse(
+        pdf_stream,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
