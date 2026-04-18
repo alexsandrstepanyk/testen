@@ -82,16 +82,16 @@ def build_test_report_pdf(session, questions):
     c.rect(42, height - 150, width - 84, 94, stroke=0, fill=1)
     c.setFillColor(colors.black)
 
-    center_text("CERTIFICATE OF ACHIEVEMENT", height - 95, size=24, bold=True, color=dark)
-    center_text("Deutsch Pruefung - Stepaniuk", height - 120, size=13, bold=True, color=accent)
+    center_text("URKUNDE", height - 95, size=24, bold=True, color=dark)
+    center_text("Deutsch-Prüfung - Stepaniuk", height - 120, size=13, bold=True, color=accent)
 
-    center_text("This certifies that", height - 195, size=13, color=dark)
+    center_text("Hiermit wird bestätigt, dass", height - 195, size=13, color=dark)
     center_text(session.user_name, height - 235, size=30, bold=True, color=colors.HexColor("#111827"))
     c.setStrokeColor(accent)
     c.setLineWidth(1)
     c.line(120, height - 242, width - 120, height - 242)
 
-    center_text("has successfully completed the language assessment", height - 278, size=12)
+    center_text("die Sprachprüfung erfolgreich abgeschlossen hat", height - 278, size=12)
 
     # Level badge
     badge_w, badge_h = 180, 42
@@ -99,15 +99,25 @@ def build_test_report_pdf(session, questions):
     badge_y = height - 338
     c.setFillColor(accent)
     c.roundRect(badge_x, badge_y, badge_w, badge_h, 10, stroke=0, fill=1)
-    center_text(f"LEVEL {level}", badge_y + 14, size=17, bold=True, color=colors.white)
+    center_text(f"NIVEAU {level}", badge_y + 14, size=17, bold=True, color=colors.white)
+
+    # Review Pending Badge (if Teil 5 is not manually graded yet)
+    is_provisional = True # Future: check if all parts are graded
+    if is_provisional:
+        p_badge_w, p_badge_h = 100, 20
+        c.setFillColor(colors.orange)
+        c.roundRect(width - 150, height - 80, p_badge_w, p_badge_h, 4, stroke=0, fill=1)
+        c.setFont("Helvetica-Bold", 8)
+        c.setFillColor(colors.white)
+        c.drawCentredString(width - 100, height - 73, "VORLÄUFIG")
 
     # Stats cards
     card_y = height - 430
     card_w = (width - 140) / 3
     labels = [
-        ("Score", f"{session.score}/{total_points}"),
-        ("Result", f"{session.percentage}%"),
-        ("Tasks", f"{solved_tasks}/{session.total_questions or 55} + Schreiben"),
+        ("Punktzahl", f"{session.score}/{total_points}"),
+        ("Ergebnis", f"{session.percentage}%"),
+        ("Aufgaben", f"{solved_tasks}/{session.total_questions or 55} + Teil 5"),
     ]
     for i, (label, value) in enumerate(labels):
         x = 50 + i * (card_w + 20)
@@ -123,9 +133,18 @@ def build_test_report_pdf(session, questions):
         c.setFillColor(colors.HexColor("#0F172A"))
         c.drawString(x + 12, card_y + 30, value)
 
+    # Split Certification Note
+    note_y = card_y - 45
+    c.setFont("Helvetica-Oblique", 10)
+    c.setFillColor(colors.HexColor("#64748B"))
+    note_text = "Hinweis: Dieses Zertifikat bestätigt die Ergebnisse der Teile 1-4. Teil 5 (Schreiben)"
+    note_text2 = "und Teile 6-7 (Sprechen) werden separat bewertet. Ein endgültiges Diplom folgt."
+    center_text(note_text, note_y, size=10)
+    center_text(note_text2, note_y - 14, size=10)
+
     # Footer details
-    center_text(f"Session ID: {session.id}", 170, size=11, color=dark)
-    center_text(f"Completed: {finished}", 152, size=11, color=dark)
+    center_text(f"Sitzungs-ID: {session.id}", 170, size=11, color=dark)
+    center_text(f"Abgeschlossen: {finished}", 152, size=11, color=dark)
 
     c.setStrokeColor(colors.HexColor("#334155"))
     c.setLineWidth(0.9)
@@ -133,8 +152,8 @@ def build_test_report_pdf(session, questions):
     c.line(width - 255, 108, width - 95, 108)
     c.setFont("Helvetica", 9)
     c.setFillColor(colors.HexColor("#475569"))
-    c.drawString(140, 94, "Authorized by Stepaniuk")
-    c.drawString(width - 226, 94, "Language Assessment Platform")
+    c.drawString(140, 94, "Autorisiert durch Stepaniuk")
+    c.drawString(width - 226, 94, "Sprachprüfungsplattform")
     c.setFillColor(colors.black)
 
     # Page 2: detailed report with all answers and letter
@@ -201,7 +220,7 @@ def build_test_report_pdf(session, questions):
     schreiben_text = extract_schreiben_text(answers)
     ensure_space(120)
     y -= 10
-    write_line("Teil 5 - Ihr Brief", bold=True, gap=16)
+    write_line("Teil 5 - Ihr Brief (Status: Pending Review)", bold=True, color=accent, gap=16)
     if schreiben_text:
         write_wrapped(schreiben_text, size=10, width_chars=100)
     else:
@@ -216,10 +235,10 @@ def build_test_report_pdf(session, questions):
     c.roundRect(40, y - 80, width - 80, 100, 10, stroke=1, fill=1)
     
     y -= 25
-    write_line("NAECHSTER SCHRITT: KOMMUNIKATIONSTRAINING", size=14, bold=True, indent=20, color=dark)
-    write_wrapped("Sie haben die ersten 5 Teile erfolgreich abgeschlossen! Jetzt koennen Sie Ihr Profil vervollstaendigen.", size=11, indent=20, width_chars=80)
-    write_wrapped("Bestehen Sie die Aufgaben 6 & 7 zum Thema 'Sprechen & Kommunikation', чтобы получить", size=11, indent=20, width_chars=80)
-    write_wrapped("додатковий сертифікат, що підтверджує ваші навички спілкування та мовний рівень.", size=11, indent=20, width_chars=80, bold=True, color=accent)
+    write_line("NÄCHSTER SCHRITT: SPLIT CERTIFICATION", size=14, bold=True, indent=20, color=dark)
+    write_wrapped("Sie haben die ersten 4 Teile abgeschlossen (automatisch ausgewertet). Teil 5 (Schreiben) wird nun von einem Tutor geprüft.", size=11, indent=20, width_chars=80)
+    write_wrapped("Bestehen Sie auch die Aufgaben 6 & 7 (Sprechen), чтобы завершити повний цикл оцінювання", size=11, indent=20, width_chars=80)
+    write_wrapped("та отримати фінальний диплом про рівень володіння мовою B1.", size=11, indent=20, width_chars=80, bold=True, color=accent)
 
     c.save()
     pdf_stream.seek(0)
