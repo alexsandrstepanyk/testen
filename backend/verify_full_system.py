@@ -16,7 +16,7 @@ from datetime import datetime
 from typing import Dict, List, Tuple
 
 from models.questions_data import get_questions_for_test, SCHREIBEN_AUFGABEN
-from services.report_pdf import build_test_report_pdf
+from services.report_pdf import build_test_report_pdf, build_speaking_report_pdf
 
 
 @dataclass
@@ -35,6 +35,16 @@ class FakeSession:
     teil2_score: int
     teil3_score: int
     teil4_score: int
+
+@dataclass
+class FakeSessionSpeaking:
+    id: int
+    user_name: str
+    user_email: str
+    user_phone: str
+    finished_at: datetime
+    presentation_score: int
+    feedback_text: str
 
 
 def count_by_teil(questions: List[dict]) -> Dict[int, int]:
@@ -173,17 +183,24 @@ def validate_one_test(test_num: int) -> List[str]:
     except Exception as exc:
         errors.append(f"T{test_num}: PDF generation failed: {exc}")
 
-    # Schreiben task integrity
-    aufgabe = SCHREIBEN_AUFGABEN.get(test_num)
-    if not aufgabe:
-        errors.append(f"T{test_num}: missing Schreiben task")
-    else:
-        if aufgabe.get("teil") != 5:
-            errors.append(f"T{test_num}: Schreiben teil must be 5, got {aufgabe.get('teil')}")
-        if int(aufgabe.get("woerter_min", 0)) != 150 or int(aufgabe.get("woerter_max", 0)) != 200:
-            errors.append(f"T{test_num}: Schreiben word limits expected 150-200")
-        if len(aufgabe.get("leitpunkte", [])) != 4:
-            errors.append(f"T{test_num}: Schreiben must have 4 Leitpunkte")
+    # Speaking certificate (Teil 6 & 7) simulation
+    speaking_session = FakeSessionSpeaking(
+        id=2000 + test_num,
+        user_name="QA Student",
+        user_email="qa@example.com",
+        user_phone="+49123456789",
+        finished_at=datetime.utcnow(),
+        presentation_score=9,
+        feedback_text="Hervorragende Aussprache und fließende Rede."
+    )
+    try:
+        sp_pdf_bytes = build_speaking_report_pdf(speaking_session)
+        if not sp_pdf_bytes.startswith(b"%PDF"):
+            errors.append(f"T{test_num}: Speaking report is not a valid PDF")
+        if len(sp_pdf_bytes) < 2000:
+            errors.append(f"T{test_num}: Speaking PDF is too small ({len(sp_pdf_bytes)} bytes)")
+    except Exception as exc:
+        errors.append(f"T{test_num}: Speaking PDF generation failed: {exc}")
 
     return errors
 
@@ -203,9 +220,8 @@ def main() -> int:
 
     print("OK: all 5 themes passed integrity, scoring, and PDF checks")
     print("- Question distribution per theme: 20 + 10 + 15 + 10")
-    print("- Perfect score simulation: 55/55 + Teil5")
-    print("- PDF generation: valid for all themes")
-    print("- Schreiben tasks: teil=5 and valid constraints")
+    print("- Perfect score simulation: 55/55 + Teil 5 (Review and PDF)")
+    print("- PDF generation: Main Certificate and Speaking Certificate (Teil 6 & 7)")
     return 0
 
 

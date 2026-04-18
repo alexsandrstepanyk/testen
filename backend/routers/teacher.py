@@ -470,8 +470,11 @@ def save_presentation_feedback(
             f"Tel: {session.user_phone or 'nicht angegeben'}"
         )
         send_pdf_document(pdf_bytes, filename, caption)
+        print(f"SUCCESS: Speaking certificate sent for session {session.id}")
     except Exception as e:
-        print(f"Error sending speaking certificate: {e}")
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"ERROR generating/sending speaking certificate for session {session.id}: {e}\n{error_details}")
 
     return {
         "status": "ok",

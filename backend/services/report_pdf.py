@@ -32,12 +32,13 @@ def build_test_report_pdf(session, questions):
         c.setFillColor(colors.black)
         y -= gap
 
-    def write_wrapped(text, size=10, indent=0, width_chars=105, gap=12, color=colors.black):
+    def write_wrapped(text, size=10, indent=0, width_chars=105, gap=12, color=colors.black, bold=False):
         nonlocal y
         lines = wrap_text(text, width_chars)
+        font = "Helvetica-Bold" if bold else "Helvetica"
         for line in lines:
             ensure_space()
-            c.setFont("Helvetica", size)
+            c.setFont(font, size)
             c.setFillColor(color)
             c.drawString(40 + indent, y, line)
             c.setFillColor(colors.black)
@@ -230,77 +231,89 @@ def build_speaking_report_pdf(session):
     Generates a specialized certificate for Speaking tasks (Teil 6 & 7).
     """
     pdf_stream = io.BytesIO()
-    c = canvas.Canvas(pdf_stream, pagesize=A4)
-    width, height = A4
+    try:
+        c = canvas.Canvas(pdf_stream, pagesize=A4)
+        width, height = A4
 
-    accent = colors.HexColor("#7C3AED") # Purple for Speaking
-    light = colors.HexColor("#F5F3FF")
-    dark = colors.HexColor("#4C1D95")
+        user_name = session.user_name if session.user_name else "Unbekannter Teilnehmer"
+        session_id = session.id if session.id else "0"
 
-    def center_text(text, y_pos, size=12, bold=False, color=colors.black):
-        font = "Helvetica-Bold" if bold else "Helvetica"
-        c.setFont(font, size)
-        c.setFillColor(color)
-        text_width = c.stringWidth(text, font, size)
-        c.drawString((width - text_width) / 2, y_pos, text)
-        c.setFillColor(colors.black)
+        accent = colors.HexColor("#7C3AED") # Purple for Speaking
+        light = colors.HexColor("#F5F3FF")
+        dark = colors.HexColor("#4C1D95")
 
-    # Double frame
-    c.setStrokeColor(accent)
-    c.setLineWidth(2)
-    c.rect(28, 28, width - 56, height - 56)
-    c.setLineWidth(0.8)
-    c.rect(40, 40, width - 80, height - 80)
+        def center_text(text, y_pos, size=12, bold=False, color=colors.black):
+            font = "Helvetica-Bold" if bold else "Helvetica"
+            c.setFont(font, size)
+            c.setFillColor(color)
+            text_width = c.stringWidth(text, font, size)
+            c.drawString((width - text_width) / 2, y_pos, text)
+            c.setFillColor(colors.black)
 
-    # Header
-    c.setFillColor(light)
-    c.rect(42, height - 150, width - 84, 94, stroke=0, fill=1)
-    center_text("SPEAKING & COMMUNICATION", height - 95, size=24, bold=True, color=dark)
-    center_text("B1 Deutsch Kompetenzzertifikat", height - 120, size=13, bold=True, color=accent)
+        # Double frame
+        c.setStrokeColor(accent)
+        c.setLineWidth(2)
+        c.rect(28, 28, width - 56, height - 56)
+        c.setLineWidth(0.8)
+        c.rect(40, 40, width - 80, height - 80)
 
-    center_text("This certifies that", height - 195, size=13, color=dark)
-    center_text(session.user_name, height - 235, size=30, bold=True, color=colors.HexColor("#111827"))
-    
-    c.setStrokeColor(accent)
-    c.setLineWidth(1)
-    c.line(120, height - 242, width - 120, height - 242)
+        # Header
+        c.setFillColor(light)
+        c.rect(42, height - 150, width - 84, 94, stroke=0, fill=1)
+        center_text("SPEAKING & COMMUNICATION", height - 95, size=24, bold=True, color=dark)
+        center_text("B1 Deutsch Kompetenzzertifikat", height - 120, size=13, bold=True, color=accent)
 
-    center_text("has demonstrated proficiency in oral communication", height - 278, size=12)
+        center_text("This certifies that", height - 195, size=13, color=dark)
+        center_text(user_name, height - 235, size=30, bold=True, color=colors.HexColor("#111827"))
+        
+        c.setStrokeColor(accent)
+        c.setLineWidth(1)
+        c.line(120, height - 242, width - 120, height - 242)
 
-    # Skills Assessment
-    y = height - 340
-    center_text("ASSESSED SKILLS", y, size=14, bold=True, color=dark)
-    y -= 30
+        center_text("has demonstrated proficiency in oral communication", height - 278, size=12)
 
-    skills = [
-        ("Selbstvorstellung (Self-Intro)", "Fluent and structured personal presentation"),
-        ("Bildbeschreibung (Image Description)", "Detailed description and personal opinion"),
-        ("Interaction & Vocabulary", "Rich vocabulary and complex sentence structures"),
-        ("Pronunciation & Fluency", "Clear articulation and natural speech tempo")
-    ]
+        # Skills Assessment
+        y = height - 340
+        center_text("ASSESSED SKILLS", y, size=14, bold=True, color=dark)
+        y -= 30
 
-    for label, desc in skills:
-        c.setFont("Helvetica-Bold", 11)
-        c.setFillColor(dark)
-        c.drawString(80, y, f"• {label}:")
-        c.setFont("Helvetica", 11)
-        c.setFillColor(colors.black)
-        c.drawString(80 + c.stringWidth(f"• {label}: ", "Helvetica-Bold", 11), y, desc)
-        y -= 25
+        skills = [
+            ("Selbstvorstellung (Self-Intro)", "Fluent and structured personal presentation"),
+            ("Bildbeschreibung (Image Description)", "Detailed description and personal opinion"),
+            ("Interaction & Vocabulary", "Rich vocabulary and complex sentence structures"),
+            ("Pronunciation & Fluency", "Clear articulation and natural speech tempo")
+        ]
 
-    # Badge
-    badge_y = 150
-    c.setFillColor(accent)
-    c.roundRect((width - 200)/2, badge_y, 200, 45, 10, stroke=0, fill=1)
-    center_text("COMMUNICATION LEVEL: B1", badge_y + 15, size=14, bold=True, color=colors.white)
+        for label, desc in skills:
+            c.setFont("Helvetica-Bold", 11)
+            c.setFillColor(dark)
+            c.drawString(80, y, f"• {label}:")
+            c.setFont("Helvetica", 11)
+            c.setFillColor(colors.black)
+            c.drawString(80 + c.stringWidth(f"• {label}: ", "Helvetica-Bold", 11), y, desc)
+            y -= 25
 
-    # Footer
-    center_text(f"Session ID: {session.id}", 100, size=9, color=colors.HexColor("#6B7280"))
-    center_text(f"Verified on: {datetime.now().strftime('%d.%m.%Y')}", 85, size=9, color=colors.HexColor("#6B7280"))
+        # Badge
+        badge_y = 150
+        c.setFillColor(accent)
+        c.roundRect((width - 200)/2, badge_y, 200, 45, 10, stroke=0, fill=1)
+        center_text("COMMUNICATION LEVEL: B1", badge_y + 15, size=14, bold=True, color=colors.white)
 
-    c.save()
-    pdf_stream.seek(0)
-    return pdf_stream.getvalue()
+        # Footer
+        center_text(f"Session ID: {session_id}", 100, size=9, color=colors.HexColor("#6B7280"))
+        
+        finished_date = datetime.now()
+        if hasattr(session, 'finished_at') and session.finished_at:
+            finished_date = session.finished_at
+        center_text(f"Verified on: {finished_date.strftime('%d.%m.%Y')}", 85, size=9, color=colors.HexColor("#6B7280"))
+
+        c.save()
+        pdf_stream.seek(0)
+        return pdf_stream.getvalue()
+    except Exception as e:
+        # If PDF generation fails, we should handle it gracefully or re-raise with context
+        print(f"CRITICAL: PDF Generation failed for session {session.id if session else 'unknown'}: {e}")
+        raise e
 
 
 def parse_answers(answers_json):

@@ -1876,7 +1876,7 @@ ALL_TESTS = {
 # Format entspricht dem echten Goethe B1-Prüfungsformat:
 # - Situation beschreiben
 # - 4 Leitpunkte bearbeiten
-# - 150-200 Wörter
+# - 90 Wörter
 # ═══════════════════════════════════════════════════════════════════
 
 SCHREIBEN_AUFGABEN = {
@@ -1896,7 +1896,7 @@ SCHREIBEN_AUFGABEN = {
             "Machen Sie einen anderen Vorschlag (wann Sie sich treffen können).",
             "Wünschen Sie ihm alles Gute für die Party.",
         ],
-        "hinweise": "Schreiben Sie 150–200 Wörter. Vergessen Sie Anrede und Grußformel nicht.",
+        "hinweise": "Schreiben Sie ca. 90 Wörter. Vergessen Sie Anrede und Grußformel nicht.",
         "beispiel_anrede": "Lieber Max,",
         "beispiel_gruss": "Viele Grüße,\n[Ihr Name]",
         "bewertungskriterien": [
@@ -1905,7 +1905,7 @@ SCHREIBEN_AUFGABEN = {
             "Ist die Sprache dem Anlass angemessen?",
             "Sind Grammatik und Rechtschreibung korrekt?",
         ],
-        "woerter_min": 150,
+        "woerter_min": 80,
         "woerter_max": 200,
     },
     2: {
@@ -1925,7 +1925,7 @@ SCHREIBEN_AUFGABEN = {
             "Bitten Sie um schnelle Hilfe.",
             "Geben Sie an, wann Sie erreichbar sind.",
         ],
-        "hinweise": "Schreiben Sie 150–200 Wörter. Benutzen Sie eine formelle Anrede und Grußformel.",
+        "hinweise": "Schreiben Sie ca. 90 Wörter. Benutzen Sie eine formelle Anrede und Grußformel.",
         "beispiel_anrede": "Sehr geehrter Herr Bauer,",
         "beispiel_gruss": "Mit freundlichen Grüßen,\n[Ihr Name]",
         "bewertungskriterien": [
@@ -1934,7 +1934,7 @@ SCHREIBEN_AUFGABEN = {
             "Ist der Brief logisch strukturiert?",
             "Sind Grammatik und Rechtschreibung korrekt?",
         ],
-        "woerter_min": 150,
+        "woerter_min": 80,
         "woerter_max": 200,
     },
     3: {
@@ -1953,7 +1953,7 @@ SCHREIBEN_AUFGABEN = {
             "Informieren Sie, ob Sie einen Arzt besucht haben.",
             "Geben Sie an, wann Sie voraussichtlich zurückkommen.",
         ],
-        "hinweise": "Schreiben Sie 150–200 Wörter. Achten Sie auf einen formellen Ton.",
+        "hinweise": "Schreiben Sie ca. 90 Wörter. Achten Sie auf einen formellen Ton.",
         "beispiel_anrede": "Sehr geehrte Frau Schmidt,",
         "beispiel_gruss": "Mit freundlichen Grüßen,\n[Ihr Name]",
         "bewertungskriterien": [
@@ -1962,7 +1962,7 @@ SCHREIBEN_AUFGABEN = {
             "Ist der Brief klar und verständlich?",
             "Sind Grammatik und Rechtschreibung korrekt?",
         ],
-        "woerter_min": 150,
+        "woerter_min": 80,
         "woerter_max": 200,
     },
     4: {
@@ -1980,7 +1980,7 @@ SCHREIBEN_AUFGABEN = {
             "Fragen Sie, ob Vorkenntnisse erforderlich sind.",
             "Bitten Sie um Informationen zur Anmeldung.",
         ],
-        "hinweise": "Schreiben Sie 150–200 Wörter. Verwenden Sie eine formelle Anrede.",
+        "hinweise": "Schreiben Sie ca. 90 Wörter. Verwenden Sie eine formelle Anrede.",
         "beispiel_anrede": "Sehr geehrte Damen und Herren,",
         "beispiel_gruss": "Mit freundlichen Grüßen,\n[Ihr Name]",
         "bewertungskriterien": [
@@ -1989,7 +1989,7 @@ SCHREIBEN_AUFGABEN = {
             "Sind alle relevanten Informationen enthalten?",
             "Sind Grammatik und Rechtschreibung korrekt?",
         ],
-        "woerter_min": 150,
+        "woerter_min": 80,
         "woerter_max": 200,
     },
     5: {
@@ -2008,7 +2008,7 @@ SCHREIBEN_AUFGABEN = {
             "Fragen Sie, was das Ordnungsamt dagegen tun kann.",
             "Bitten Sie um eine schnelle Reaktion.",
         ],
-        "hinweise": "Schreiben Sie 150–200 Wörter. Bleiben Sie höflich, auch wenn Sie sich beschweren.",
+        "hinweise": "Schreiben Sie ca. 90 Wörter. Bleiben Sie höflich, auch wenn Sie sich beschweren.",
         "beispiel_anrede": "Sehr geehrte Damen und Herren,",
         "beispiel_gruss": "Mit freundlichen Grüßen,\n[Ihr Name]",
         "bewertungskriterien": [
@@ -2017,7 +2017,7 @@ SCHREIBEN_AUFGABEN = {
             "Ist die Beschwerde klar formuliert?",
             "Sind Grammatik und Rechtschreibung korrekt?",
         ],
-        "woerter_min": 150,
+        "woerter_min": 80,
         "woerter_max": 200,
     },
 }
