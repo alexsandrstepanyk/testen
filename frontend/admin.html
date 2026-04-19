@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin-Panel — Deutsch B1</title>
+<meta name="robots" content="noindex, nofollow, noarchive">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#181825;--ink2:#2a2a40;--cream:#faf8f2;--gold:#c8a84b;--gold-dim:#f0e3bc;
+  --blue:#1d4ed8;--blue-dim:#eff6ff;--green:#166534;--green-dim:#dcfce7;
+  --red:#991b1b;--red-dim:#fee2e2;--violet:#5b21b6;--violet-dim:#ede9fe;
+  --border:#e2ddd2;--muted:#6b7280;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:var(--ink);min-height:100vh;line-height:1.5;}
+
+/* HEADER */
+.header{background:var(--ink);padding:20px 24px;color:#fff;}
+.header-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;}
+.header h1{font-family:'Playfair Display',serif;font-size:24px;font-weight:900;}
+.header h1 em{color:var(--gold);font-style:normal;}
+.header-nav a{color:rgba(255,255,255,.7);text-decoration:none;margin-left:18px;font-size:13px;}
+
+.container{max-width:1200px;margin:24px auto;padding:0 24px;}
+.filters{background:#fff;border-radius:14px;padding:16px 20px;border:1px solid var(--border);margin-bottom:24px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+.filter-grp{display:flex;gap:8px;align-items:center;}
+select,input[type="text"],input[type="number"]{padding:8px 12px;border-radius:8px;border:1.5px solid var(--border);font-family:inherit;font-size:13px;background:#faf8f2;outline:none;}
+
+.table-card{background:#fff;border-radius:14px;border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead{background:var(--ink);color:#fff;}
+th{padding:12px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;}
+td{padding:12px 14px;border-bottom:1px solid var(--border);font-size:13.5px;}
+
+.btn{padding:8px 16px;border-radius:8px;border:none;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-pri{background:var(--ink);color:#fff;}
+.btn-sec{background:#fff;border:1.5px solid var(--border);color:var(--ink);}
+.btn-danger{background:var(--red);color:#fff;}
+
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal{background:#fff;border-radius:16px;max-width:800px;width:100%;max-height:90vh;overflow-y:auto;padding:24px;}
+.modal-header{display:flex;justify-content:space-between;margin-bottom:20px;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12px;font-weight:700;margin-bottom:6px;color:var(--muted);}
+.field input, .field textarea{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:12px 20px;border-radius:10px;display:none;z-index:2000;}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <h1>Admin <em>B1</em></h1>
+    <nav class="header-nav">
+      <a href="/teacher">← Dashboard</a>
+      <a href="/">Zum Test</a>
+    </nav>
+  </div>
+</header>
+
+<div class="container">
+  <div class="filters">
+    <div class="filter-grp">
+      <label>Suchen:</label>
+      <input type="text" id="filterName" placeholder="Name..." oninput="loadSessions()">
+    </div>
+    <button class="btn btn-sec" onclick="loadSessions()">↻ Aktualisieren</button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Test</th>
+            <th>Punkte</th>
+            <th>%</th>
+            <th>Aktionen</th>
+          </tr>
+        </thead>
+        <tbody id="adminTableBody">
+          <!-- Data goes here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="editTitle">Session bearbeiten</h2>
+      <button onclick="closeModal()" style="background:none;border:none;font-size:24px;cursor:pointer;">&times;</button>
+    </div>
+    <div id="editForm">
+      <input type="hidden" id="editId">
+      <div class="field">
+        <label>Name</label>
+        <input type="text" id="editName">
+      </div>
+      <div class="field">
+        <label>E-Mail</label>
+        <input type="text" id="editEmail">
+      </div>
+      <div class="field">
+        <label>Telefon</label>
+        <input type="text" id="editPhone">
+      </div>
+      <div class="field">
+        <label>Punkte</label>
+        <input type="number" id="editScore">
+      </div>
+      <div class="field">
+        <label>Bestanden</label>
+        <select id="editPassed">
+          <option value="true">Ja</option>
+          <option value="false">Nein</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Antworten (JSON)</label>
+        <textarea id="editAnswers" rows="8" style="font-family:monospace;font-size:12px;"></textarea>
+      </div>
+      <div style="display:flex;gap:12px;">
+        <button class="btn btn-pri" onclick="saveEdit()">Speichern</button>
+        <button class="btn btn-sec" onclick="closeModal()">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '/api/teacher';
+
+async function apiJson(url, options = {}) {
+  const res = await fetch(url, { ...options, credentials: 'same-origin' });
+  if (res.status === 401) { window.location.reload(); return; }
+  if (!res.ok) throw new Error(await res.text());
+  return res.status === 204 ? null : res.json();
+}
+
+async function loadSessions() {
+  try {
+    const name = document.getElementById('filterName').value;
+    let url = API + '/sessions?limit=100';
+    if (name) url += '&user_name=' + encodeURIComponent(name);
+    
+    const data = await apiJson(url);
+    const tbody = document.getElementById('adminTableBody');
+    tbody.innerHTML = data.sessions.map(s => `
+      <tr>
+        <td>${s.id}</td>
+        <td><strong>${s.user_name}</strong></td>
+        <td>Test ${s.test_number}</td>
+        <td>${s.score}/${s.total_questions || 55}</td>
+        <td>${s.percentage?.toFixed(1)}%</td>
+        <td>
+          <button class="btn btn-sec" onclick="openEdit(${s.id})">✏️ Edit</button>
+          <button class="btn btn-danger" onclick="deleteSession(${s.id})">🗑️ Delete</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (e) {
+    toast('Fehler beim Laden: ' + e.message);
+  }
+}
+
+async function openEdit(id) {
+  try {
+    const s = await apiJson(API + '/sessions/' + id + '/details');
+    document.getElementById('editId').value = s.id;
+    document.getElementById('editName').value = s.user_name || '';
+    document.getElementById('editEmail').value = s.user_email || '';
+    document.getElementById('editPhone').value = s.user_phone || '';
+    document.getElementById('editScore').value = s.score || 0;
+    document.getElementById('editPassed').value = s.passed ? 'true' : 'false';
+    document.getElementById('editAnswers').value = JSON.stringify(s.answers_json, null, 2);
+    
+    document.getElementById('editModal').classList.add('show');
+  } catch (e) {
+    toast('Fehler beim Laden der Details');
+  }
+}
+
+async function saveEdit() {
+  const id = document.getElementById('editId').value;
+  let answers;
+  try {
+    answers = JSON.parse(document.getElementById('editAnswers').value);
+  } catch(e) {
+    alert('Ungültiges JSON in Antworten');
+    return;
+  }
+
+  const payload = {
+    user_name: document.getElementById('editName').value,
+    user_email: document.getElementById('editEmail').value,
+    user_phone: document.getElementById('editPhone').value,
+    score: parseInt(document.getElementById('editScore').value),
+    passed: document.getElementById('editPassed').value === 'true',
+    answers_json: answers
+  };
+
+  try {
+    await apiJson(API + '/sessions/' + id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    toast('✅ Gespeichert');
+    closeModal();
+    loadSessions();
+  } catch (e) {
+    toast('⚠️ Fehler: ' + e.message);
+  }
+}
+
+async function deleteSession(id) {
+  if (!confirm('Sicher löschen?')) return;
+  try {
+    await apiJson(API + '/sessions/' + id, { method: 'DELETE' });
+    toast('🗑️ Gelöscht');
+    loadSessions();
+  } catch (e) {
+    toast('⚠️ Fehler: ' + e.message);
+  }
+}
+
+function closeModal() { document.getElementById('editModal').classList.remove('show'); }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+loadSessions();
+</script>
+</body>
+</html>

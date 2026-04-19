@@ -66,6 +66,17 @@ class PresentationFeedback(BaseModel):
     presentation_score: int
     feedback_text: str = ""
 
+
+class SessionUpdate(BaseModel):
+    user_name: Optional[str] = None
+    user_email: Optional[str] = None
+    user_phone: Optional[str] = None
+    test_number: Optional[int] = None
+    score: Optional[int] = None
+    passed: Optional[bool] = None
+    answers_json: Optional[Dict[str, Any]] = None
+
+
 def require_teacher_auth(credentials: HTTPBasicCredentials = Depends(security)):
     valid_username = secrets.compare_digest(credentials.username, "admin")
     valid_password = secrets.compare_digest(credentials.password, "admin")
@@ -550,3 +561,39 @@ def download_session_pdf(session_id: int, db: Session = Depends(get_db)):
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@router.put("/sessions/{session_id}")
+def update_session(
+    session_id: int,
+    data: SessionUpdate,
+    db: Session = Depends(get_db)
+):
+    """Update session details (Admin only)"""
+    session = db.query(TestSession).filter(TestSession.id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    update_data = data.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(session, key, value)
+
+    # Recalculate percentage if score or total_questions changed
+    if "score" in update_data:
+        session.percentage = round((session.score / (session.total_questions or 45)) * 100, 1)
+
+    db.commit()
+    db.refresh(session)
+    return {"status": "ok", "session": {"id": session.id, "user_name": session.user_name}}
+
+
+@router.delete("/sessions/{session_id}")
+def delete_session(session_id: int, db: Session = Depends(get_db)):
+    """Delete a session (Admin only)"""
+    session = db.query(TestSession).filter(TestSession.id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    db.delete(session)
+    db.commit()
+    return {"status": "ok", "message": f"Session {session_id} deleted"}

@@ -110,6 +110,10 @@ if os.path.exists(frontend_path):
     def serve_teacher(_auth: str = Depends(teacher.require_teacher_auth)):
         return html_response("teacher.html")
 
+    @app.get("/admin", include_in_schema=False)
+    def serve_admin(_auth: str = Depends(teacher.require_teacher_auth)):
+        return html_response("admin.html")
+
     @app.get("/leaderboard", include_in_schema=False)
     def serve_leaderboard():
         return html_response("index.html")
