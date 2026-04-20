@@ -2439,6 +2439,7 @@ let hoerenQuestions = [];
 let hoerenIndex = 0;
 let hoerenAnswers = {};
 let hoerenPlayCount = 0;
+let hoerenCountdownTimer = null;
 const HOEREN_MAX_PLAYS = 1;
 
 async function initHoeren(testNum) {
@@ -2471,6 +2472,8 @@ function hoerenStartQuiz() {
   document.getElementById('hoerenIntro').style.display = 'none';
   document.getElementById('hoerenQuizArea').style.display = 'block';
   renderHoerenQuestion();
+  // Auto-play first question — called synchronously from click handler
+  hoerenPlayAudio();
 }
 
 function renderHoerenQuestion() {
@@ -2479,6 +2482,9 @@ function renderHoerenQuestion() {
   if (!q) return;
   hoerenPlayCount = 0;
 
+  // Clear any running auto-advance countdown
+  if (hoerenCountdownTimer) { clearInterval(hoerenCountdownTimer); hoerenCountdownTimer = null; }
+
   document.getElementById('hoerenQuizArea').style.display = 'block';
   document.getElementById('hoerenResults').style.display = 'none';
   document.getElementById('hoerenProgress').textContent =
@@ -2486,6 +2492,7 @@ function renderHoerenQuestion() {
   document.getElementById('hoerenQuestion').textContent = q.question;
 
   const audio = document.getElementById('hoerenAudio');
+  audio.onended = null; // clear previous handler
   audio.src = q.audio_url;
   audio.load();
 
@@ -2495,11 +2502,12 @@ function renderHoerenQuestion() {
   playBtn.textContent = '▶ Aufnahme abspielen';
 
   document.getElementById('hoerenOptions').style.display = 'none';
-  document.getElementById('hoerenSelectedLabel').textContent = 'Bitte zuerst die Aufnahme abspielen';
+  document.getElementById('hoerenSelectedLabel').textContent = '🎧 Aufnahme wird abgespielt…';
 
   const nextBtn = document.getElementById('hoerenNextBtn');
   nextBtn.disabled = true;
   nextBtn.style.opacity = '0.5';
+  nextBtn.textContent = 'Weiter →';
 
   updatePlayCountLabel();
   ['hoerenOptA','hoerenOptB','hoerenOptC'].forEach(id => {
@@ -2520,26 +2528,49 @@ function hoerenPlayAudio() {
   }
   const audio = document.getElementById('hoerenAudio');
   const playBtn = document.getElementById('hoerenPlayBtn');
+
   const revealOptions = () => {
     document.getElementById('hoerenOptions').style.display = 'block';
     const q = hoerenQuestions[hoerenIndex];
     document.getElementById('hoerenOptA').textContent = 'A) ' + q.options[0];
     document.getElementById('hoerenOptB').textContent = 'B) ' + q.options[1];
     document.getElementById('hoerenOptC').textContent = 'C) ' + q.options[2];
-    document.getElementById('hoerenSelectedLabel').textContent = 'Keine Antwort gewählt';
+    document.getElementById('hoerenSelectedLabel').textContent = 'Keine Antwort gewählt – automatisch in 10 Sek.';
   };
+
+  const startCountdown = () => {
+    let secs = 10;
+    const nextBtn = document.getElementById('hoerenNextBtn');
+    nextBtn.disabled = false;
+    nextBtn.style.opacity = '1';
+    nextBtn.textContent = `Weiter (${secs}s) →`;
+    hoerenCountdownTimer = setInterval(() => {
+      secs--;
+      if (secs <= 0) {
+        clearInterval(hoerenCountdownTimer);
+        hoerenCountdownTimer = null;
+        hoerenNext();
+      } else {
+        const btn = document.getElementById('hoerenNextBtn');
+        if (btn) btn.textContent = `Weiter (${secs}s) →`;
+      }
+    }, 1000);
+  };
+
   audio.play().then(() => {
     hoerenPlayCount++;
     updatePlayCountLabel();
     if (hoerenPlayCount >= HOEREN_MAX_PLAYS) {
       playBtn.disabled = true;
       playBtn.style.opacity = '0.4';
-      playBtn.textContent = '🔒 Bereits abgespielt';
+      playBtn.textContent = '✅ Abgespielt';
     }
     revealOptions();
+    audio.onended = startCountdown;
   }).catch(() => {
-    toast('⚠️ Audiodatei nicht verfügbar.');
+    toast('⚠️ Audiodatei nicht verfügbar – weiter in 10 Sek.');
     revealOptions();
+    startCountdown();
   });
 }
 
@@ -2551,20 +2582,24 @@ function hoerenSelect(idx) {
     document.getElementById(id).classList.toggle('sel', i === idx);
   });
   document.getElementById('hoerenSelectedLabel').textContent =
-    `Gewählt: ${labels[idx]}) ${q.options[idx]}`;
+    `✅ Gewählt: ${labels[idx]}) ${q.options[idx]}`;
   const done = Object.keys(hoerenAnswers).length;
   document.getElementById('pill0').textContent = done + '/' + hoerenQuestions.length;
   const nextBtn = document.getElementById('hoerenNextBtn');
   nextBtn.disabled = false;
   nextBtn.style.opacity = '1';
+  // Clear countdown text, but keep timer running (will still auto-advance)
   nextBtn.textContent = hoerenIndex < hoerenQuestions.length - 1 ? 'Weiter →' : 'Auswerten →';
 }
 
 async function hoerenNext() {
+  if (hoerenCountdownTimer) { clearInterval(hoerenCountdownTimer); hoerenCountdownTimer = null; }
   hoerenIndex++;
   if (hoerenIndex < hoerenQuestions.length) {
     renderHoerenQuestion();
     window.scrollTo({top:0,behavior:'smooth'});
+    // Auto-play next question after short delay (gives browser time to load src)
+    setTimeout(() => hoerenPlayAudio(), 400);
   } else {
     await submitHoeren();
   }
@@ -2617,6 +2652,7 @@ function hoerenRetry() {
   hoerenIndex = 0;
   hoerenAnswers = {};
   hoerenPlayCount = 0;
+  if (hoerenCountdownTimer) { clearInterval(hoerenCountdownTimer); hoerenCountdownTimer = null; }
   document.getElementById('pill0').textContent = '0/' + hoerenQuestions.length;
   document.getElementById('tab0').classList.remove('done');
   document.getElementById('hoerenResults').style.display = 'none';
