@@ -7,7 +7,7 @@ from sqlalchemy import inspect, text
 import os
 from pathlib import Path
 
-from routers import questions, sessions, results, schreiben, teacher, course_builder
+from routers import questions, sessions, results, schreiben, teacher, course_builder, hoeren
 from models.database import engine, Base
 from models.models import TeacherAccount, AuditLog  # ensure new models are registered
 
@@ -69,6 +69,7 @@ app.include_router(results.router,    prefix="/api/results",    tags=["Results"]
 app.include_router(schreiben.router,  prefix="/api/schreiben",  tags=["Schreiben"])
 app.include_router(teacher.router,    prefix="/api/teacher",    tags=["Teacher"])
 app.include_router(course_builder.router, prefix="/api/teacher", tags=["Course Builder"])
+app.include_router(hoeren.router,         prefix="/api",          tags=["Hören"])
 
 frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
 
