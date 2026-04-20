@@ -434,6 +434,25 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="question-list" id="questionList">
         <div class="empty-box">Waehle links einen Kurs, um Fragen zu bearbeiten.</div>
       </div>
+
+      <div style="margin-top:20px;border-top:1px solid rgba(255,255,255,.1);padding-top:16px;">
+        <h4 style="margin-bottom:12px;">📂 CSV Import / Export</h4>
+        <div class="muted-note" style="margin-bottom:10px;">
+          Exportiere alle Fragen als CSV-Datei, bearbeite sie extern (Excel, Google Sheets, KI) und lade sie wieder hoch.
+          Pflicht-Spalten: <code>order_index, teil, question_type, question_text, correct_answer</code>.<br>
+          Optionale Spalten: <code>context_text, option_a, option_b, option_c, points, explanation</code>.<br>
+          Fragetypen: <code>mc</code> (Multiple Choice), <code>rf</code> (Richtig/Falsch), <code>text</code>, <code>audio</code>.
+        </div>
+        <div class="builder-actions">
+          <button class="btn btn-sec" onclick="exportQuestionsCSV()">📤 Fragen als CSV exportieren</button>
+          <button class="btn btn-sec" onclick="downloadCSVTemplate()">📋 Vorlage herunterladen</button>
+          <label class="btn btn-pri" style="cursor:pointer;margin:0;">
+            📥 CSV importieren
+            <input type="file" id="csvImportFile" accept=".csv" style="display:none;" onchange="importQuestionsCSV(this)">
+          </label>
+        </div>
+        <div id="csvImportResult" style="margin-top:10px;font-size:13px;"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1294,6 +1313,73 @@ async function deleteQuestion(questionId) {
     resetQuestionForm(false);
   } catch (e) {
     toast(e.message === 'auth' ? '🔒 Bitte neu anmelden.' : '⚠️ Frage konnte nicht geloescht werden');
+  }
+}
+
+/* ── Questions CSV Import / Export ── */
+
+function exportQuestionsCSV() {
+  if (!activeCourseId) {
+    toast('⚠️ Bitte zuerst einen Kurs auswaehlen');
+    return;
+  }
+  const url = `${API}/courses/${activeCourseId}/questions/export-csv`;
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', `kurs_${activeCourseId}_fragen.csv`);
+  // Pass auth via URL won't work for Basic Auth; open in same tab so browser sends credentials
+  window.location.href = url;
+}
+
+function downloadCSVTemplate() {
+  const headers = 'order_index,teil,question_type,question_text,context_text,option_a,option_b,option_c,correct_answer,points,explanation';
+  const example1 = '1,1,mc,"Welche Aussage ist richtig?","Lesen Sie den Text. Ina arbeitet als Krankenpflegerin...","Sie arbeitet im Krankenhaus","Sie arbeitet zu Hause","Sie studiert noch","0",1,"Option A ist laut Text korrekt."';
+  const example2 = '2,2,rf,"Die Veranstaltung findet am Wochenende statt.","Am Samstag um 15 Uhr findet das Konzert statt.",,,,true,1,""';
+  const csv = [headers, example1, example2].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'fragen_vorlage.csv';
+  link.click();
+  toast('📋 Vorlage heruntergeladen');
+}
+
+async function importQuestionsCSV(input) {
+  if (!activeCourseId) {
+    toast('⚠️ Bitte zuerst einen Kurs auswaehlen');
+    input.value = '';
+    return;
+  }
+  const file = input.files[0];
+  if (!file) return;
+
+  const resultEl = document.getElementById('csvImportResult');
+  resultEl.innerHTML = '<span style="color:#aaa">⏳ Import läuft…</span>';
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const r = await fetch(`${API}/courses/${activeCourseId}/questions/import-csv`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      body: formData,
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || 'Fehler beim Import');
+
+    let html = `<span style="color:#4ade80">✅ ${data.imported} Fragen importiert.</span>`;
+    if (data.errors && data.errors.length) {
+      html += `<br><span style="color:#f87171">⚠️ ${data.errors.length} Fehler:<br>${data.errors.slice(0, 5).join('<br>')}</span>`;
+    }
+    resultEl.innerHTML = html;
+    toast(`✅ ${data.imported} Fragen importiert`);
+    await loadCourses(activeCourseId);
+  } catch (e) {
+    resultEl.innerHTML = `<span style="color:#f87171">❌ ${e.message}</span>`;
+    toast('⚠️ Import fehlgeschlagen');
+  } finally {
+    input.value = '';
   }
 }
 

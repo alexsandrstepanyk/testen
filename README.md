@@ -55,7 +55,16 @@
 - `GET  /api/teacher/audit-log` — audit log усіх дій із курсами та accounts
 - кожна дія create / update / publish / delete на курсах і питаннях логується автоматично
 
-### Kurs-Builder (Teacher)
+### Student History Lookup ✅ (NEW 1.5.1)
+
+- кнопка **"Meine Ergebnisse ansehen"** на стартовому екрані
+- учень вводить ім'я + email або телефон → бачить усі свої тести
+- картки з балами, відсотком, рівнем (A1/A2/B1), розбивкою по Teil 1–5, датою, тривалістю
+- якщо teacher залишив feedback — відображається під карткою
+- кнопка **PDF-Bericht herunterladen** для кожної сесії
+- без реєстрації — ідентифікація тільки через ім'я + контакт
+
+
 
 - вкладка `Kurs-Builder` у teacher dashboard
 - створення / редагування / видалення власних курсів
@@ -113,7 +122,7 @@
 | 🟢 Контент | Bulk CSV/JSON import питань |
 | ⚪ Майбутнє | Hören / аудіо-завдання |
 | ⚪ Майбутнє | Speaking simulation з оцінкою |
-| ⚪ Майбутнє | Student accounts зі збереженою історією |
+| ⚪ Майбутнє | Student history lookup зі збереженням відео (persistent storage) |
 
 ---
 
