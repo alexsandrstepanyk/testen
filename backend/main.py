@@ -9,6 +9,7 @@ from pathlib import Path
 
 from routers import questions, sessions, results, schreiben, teacher, course_builder
 from models.database import engine, Base
+from models.models import TeacherAccount, AuditLog  # ensure new models are registered
 
 Base.metadata.create_all(bind=engine)
 

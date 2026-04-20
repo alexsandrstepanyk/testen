@@ -5,17 +5,20 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, and_
 from models.database import get_db
-from models.models import TestSession
+from models.models import TestSession, TeacherAccount, AuditLog
 from services.question_resolver import get_questions_by_test_number, get_test_label
 from services.report_pdf import build_test_report_pdf, build_speaking_report_pdf
 from services.telegram import get_file_download_url, send_pdf_document, send_message
 from datetime import datetime, date
 from typing import Optional, List, Dict, Any
 import json
+import os
 import secrets
+from passlib.context import CryptContext
 from pydantic import BaseModel
 
 security = HTTPBasic()
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 VIDEO_KIND_LABELS = {
     "self-intro": "Selbstvorstellung",
@@ -77,16 +80,38 @@ class SessionUpdate(BaseModel):
     answers_json: Optional[Dict[str, Any]] = None
 
 
-def require_teacher_auth(credentials: HTTPBasicCredentials = Depends(security)):
-    valid_username = secrets.compare_digest(credentials.username, "admin")
-    valid_password = secrets.compare_digest(credentials.password, "admin")
-    if not (valid_username and valid_password):
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid teacher credentials",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-    return credentials.username
+class TeacherAccountCreate(BaseModel):
+    username: str
+    password: str
+
+
+def require_teacher_auth(
+    credentials: HTTPBasicCredentials = Depends(security),
+    db: Session = Depends(get_db),
+) -> str:
+    username = credentials.username
+    password = credentials.password
+
+    # 1. Check env-var credentials (primary admin account)
+    env_user = os.environ.get("TEACHER_USERNAME", "admin")
+    env_pass = os.environ.get("TEACHER_PASSWORD", "admin")
+    if secrets.compare_digest(username, env_user) and secrets.compare_digest(password, env_pass):
+        return username
+
+    # 2. Check DB teacher accounts
+    account = (
+        db.query(TeacherAccount)
+        .filter(TeacherAccount.username == username, TeacherAccount.is_active == True)
+        .first()
+    )
+    if account and pwd_context.verify(password, account.hashed_password):
+        return username
+
+    raise HTTPException(
+        status_code=401,
+        detail="Invalid teacher credentials",
+        headers={"WWW-Authenticate": "Basic"},
+    )
 
 
 router = APIRouter(dependencies=[Depends(require_teacher_auth)])
@@ -597,3 +622,129 @@ def delete_session(session_id: int, db: Session = Depends(get_db)):
     db.delete(session)
     db.commit()
     return {"status": "ok", "message": f"Session {session_id} deleted"}
+
+
+# ---------------------------------------------------------------------------
+# Teacher account management
+# ---------------------------------------------------------------------------
+
+@router.get("/accounts")
+def list_accounts(db: Session = Depends(get_db)):
+    """List all teacher accounts (passwords not included)."""
+    accounts = db.query(TeacherAccount).order_by(TeacherAccount.created_at).all()
+    return {
+        "total": len(accounts),
+        "accounts": [
+            {
+                "id": a.id,
+                "username": a.username,
+                "is_active": a.is_active,
+                "created_at": a.created_at.isoformat() if a.created_at else None,
+            }
+            for a in accounts
+        ],
+    }
+
+
+@router.post("/accounts", status_code=201)
+def create_account(
+    data: TeacherAccountCreate,
+    db: Session = Depends(get_db),
+    teacher: str = Depends(require_teacher_auth),
+):
+    """Create a new teacher account."""
+    if len(data.username.strip()) < 3:
+        raise HTTPException(status_code=400, detail="Username must be at least 3 characters")
+    if len(data.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+
+    existing = db.query(TeacherAccount).filter(TeacherAccount.username == data.username.strip()).first()
+    if existing:
+        raise HTTPException(status_code=409, detail="Username already exists")
+
+    account = TeacherAccount(
+        username=data.username.strip(),
+        hashed_password=pwd_context.hash(data.password),
+    )
+    db.add(account)
+    db.commit()
+    db.refresh(account)
+
+    _write_audit(db, teacher, "create", "teacher_account", account.id, f"Created account '{account.username}'")
+
+    return {"id": account.id, "username": account.username, "is_active": account.is_active}
+
+
+@router.delete("/accounts/{account_id}")
+def deactivate_account(
+    account_id: int,
+    db: Session = Depends(get_db),
+    teacher: str = Depends(require_teacher_auth),
+):
+    """Deactivate a teacher account (soft delete)."""
+    account = db.query(TeacherAccount).filter(TeacherAccount.id == account_id).first()
+    if not account:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    account.is_active = False
+    db.commit()
+
+    _write_audit(db, teacher, "deactivate", "teacher_account", account_id, f"Deactivated account '{account.username}'")
+
+    return {"ok": True, "username": account.username}
+
+
+# ---------------------------------------------------------------------------
+# Audit log
+# ---------------------------------------------------------------------------
+
+def _write_audit(
+    db: Session,
+    teacher_username: str,
+    action: str,
+    resource_type: str,
+    resource_id: Optional[int],
+    detail: Optional[str] = None,
+) -> None:
+    """Write one audit log entry. Never raises — failures are silent."""
+    try:
+        entry = AuditLog(
+            teacher_username=teacher_username,
+            action=action,
+            resource_type=resource_type,
+            resource_id=resource_id,
+            detail=detail,
+        )
+        db.add(entry)
+        db.commit()
+    except Exception:
+        db.rollback()
+
+
+@router.get("/audit-log")
+def get_audit_log(
+    limit: int = Query(default=100, le=500),
+    db: Session = Depends(get_db),
+):
+    """Return the latest audit log entries."""
+    entries = (
+        db.query(AuditLog)
+        .order_by(AuditLog.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+    return {
+        "total": len(entries),
+        "entries": [
+            {
+                "id": e.id,
+                "teacher_username": e.teacher_username,
+                "action": e.action,
+                "resource_type": e.resource_type,
+                "resource_id": e.resource_id,
+                "detail": e.detail,
+                "created_at": e.created_at.isoformat() if e.created_at else None,
+            }
+            for e in entries
+        ],
+    }

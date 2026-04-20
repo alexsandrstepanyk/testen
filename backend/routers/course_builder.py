@@ -7,7 +7,7 @@ import os
 
 from models.database import get_db
 from models.models import CustomCourse, CustomQuestion
-from routers.teacher import require_teacher_auth
+from routers.teacher import require_teacher_auth, _write_audit
 from schemas.schemas import (
     CustomCourseCreate,
     CustomCourseOut,
@@ -18,7 +18,7 @@ from schemas.schemas import (
 )
 
 
-router = APIRouter(prefix="/courses", tags=["Course Builder"], dependencies=[Depends(require_teacher_auth)])
+router = APIRouter(prefix="/courses", tags=["Course Builder"])
 
 UPLOAD_DIR = Path(__file__).resolve().parents[2] / "frontend" / "uploads" / "audio"
 ALLOWED_AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".ogg", ".webm"}
@@ -60,7 +60,10 @@ def validate_question_payload(payload: Union[CustomQuestionCreate, CustomQuestio
 
 
 @router.get("")
-def list_courses(db: Session = Depends(get_db)):
+def list_courses(
+    db: Session = Depends(get_db),
+    teacher: str = Depends(require_teacher_auth),
+):
     courses = (
         db.query(CustomCourse)
         .options(joinedload(CustomCourse.questions))
@@ -71,7 +74,11 @@ def list_courses(db: Session = Depends(get_db)):
 
 
 @router.post("")
-def create_course(payload: CustomCourseCreate, db: Session = Depends(get_db)):
+def create_course(
+    payload: CustomCourseCreate,
+    db: Session = Depends(get_db),
+    teacher: str = Depends(require_teacher_auth),
+):
     course = CustomCourse(**payload.model_dump())
     db.add(course)
     db.commit()
@@ -82,11 +89,16 @@ def create_course(payload: CustomCourseCreate, db: Session = Depends(get_db)):
         .filter(CustomCourse.id == course.id)
         .first()
     )
+    _write_audit(db, teacher, "create", "course", course.id, f"Created course '{course.title}'")
     return serialize_course(course)
 
 
 @router.get("/{course_id}")
-def get_course(course_id: int, db: Session = Depends(get_db)):
+def get_course(
+    course_id: int,
+    db: Session = Depends(get_db),
+    teacher: str = Depends(require_teacher_auth),
+):
     course = (
         db.query(CustomCourse)
         .options(joinedload(CustomCourse.questions))
@@ -99,11 +111,17 @@ def get_course(course_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{course_id}")
-def update_course(course_id: int, payload: CustomCourseUpdate, db: Session = Depends(get_db)):
+def update_course(
+    course_id: int,
+    payload: CustomCourseUpdate,
+    db: Session = Depends(get_db),
+    teacher: str = Depends(require_teacher_auth),
+):
     course = db.query(CustomCourse).filter(CustomCourse.id == course_id).first()
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
 
+    old_published = course.is_published
     for key, value in payload.model_dump().items():
         setattr(course, key, value)
 
@@ -115,21 +133,35 @@ def update_course(course_id: int, payload: CustomCourseUpdate, db: Session = Dep
         .filter(CustomCourse.id == course.id)
         .first()
     )
+
+    action = "publish" if not old_published and course.is_published else "update"
+    _write_audit(db, teacher, action, "course", course.id, f"Updated course '{course.title}'")
     return serialize_course(course)
 
 
 @router.delete("/{course_id}")
-def delete_course(course_id: int, db: Session = Depends(get_db)):
+def delete_course(
+    course_id: int,
+    db: Session = Depends(get_db),
+    teacher: str = Depends(require_teacher_auth),
+):
     course = db.query(CustomCourse).filter(CustomCourse.id == course_id).first()
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
+    title = course.title
     db.delete(course)
     db.commit()
+    _write_audit(db, teacher, "delete", "course", course_id, f"Deleted course '{title}'")
     return {"ok": True}
 
 
 @router.post("/{course_id}/questions")
-def create_question(course_id: int, payload: CustomQuestionCreate, db: Session = Depends(get_db)):
+def create_question(
+    course_id: int,
+    payload: CustomQuestionCreate,
+    db: Session = Depends(get_db),
+    teacher: str = Depends(require_teacher_auth),
+):
     course = db.query(CustomCourse).filter(CustomCourse.id == course_id).first()
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
@@ -139,11 +171,18 @@ def create_question(course_id: int, payload: CustomQuestionCreate, db: Session =
     db.add(question)
     db.commit()
     db.refresh(question)
+    _write_audit(db, teacher, "create", "question", question.id, f"Added question to course {course_id}")
     return serialize_question(question)
 
 
 @router.put("/{course_id}/questions/{question_id}")
-def update_question(course_id: int, question_id: int, payload: CustomQuestionUpdate, db: Session = Depends(get_db)):
+def update_question(
+    course_id: int,
+    question_id: int,
+    payload: CustomQuestionUpdate,
+    db: Session = Depends(get_db),
+    teacher: str = Depends(require_teacher_auth),
+):
     question = (
         db.query(CustomQuestion)
         .filter(CustomQuestion.id == question_id, CustomQuestion.course_id == course_id)
@@ -158,11 +197,17 @@ def update_question(course_id: int, question_id: int, payload: CustomQuestionUpd
 
     db.commit()
     db.refresh(question)
+    _write_audit(db, teacher, "update", "question", question_id, f"Updated question {question_id} in course {course_id}")
     return serialize_question(question)
 
 
 @router.delete("/{course_id}/questions/{question_id}")
-def delete_question(course_id: int, question_id: int, db: Session = Depends(get_db)):
+def delete_question(
+    course_id: int,
+    question_id: int,
+    db: Session = Depends(get_db),
+    teacher: str = Depends(require_teacher_auth),
+):
     question = (
         db.query(CustomQuestion)
         .filter(CustomQuestion.id == question_id, CustomQuestion.course_id == course_id)
@@ -173,11 +218,15 @@ def delete_question(course_id: int, question_id: int, db: Session = Depends(get_
 
     db.delete(question)
     db.commit()
+    _write_audit(db, teacher, "delete", "question", question_id, f"Deleted question {question_id} from course {course_id}")
     return {"ok": True}
 
 
 @router.post("/uploads/audio")
-def upload_audio(file: UploadFile = File(...)):
+def upload_audio(
+    file: UploadFile = File(...),
+    teacher: str = Depends(require_teacher_auth),
+):
     extension = Path(file.filename or "").suffix.lower()
     if extension not in ALLOWED_AUDIO_EXTENSIONS:
         raise HTTPException(status_code=400, detail="Only mp3, wav, m4a, ogg, and webm are allowed")

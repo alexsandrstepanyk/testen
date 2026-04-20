@@ -76,3 +76,25 @@ class CustomQuestion(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     course = relationship("CustomCourse", back_populates="questions")
+
+
+class TeacherAccount(Base):
+    __tablename__ = "teacher_accounts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(100), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(200), nullable=False)
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    teacher_username = Column(String(100), nullable=False)
+    action = Column(String(50), nullable=False)       # create | update | delete | publish
+    resource_type = Column(String(50), nullable=False) # course | question
+    resource_id = Column(Integer, nullable=True)
+    detail = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

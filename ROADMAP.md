@@ -2,180 +2,157 @@
 
 Оновлено: April 2026
 
+---
+
 ## Product Vision
 
-Побудувати повноцінну платформу для підготовки до Deutsch B1, де:
-
+Повноцінна платформа для підготовки до Deutsch B1:
 - учень проходить тести, отримує сертифікат і детальний розбір
 - викладач бачить аналітику і створює власні курси
 - результати автоматично зберігаються, експортуються й надсилаються у Telegram
 
-## Already Done
+---
+
+## ✅ Зроблено
 
 ### Core Testing Flow
 
 - [x] 5 повних статичних тестів
-- [x] 5-частинна структура: Teil 1-4 (20+10+15+10) + Teil 5 Schreiben
+- [x] 5-частинна структура: Teil 1–4 (20+10+15+10) + Teil 5 Schreiben
+- [x] Teil 4: Anzeigen zuordnen
 - [x] 55 тестових питань + Schreiben (максимум 65 балів)
 - [x] таймер проходження
-- [x] автоматична перевірка відповідей
-- [x] підрахунок балів і відсотка
+- [x] автоматична перевірка відповідей і підрахунок балів
 - [x] збереження завершених сесій у БД
-- [x] новий блок Teil 4: Anzeigen zuordnen
+- [x] збереження email і телефону учня в БД
+
+### Custom Courses для учнів ✅ (Version 1.5)
+
+- [x] опубліковані курси відображаються на student page поряд зі статичними тестами
+- [x] учень стартує і проходить custom course через стандартний test UI
+- [x] test_number encoding: custom course id → test_number 1000+id (прозоро для всієї системи)
+- [x] PDF-звіт і Telegram для custom courses (той самий flow, що і для статичних тестів)
+- [x] неопубліковані курси приховані від учнів (фільтр `is_published=True`)
+
+### Teacher Security ✅ (Version 1.5)
+
+- [x] credentials через env vars `TEACHER_USERNAME` / `TEACHER_PASSWORD`
+- [x] fallback `admin/admin` якщо env vars не задані
+- [x] `TeacherAccount` модель: нові accounts зберігаються в БД з bcrypt-хешем
+- [x] `POST /api/teacher/accounts` — створити account
+- [x] `GET  /api/teacher/accounts` — список accounts
+- [x] `DELETE /api/teacher/accounts/{id}` — деактивувати account (soft delete)
+
+### Audit Trail ✅ (Version 1.5)
+
+- [x] `AuditLog` модель: teacher_username, action, resource_type, resource_id, detail, created_at
+- [x] автоматичне логування: create / update / publish / delete для курсів і питань
+- [x] логування create / deactivate для teacher accounts
+- [x] `GET /api/teacher/audit-log` — перегляд лога
+
+### Speaking
+
+- [x] Teil 6: Selbstvorstellung — відеозапис із вебкамери
+- [x] Teil 7: Bildbeschreibung — відеозапис із вебкамери
+- [x] відправка відео в Telegram + збереження file_id в БД
+- [x] локальний fallback для збереження відео
 
 ### Teacher Dashboard
 
-- [x] teacher panel
+- [x] teacher panel з HTTP Basic Auth
 - [x] фільтри по імені, тесту, статусу
-- [x] деталі кожної сесії
-- [x] перегляд помилок по питаннях
-- [x] перегляд написаного листа
+- [x] деталі кожної сесії: відповіді, помилки, лист
+- [x] перегляд двох speaking-відео
+- [x] оцінювання Selbstvorstellung і Bildbeschreibung із текстовим feedback
 - [x] статистика по тестах
 - [x] CSV export
-- [x] teacher auth через HTTP Basic (`admin/admin`)
 
 ### Results and Reports
 
 - [x] student PDF download
-- [x] shared PDF generation service
-- [x] повний answer key у PDF
-- [x] червоне виділення неправильних відповідей
-- [x] лист у PDF
-- [x] certificate page на першій сторінці
-- [x] красивий redesign certificate page
-- [x] PDF оновлено під 5 частин (включно з Teil 5 Schreiben)
+- [x] certificate page на першій сторінці PDF
+- [x] повний answer key у PDF (правильні + неправильні червоним)
+- [x] Schreiben у PDF
+- [x] PDF у Telegram після завершення тесту
+- [x] PDF/Telegram для custom courses
 
 ### Leaderboard
 
 - [x] global leaderboard
-- [x] приховано тестові QA-записи з рейтингу
+- [x] тестові QA-записи приховані з рейтингу
 
-### SEO and Legal (DE/EU)
+### Kurs-Builder (Teacher)
 
-- [x] meta tags, canonical, OpenGraph, Twitter cards
-- [x] structured data (JSON-LD)
-- [x] `robots.txt` and `sitemap.xml`
-- [x] server routes for sitemap and robots
-- [x] `Impressum` page
-- [x] `Datenschutzerklaerung` page
-- [x] legal links in footer
-- [x] teacher page marked as `noindex`
-
-### Telegram Integration
-
-- [x] повідомлення про старт тесту
-- [x] PDF у Telegram після завершення тесту
-- [x] налаштування через env vars
-- [x] окремі speaking uploads для Teil 6 і Teil 7
-- [x] teacher review для двох speaking videos
-
-### Course Builder
-
-- [x] teacher вкладка `Kurs-Builder`
-- [x] створення власних курсів
+- [x] CRUD курсів: створення, редагування, видалення
 - [x] налаштування рівня, часу, кількості завдань
-- [x] створення власних питань
-- [x] редагування і видалення курсів та питань
-- [x] синхронізація course builder з БД
+- [x] CRUD питань: mc, rf, text, audio
+- [x] завантаження аудіо-файлів
+- [x] publish / unpublish курсу
+- [x] синхронізація з БД
 
-## In Progress / Next Priority
+### SEO і Legal (DE/EU)
 
-### 1. Custom Courses for Students
+- [x] meta tags, canonical, OpenGraph, Twitter Cards
+- [x] structured data (JSON-LD)
+- [x] robots.txt + sitemap.xml
+- [x] Impressum і Datenschutzerklärung
+- [x] teacher page — noindex
 
-- [ ] показувати custom courses на student page
-- [ ] запускати сесію не лише для стандартних 5 тестів, а й для custom course
-- [ ] відображати структуру custom course у test UI
-- [ ] рахувати результати для custom course
-- [ ] включати custom course results у leaderboard або окремий рейтинг
+---
 
-### 2. Course Builder Completion
+## ❌ Не зроблено — Наступні кроки
 
-- [ ] preview custom course before publish
-- [ ] duplicate course
-- [ ] reorder questions with better UX
-- [ ] validate builder counts against real number of questions
-- [ ] CSV import/export for custom questions
+### 🟡 Speaking Storage
 
-### 3. Teacher and Admin Security
+- [ ] перенести speaking video у persistent external storage (S3 або аналог)
+- [ ] прибрати залежність від ephemeral filesystem на Render
+- [ ] додати явний статус доставки відео в Telegram
 
-- [ ] винести `admin/admin` у env vars
-- [ ] додати окремі teacher accounts
-- [ ] audit trail для змін курсів
-- [ ] обмежити небезпечні teacher actions
+### 🟡 Kurs-Builder Completion
 
-### 4. Compliance and Growth
+- [ ] preview курсу перед публікацією
+- [ ] дублювання курсу
+- [ ] reorder питань з кращим UX
+- [ ] валідація кількості питань у налаштуваннях проти реальних записів у БД
+- [ ] CSV import/export для власних питань
+
+### 🟢 Аналітика (Version 1.6)
+
+- [ ] статистика по питаннях: найскладніші, success rate по Teil
+- [ ] прогрес учня по сесіях
+- [ ] топ учнів по teacher-created courses
+- [ ] custom course results у leaderboard або окремий рейтинг
+
+### 🟢 GDPR і Growth
 
 - [ ] cookie consent banner (GDPR compliant)
 - [ ] Google Analytics 4 + Consent Mode v2
-- [ ] AdSense integration only after consent
+- [ ] AdSense тільки після consent
 
-### 5. Speaking Reliability
+### 🟢 Content Operations (Version 1.7)
 
-- [ ] винести speaking video storage у persistent external storage для production
-- [ ] прибрати залежність від ephemeral local filesystem fallback на Render
-- [ ] додати явний delivery status для Telegram uploads
-
-## Planned Versions
-
-## Version 1.5 — Custom Course Delivery
-
-- [ ] custom courses visible to students
-- [ ] проходження custom course end-to-end
-- [ ] PDF and certificate support for custom courses
-- [ ] Telegram support for custom courses
-
-## Version 1.6 — Better Analytics
-
-- [ ] analytics by question
-- [ ] hardest questions report
-- [ ] success rate by Teil
-- [ ] student progress history
-- [ ] top students by teacher-created courses
-
-## Version 1.7 — Content Operations
-
-- [ ] CSV bulk import
-- [ ] JSON import/export
+- [ ] CSV/JSON bulk import питань
 - [ ] question templates
 - [ ] reusable writing prompts
-- [ ] media attachments for tasks
+- [ ] media attachments для завдань
 
-## Version 2.0 — Full Exam Platform
+### ⚪ Майбутнє (Version 2.0)
 
-- [ ] Horen / audio tasks (listen first -> answer by audio transcript meaning)
-- [ ] shopping mall floor tasks (Etagen-Suche: where to buy item by floor options)
-- [ ] speaking simulation
+- [ ] Hören — аудіо-завдання (прослухати → відповісти)
+- [ ] Einkaufszentrum / Etagen-Suche задачі
+- [ ] speaking simulation з оцінкою
 - [ ] writing evaluation assistant
 - [ ] multilingual interface
-- [ ] student accounts and saved history
-- [ ] teacher groups / classes
-- [ ] certificates with verification code
+- [ ] student accounts зі збереженою історією
 
-## Technical Roadmap
+---
 
-- [ ] add Alembic migrations instead of only `create_all`
-- [ ] add pytest coverage for API and scoring
-- [ ] add CI pipeline
-- [ ] add safer settings management
-- [ ] split large frontend HTML files into templates or modular frontend
-- [ ] improve error handling around Telegram delivery
-- [ ] add backup/export strategy for teacher-created content
+## Версійний план
 
-## Product/UX Roadmap
-
-- [ ] better onboarding for teachers
-- [ ] custom branding for certificates
-- [ ] student dashboard with previous attempts
-- [ ] printable teacher reports
-- [ ] dedicated course publication flow
-- [ ] clear separation between static official tests and teacher custom tests
-
-## Success Criteria
-
-Проєкт можна вважати вийшовшим на наступний рівень, коли:
-
-- teacher can build a course and publish it
-- student can open and pass that custom course
-- result is saved to DB
-- PDF and certificate are generated correctly
-- Telegram receives the final PDF automatically
+| Версія | Фокус | Статус |
+|--------|-------|--------|
+| **1.4** | Course Builder (teacher side), Speaking 2 videos, SEO | ✅ Done |
+| **1.5** | Custom Course Delivery, Teacher Accounts, Audit Trail, env var auth | ✅ Done |
+| **1.6** | Better Analytics — статистика по питаннях і прогрес | ⬜ Next |
+| **1.7** | Content Operations — bulk import, templates | ⬜ Planned |
+| **2.0** | Full Exam Platform — Hören, speaking sim, student accounts | ⬜ Planned |

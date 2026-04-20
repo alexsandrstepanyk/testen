@@ -97,6 +97,7 @@ def get_available_tests(db: Session) -> List[Dict[str, Any]]:
     custom_courses = (
         db.query(CustomCourse)
         .options(joinedload(CustomCourse.questions))
+        .filter(CustomCourse.is_published == True)
         .order_by(CustomCourse.updated_at.desc(), CustomCourse.id.desc())
         .all()
     )

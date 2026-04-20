@@ -2,52 +2,139 @@
 
 Інтерактивна платформа для підготовки до Goethe-Zertifikat B1 з повною симуляцією тесту, teacher dashboard, PDF-звітами, Telegram-сповіщеннями та конструктором власних курсів.
 
-## Що вже є в проєкті
+---
+
+## Статус проєкту
+
+Версія: **1.5 (Production Ready)**
+Деплой: **Render** (Docker + PostgreSQL Frankfurt)
+
+---
+
+## Що вже реалізовано ✅
+
+### Тестування для учня
 
 - 5 готових повних тестів на теми B1
-- 5-частинна структура іспиту: Teil 1-4 (20+10+15+10 завдань) + Teil 5 Schreiben
-- додаткові speaking tasks: Teil 6 `Selbstvorstellung` + Teil 7 `Bildbeschreibung`
-- 55 тестових питань + Schreiben (максимум 65 балів загалом)
+- 5-частинна структура іспиту: Teil 1–4 (20 + 10 + 15 + 10 завдань) + Teil 5 Schreiben
+- Teil 4: Anzeigen zuordnen (оголошення → запитання)
+- Teil 6: Selbstvorstellung — відеозапис із вебкамери
+- Teil 7: Bildbeschreibung — відеозапис із вебкамери
 - таймер проходження тесту
 - автоматичний підрахунок балів і відсотка
-- сторінка результату одразу після завершення тесту
-- teacher dashboard з переглядом усіх результатів
-- HTTP Basic Auth для teacher panel: `admin / admin`
-- leaderboard для порівняння результатів
-- PDF-звіт для учня після завершення тесту
-- Telegram bot: повідомлення про старт тесту та PDF після завершення
-- Telegram video flow: завантаження student presentation video і teacher review
-- сертифікат на першій сторінці PDF з визначенням рівня `B1 / A2 / A1`
-- детальний звіт на наступних сторінках PDF:
-   - помилки
-   - усі відповіді та правильні варіанти
-   - виділення неправильних відповідей червоним
-   - текст листа
-- нова вкладка `Kurs-Builder` у teacher dashboard
-- збереження власних курсів викладача в БД
-- збереження власних питань викладача в БД
+- збереження email і телефону учня в БД
+- сторінка результатів одразу після завершення
+- PDF-звіт із сертифікатом — завантаження та відправка в Telegram
 
-## Поточна логіка оцінювання сертифіката
+### Custom Courses для учнів ✅ (NEW 1.5)
 
-- `B1`: від `70%`
-- `A2`: від `55%`
-- `A1`: нижче `55%`
+- опубліковані курси (`is_published = true`) відображаються в grid поряд зі статичними тестами
+- учень стартує, проходить і здає custom course через той самий test UI
+- результати, PDF і Telegram для custom courses працюють автоматично (через test_number encoding)
+- неопубліковані курси приховані від учнів (тільки teacher може їх бачити в Kurs-Builder)
+
+### Teacher Dashboard
+
+- вхід через HTTP Basic Auth
+- credentials задаються через env vars `TEACHER_USERNAME` / `TEACHER_PASSWORD` (default: `admin/admin`)
+- додаткові teacher accounts зберігаються в БД (bcrypt-хеш, `TeacherAccount` модель)
+- перегляд усіх завершених сесій
+- фільтрація за тестом, статусом, іменем
+- деталі кожної сесії: помилки, відповіді, лист
+- перегляд двох speaking-відео учня
+- оцінювання Selbstvorstellung і Bildbeschreibung із коментарями
+- статистика по тестах
+- CSV export
+- Leaderboard (тестові QA-записи відфільтровані)
+
+### Teacher Accounts + Audit Trail ✅ (NEW 1.5)
+
+- `GET  /api/teacher/accounts` — список teacher accounts
+- `POST /api/teacher/accounts` — створити новий account (username ≥ 3 символи, password ≥ 8)
+- `DELETE /api/teacher/accounts/{id}` — деактивувати account (soft delete)
+- `GET  /api/teacher/audit-log` — audit log усіх дій із курсами та accounts
+- кожна дія create / update / publish / delete на курсах і питаннях логується автоматично
+
+### Kurs-Builder (Teacher)
+
+- вкладка `Kurs-Builder` у teacher dashboard
+- створення / редагування / видалення власних курсів
+- налаштування рівня, часу, кількості завдань
+- типи питань: `mc`, `rf`, `text`, `audio`
+- завантаження аудіо-файлів до питань
+- **publish toggle** — тільки опубліковані курси видно учням
+- синхронізація з БД (моделі `CustomCourse`, `CustomQuestion`)
+
+### PDF-звіт
+
+1. перша сторінка — красивий сертифікат із рівнем і балами
+2. детальний розбір по питаннях
+3. правильні та неправильні відповіді (неправильні — червоним)
+4. текст написаного листа
+
+### Telegram інтеграція
+
+- повідомлення про старт тесту
+- PDF у Telegram після завершення тесту (включаючи custom courses)
+- Teil 6 відео → Telegram + збереження `file_id` в БД
+- Teil 7 відео → Telegram + збереження `file_id` в БД
+
+### Оцінювання рівня
+
+| Відсоток | Рівень |
+|----------|--------|
+| ≥ 70%    | B1     |
+| ≥ 55%    | A2     |
+| < 55%    | A1     |
+
+### SEO та Legal (EU)
+
+- meta tags, canonical, OpenGraph, Twitter Cards
+- structured data (JSON-LD)
+- `robots.txt` і `sitemap.xml`
+- сторінки `Impressum` і `Datenschutzerklärung`
+- teacher page позначена `noindex`
+
+---
+
+## Що ще НЕ зроблено ❌
+
+| Пріоритет | Завдання |
+|-----------|----------|
+| 🟡 Speaking | Persistent video storage (зараз Render ephemeral filesystem) |
+| 🟡 Speaking | Явний статус доставки відео в Telegram |
+| 🟡 Builder | Preview курсу перед публікацією |
+| 🟡 Builder | Дублювання курсу |
+| 🟡 Builder | CSV import/export питань |
+| 🟡 Builder | Валідація кількості питань проти реальних записів у БД |
+| 🟢 Аналітика | Статистика по питаннях: найскладніші, success rate по Teil |
+| 🟢 Аналітика | Прогрес учня по сесіях |
+| 🟢 GDPR | Cookie consent banner + Google Analytics 4 + Consent Mode v2 |
+| 🟢 Контент | Bulk CSV/JSON import питань |
+| ⚪ Майбутнє | Hören / аудіо-завдання |
+| ⚪ Майбутнє | Speaking simulation з оцінкою |
+| ⚪ Майбутнє | Student accounts зі збереженою історією |
+
+---
 
 ## Архітектура
 
 ### Backend
 
-- `FastAPI`
-- `SQLAlchemy`
-- `PostgreSQL` на Render або `SQLite` локально
+- `FastAPI` + `SQLAlchemy`
+- `PostgreSQL` (Render) або `SQLite` (локально)
 - `ReportLab` для PDF
 - `httpx` для Telegram Bot API
+- `passlib[bcrypt]` для хешування паролів
 
 ### Frontend
 
 - чистий `HTML + CSS + JavaScript`
-- окрема сторінка для учня
-- окрема сторінка для викладача
+- `index.html` — student page
+- `teacher.html` — teacher dashboard + Kurs-Builder
+- `admin.html` — додаткова адмін-сторінка
+
+---
 
 ## Структура проєкту
 
@@ -58,116 +145,39 @@ deutsch-b1-app/
 │   ├── requirements.txt
 │   ├── models/
 │   │   ├── database.py
-│   │   ├── models.py
-│   │   └── questions_data.py
+│   │   ├── models.py          # TestSession, CustomCourse, CustomQuestion,
+│   │   │                      # TeacherAccount, AuditLog
+│   │   └── questions_data.py  # 5 статичних тестів
 │   ├── routers/
-│   │   ├── course_builder.py
+│   │   ├── course_builder.py  # CRUD курсів і питань + audit log
 │   │   ├── questions.py
 │   │   ├── results.py
 │   │   ├── schreiben.py
-│   │   ├── sessions.py
-│   │   └── teacher.py
+│   │   ├── sessions.py        # старт/фініш, відео-upload
+│   │   └── teacher.py         # dashboard, accounts, audit log
 │   ├── schemas/
 │   │   └── schemas.py
 │   └── services/
+│       ├── question_resolver.py  # encode/decode custom test numbers
 │       ├── report_pdf.py
 │       └── telegram.py
 ├── frontend/
+│   ├── index.html
+│   ├── teacher.html
+│   ├── admin.html
 │   ├── datenschutz.html
 │   ├── impressum.html
-│   ├── index.html
 │   ├── robots.txt
-│   ├── sitemap.xml
-│   └── teacher.html
+│   └── sitemap.xml
 ├── Dockerfile
 ├── render.yaml
 ├── README.md
 └── ROADMAP.md
 ```
 
-## Основні можливості для учня
-
-- вибір одного з 5 тестів
-- проходження всіх 5 частин іспиту
-- новий блок Teil 4: Anzeigen zuordnen (оголошення -> запитання)
-- написання листа в Teil 5
-- запис двох окремих speaking-відео з вебкамери:
-   - Teil 6: Selbstvorstellung
-   - Teil 7: Bildbeschreibung
-- миттєвий результат після сабміту
-- PDF зі звітом і сертифікатом
-- збереження результату в БД
-- відправка speaking-відео в Telegram після запису
-
-## Основні можливості для викладача
-
-- вхід у teacher panel через `admin / admin`
-- перегляд усіх завершених сесій
-- фільтрація за тестом, статусом, іменем
-- перегляд деталей кожної спроби
-- перегляд листа учня
-- перегляд двох speaking-відео учня
-- окреме оцінювання `Selbstvorstellung` і `Bildbeschreibung`
-- аналіз помилок по кожному питанню
-- CSV export
-- статистика по тестах
-- створення власних курсів у `Kurs-Builder`
-- створення власних питань для курсів
-
-## PDF-звіт
-
-Після завершення тесту формується PDF, який може бути:
-
-- відкритий учнем вручну через кнопку на сторінці результатів
-- автоматично надісланий у Telegram бот
-
-PDF містить:
-
-1. красиву першу сторінку у форматі сертифіката
-2. ім'я учня
-3. отримані бали та відсоток
-4. присвоєний рівень
-5. детальний звіт по питаннях
-6. правильні та неправильні відповіді
-7. текст листа
-
-## Telegram інтеграція
-
-Підтримуються дві події:
-
-1. старт тесту: повідомлення в Telegram
-2. завершення тесту: PDF-документ у Telegram
-3. завантаження Teil 6: student self-introduction video у Telegram + збереження file_id в БД
-4. завантаження Teil 7: student image-description video у Telegram + збереження file_id в БД
-
-Потрібні environment variables:
-
-```env
-TELEGRAM_BOT_TOKEN=...
-TELEGRAM_CHAT_ID=...
-```
-
-## Teacher Auth
-
-Teacher panel захищена через HTTP Basic Auth.
-
-Поточні облікові дані:
-
-```text
-username: admin
-password: admin
-```
-
-Примітка: для production варто винести ці значення в environment variables.
+---
 
 ## Локальний запуск
-
-### Вимоги
-
-- Python `3.11+` для production-сумісного запуску
-- `pip`
-
-### Запуск локально
 
 ```bash
 cd backend
@@ -175,101 +185,51 @@ pip install -r requirements.txt
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### Локальні адреси
+| URL | Призначення |
+|-----|-------------|
+| `http://localhost:8000` | student app |
+| `http://localhost:8000/teacher` | teacher dashboard |
+| `http://localhost:8000/docs` | Swagger API docs |
+| `http://localhost:8000/api/health` | health check |
 
-- app: `http://localhost:8000`
-- teacher: `http://localhost:8000/teacher`
-- docs: `http://localhost:8000/docs`
-- health: `http://localhost:8000/api/health`
+---
 
 ## Deploy на Render
 
-Проєкт уже підготовлений під Render через `render.yaml`.
+Проєкт підготовлений під Render через `render.yaml`.
 
-### Що використовується на Render
+- Docker + Web Service + PostgreSQL, region: Frankfurt
+- Speaking відео зберігаються **локально** (ephemeral на Render — потрібен external storage)
 
-- `Docker`
-- `Web Service`
-- `PostgreSQL`
-- region: `Frankfurt`
-
-### Основні env vars
+### Env vars
 
 ```env
-PYTHON_VERSION=3.11.0
-WEB_CONCURRENCY=1
-DATABASE_URL=...
 TELEGRAM_BOT_TOKEN=...
 TELEGRAM_CHAT_ID=...
+DATABASE_URL=postgresql://...
+WEB_CONCURRENCY=1
+TEACHER_USERNAME=admin
+TEACHER_PASSWORD=your_secure_password_here
 ```
 
-### Ручний деплой
+---
 
-1. Відкрити Render service `deutsch-b1-app`
-2. Натиснути `Manual Deploy`
-3. Обрати `Deploy Latest Commit`
+## Teacher Auth
 
-## API секції
+**Primary account** — задається через env vars `TEACHER_USERNAME` / `TEACHER_PASSWORD` (fallback: `admin/admin`).
 
-- `/api/questions` — отримання питань готових тестів
-- `/api/sessions` — старт і завершення сесій
-- `/api/results` — результати та PDF-звіти
-- `/api/schreiben` — Schreiben related endpoints
-- `/api/teacher` — dashboard викладача
-- `/api/teacher/courses` — course builder для власних курсів
+**Додаткові accounts** — зберігаються в БД з bcrypt-хешем:
 
-## Що вже зроблено останніми ітераціями
+```http
+POST /api/teacher/accounts
+Content-Type: application/json
+Authorization: Basic ...
 
-- перевірено production deployment і збереження сесій у БД
-- виправлено teacher details loading після додавання auth
-- додано авторський credit на student page
-- додано student PDF download
-- винесено генерацію PDF у shared service
-- додано Telegram bot integration
-- покращено PDF: всі відповіді, правильні рішення, лист, червоне виділення помилок
-- додано certificate page на першій сторінці PDF
-- перероблено certificate page у більш професійний дизайн
-- додано teacher `Kurs-Builder` з БД-синхронізацією
-- додано новий Teil 4 (Anzeigen zuordnen) і перенесено Schreiben у Teil 5
-- оновлено student UI, teacher dashboard і PDF-звіт під 5 частин
-- speaking flow розділено на два окремі video tasks:
-   - Teil 6: Selbstvorstellung
-   - Teil 7: Bildbeschreibung
-- teacher dashboard оновлено під два speaking video blocks і два окремі feedback fields
-- локально speaking video може зберігатися через fallback у static storage, якщо Telegram не налаштований
-- додано фільтр тестових QA-записів у leaderboard
-- виправлено production баг у teacher details modal (стабільне відкриття деталей сесії)
-- додано SEO-базу для індексації:
-   - meta description, canonical, Open Graph, Twitter cards
-   - structured data (JSON-LD)
-   - `robots.txt` + `sitemap.xml`
-   - server routes для `/robots.txt` і `/sitemap.xml`
-- додано юридичні сторінки для DE/EU:
-   - `Impressum` (`/impressum`)
-   - `Datenschutzerklaerung` (`/datenschutz`)
-   - посилання на обидві сторінки у футері
-- закрито teacher dashboard від індексації (`noindex`)
+{ "username": "maria", "password": "securepass123" }
+```
 
-## Поточні обмеження
-
-- custom courses уже можна створювати в teacher panel, але student page поки проходить тільки 5 статичних тестів
-- teacher credentials поки що хардкодні
-- автоматичні тести ще не додані
-- міграції БД поки не використовуються; таблиці створюються через `Base.metadata.create_all()`
-
-## Найближчі наступні кроки
-
-1. підключити custom courses до student flow
-2. дати учням можливість проходити курси, створені викладачем
-3. додати оцінювання custom courses у results / PDF / Telegram
-4. винести teacher credentials у env vars
-5. додати cookie consent banner (GDPR) перед ads/analytics
-6. додати Google Analytics 4 + Consent Mode v2
-7. реалізувати нову частину `Hoeren` (аудіо -> питання по тексту)
-8. реалізувати задачі типу `Einkaufszentrum / Etagen-Suche` (на якому поверсі купити річ)
-9. додати automated tests
+---
 
 ## Автор
 
-Stepaniuk Oleksandr  
-Website: `https://stepaniuk.shop`
+Stepaniuk Oleksandr — `https://stepaniuk.shop`
