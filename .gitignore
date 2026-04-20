@@ -51,6 +51,9 @@ Thumbs.db
 instance/*.db
 # Large media folders
 frontend/uploads/
+!frontend/uploads/audio/
+!frontend/uploads/audio/hoeren/
+!frontend/uploads/audio/hoeren/**
 frontend/presentation/
 
 # Environment variables
