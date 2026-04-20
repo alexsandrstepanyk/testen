@@ -6,7 +6,7 @@
 
 ## Статус проєкту
 
-Версія: **1.5 (Production Ready)**
+Версія: **1.5.2 (Production Ready)**
 Деплой: **Render** (Docker + PostgreSQL Frankfurt)
 
 ---
@@ -66,6 +66,8 @@
 
 
 
+### Kurs-Builder (Teacher)
+
 - вкладка `Kurs-Builder` у teacher dashboard
 - створення / редагування / видалення власних курсів
 - налаштування рівня, часу, кількості завдань
@@ -73,6 +75,15 @@
 - завантаження аудіо-файлів до питань
 - **publish toggle** — тільки опубліковані курси видно учням
 - синхронізація з БД (моделі `CustomCourse`, `CustomQuestion`)
+
+### CSV Import / Export питань ✅ (NEW 1.5.2)
+
+- `GET /api/courses/{id}/questions/export-csv` — завантажує всі питання курсу як `.csv`
+- `POST /api/courses/{id}/questions/import-csv` — bulk-завантаження питань із CSV-файлу
+- колонки: `order_index, teil, question_type, question_text, context_text, option_a, option_b, option_c, correct_answer, points, explanation`
+- підтримує файли з BOM (Excel), пропускає невалідні рядки з описом помилок
+- **шаблон для завантаження** — можна відправити в ChatGPT для AI-генерації питань
+- дія логується в audit log
 
 ### PDF-звіт
 
@@ -114,12 +125,10 @@
 | 🟡 Speaking | Явний статус доставки відео в Telegram |
 | 🟡 Builder | Preview курсу перед публікацією |
 | 🟡 Builder | Дублювання курсу |
-| 🟡 Builder | CSV import/export питань |
 | 🟡 Builder | Валідація кількості питань проти реальних записів у БД |
 | 🟢 Аналітика | Статистика по питаннях: найскладніші, success rate по Teil |
 | 🟢 Аналітика | Прогрес учня по сесіях |
 | 🟢 GDPR | Cookie consent banner + Google Analytics 4 + Consent Mode v2 |
-| 🟢 Контент | Bulk CSV/JSON import питань |
 | ⚪ Майбутнє | Hören / аудіо-завдання |
 | ⚪ Майбутнє | Speaking simulation з оцінкою |
 | ⚪ Майбутнє | Student history lookup зі збереженням відео (persistent storage) |
