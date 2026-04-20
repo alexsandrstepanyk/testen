@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Dict
+from typing import Dict, Optional
 
 from models.hoeren_data import get_hoeren_questions
 
@@ -26,6 +26,7 @@ class HoerenTestResponse(BaseModel):
 class HoerenSubmitRequest(BaseModel):
     test_number: int
     answers: Dict[int, int]  # question_id → chosen option index (0/1/2)
+    session_id: Optional[int] = None  # if provided, saves score to DB
 
 
 class HoerenSubmitResponse(BaseModel):
@@ -82,6 +83,20 @@ def submit_hoeren(payload: HoerenSubmitRequest):
 
     total = len(questions)
     percent = round(score / total * 100, 1) if total else 0.0
+
+    # Persist hoeren_score to session if session_id provided
+    if payload.session_id:
+        try:
+            from models.database import SessionLocal
+            db = SessionLocal()
+            from models.models import TestSession
+            sess = db.query(TestSession).filter(TestSession.id == payload.session_id).first()
+            if sess:
+                sess.hoeren_score = score
+                db.commit()
+            db.close()
+        except Exception as e:
+            print(f"Warning: could not save hoeren_score: {e}")
 
     return HoerenSubmitResponse(
         score=score,

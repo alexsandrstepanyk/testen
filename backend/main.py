@@ -40,6 +40,8 @@ def ensure_schema_updates() -> None:
             connection.execute(text("ALTER TABLE test_sessions ADD COLUMN self_intro_feedback_text TEXT DEFAULT ''"))
         if "image_description_feedback_text" not in session_columns:
             connection.execute(text("ALTER TABLE test_sessions ADD COLUMN image_description_feedback_text TEXT DEFAULT ''"))
+        if "hoeren_score" not in session_columns:
+            connection.execute(text("ALTER TABLE test_sessions ADD COLUMN hoeren_score INTEGER DEFAULT NULL"))
         
         if "user_email" not in session_columns:
             connection.execute(text("ALTER TABLE test_sessions ADD COLUMN user_email VARCHAR(150)"))

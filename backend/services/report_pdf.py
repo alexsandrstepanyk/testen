@@ -117,7 +117,7 @@ def build_test_report_pdf(session, questions):
     labels = [
         ("Punktzahl", f"{session.score}/{total_points}"),
         ("Ergebnis", f"{session.percentage}%"),
-        ("Aufgaben", f"{solved_tasks}/{session.total_questions or 55} + Teil 5"),
+        ("Hören", f"{session.hoeren_score if session.hoeren_score is not None else '–'}/20"),
     ]
     for i, (label, value) in enumerate(labels):
         x = 50 + i * (card_w + 20)
@@ -137,8 +137,8 @@ def build_test_report_pdf(session, questions):
     note_y = card_y - 45
     c.setFont("Helvetica-Oblique", 10)
     c.setFillColor(colors.HexColor("#64748B"))
-    note_text = "Hinweis: Dieses Zertifikat bestätigt die Ergebnisse der Teile 1-4. Teil 5 (Schreiben)"
-    note_text2 = "und Teile 6-7 (Sprechen) werden separat bewertet. Ein endgültiges Diplom folgt."
+    note_text = "Hinweis: Dieses Zertifikat bestätigt die Ergebnisse der Teile 1–6 (automatisch bewertet)."
+    note_text2 = "Teil 7 (Selbstvorstellung) und Teil 8 (Bildbeschreibung) werden vom Lehrer bewertet."
     center_text(note_text, note_y, size=10)
     center_text(note_text2, note_y - 14, size=10)
 
@@ -170,11 +170,12 @@ def build_test_report_pdf(session, questions):
     write_line(f"Zeit: {session.duration_seconds or 0} Sekunden")
     write_line(
         "Teilpunkte: "
-        f"Teil 1 {session.teil1_score or 0}/20 | "
-        f"Teil 2 {session.teil2_score or 0}/10 | "
-        f"Teil 3 {session.teil3_score or 0}/15 | "
-        f"Teil 4 {session.teil4_score or 0}/10 | "
-        f"Teil 5 {teil5_score}/10"
+        f"Teil 1 (Hören) {session.hoeren_score if session.hoeren_score is not None else '–'}/20 | "
+        f"Teil 2 {session.teil1_score or 0}/20 | "
+        f"Teil 3 {session.teil2_score or 0}/10 | "
+        f"Teil 4 {session.teil3_score or 0}/15 | "
+        f"Teil 5 {session.teil4_score or 0}/10 | "
+        f"Teil 6 (Schreiben) {teil5_score}/10"
     )
 
     y -= 8
@@ -494,3 +495,179 @@ def count_solved_tasks(answers):
             continue
         solved += 1
     return solved
+
+
+def build_final_certificate_pdf(session, questions) -> bytes:
+    """
+    Full final certificate with all 8 parts.
+    Max = 105 points.
+    """
+    answers = parse_answers(session.answers_json)
+    teil5_score_val = 0
+    if isinstance(answers, dict):
+        meta = answers.get("__teil5_score")
+        if isinstance(meta, int):
+            teil5_score_val = meta
+        elif str(meta).isdigit():
+            teil5_score_val = int(meta)
+        else:
+            teil5_score_val = max(0, (session.score or 0) - sum([
+                session.teil1_score or 0, session.teil2_score or 0,
+                session.teil3_score or 0, session.teil4_score or 0,
+            ]))
+    schreiben_text = extract_schreiben_text(answers)
+
+    t1 = session.hoeren_score if session.hoeren_score is not None else 0
+    t2 = session.teil1_score or 0
+    t3 = session.teil2_score or 0
+    t4 = session.teil3_score or 0
+    t5 = session.teil4_score or 0
+    t6 = teil5_score_val
+    t7 = session.self_intro_score or 0
+    t8 = session.image_description_score or 0
+
+    total_score = t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8
+    max_score   = 105
+    percentage  = round(total_score / max_score * 100, 1)
+    level       = determine_level(percentage)
+    finished    = session.finished_at.isoformat() if session.finished_at else "-"
+
+    accent = colors.HexColor("#0F766E")
+    light  = colors.HexColor("#E6FFFA")
+    dark   = colors.HexColor("#0B3B39")
+
+    pdf_stream = io.BytesIO()
+    c = canvas.Canvas(pdf_stream, pagesize=A4)
+    width, height = A4
+
+    def center_text(text, y_pos, size=12, bold=False, color=colors.black):
+        font = "Helvetica-Bold" if bold else "Helvetica"
+        c.setFont(font, size)
+        c.setFillColor(color)
+        tw = c.stringWidth(text, font, size)
+        c.drawString((width - tw) / 2, y_pos, text)
+        c.setFillColor(colors.black)
+
+    # ── Page 1: Certificate ──────────────────────────────────────────────────
+    c.setStrokeColor(accent); c.setLineWidth(2)
+    c.rect(28, 28, width - 56, height - 56)
+    c.setLineWidth(0.8)
+    c.rect(40, 40, width - 80, height - 80)
+
+    c.setFillColor(light)
+    c.rect(42, height - 150, width - 84, 94, stroke=0, fill=1)
+    center_text("ABSCHLUSSZERTIFIKAT", height - 95, size=22, bold=True, color=dark)
+    center_text("Deutsch-Pruefung B1 - Stepaniuk Sprachplattform", height - 120, size=11, bold=True, color=accent)
+
+    center_text("Hiermit wird bestaetigt, dass", height - 195, size=13, color=dark)
+    center_text(session.user_name, height - 235, size=28, bold=True, color=colors.HexColor("#111827"))
+    c.setStrokeColor(accent); c.setLineWidth(1)
+    c.line(120, height - 242, width - 120, height - 242)
+    center_text("alle Pruefungsteile erfolgreich abgeschlossen hat", height - 270, size=12)
+
+    bw, bh = 180, 42
+    bx = (width - bw) / 2
+    by = height - 328
+    c.setFillColor(accent)
+    c.roundRect(bx, by, bw, bh, 10, stroke=0, fill=1)
+    center_text(f"NIVEAU {level}", by + 14, size=17, bold=True, color=colors.white)
+
+    card_y = height - 430
+    card_w = (width - 160) / 4
+    card_data = [
+        ("Gesamtpunkte", f"{total_score}/{max_score}"),
+        ("Ergebnis",     f"{percentage}%"),
+        ("Niveau",       level),
+        ("Hoeren",       f"{t1}/20"),
+    ]
+    for i, (label, value) in enumerate(card_data):
+        x = 50 + i * (card_w + 20)
+        c.setFillColor(colors.HexColor("#F8FAFC"))
+        c.roundRect(x, card_y, card_w, 70, 8, stroke=0, fill=1)
+        c.setStrokeColor(colors.HexColor("#CBD5E1")); c.setLineWidth(0.8)
+        c.roundRect(x, card_y, card_w, 70, 8, stroke=1, fill=0)
+        c.setFont("Helvetica", 9); c.setFillColor(colors.HexColor("#475569"))
+        c.drawString(x + 10, card_y + 50, label)
+        c.setFont("Helvetica-Bold", 13); c.setFillColor(colors.HexColor("#0F172A"))
+        c.drawString(x + 10, card_y + 28, value)
+
+    tbl_y = card_y - 30
+    parts = [
+        ("Teil 1 - Hoerverstehen",       t1,  20),
+        ("Teil 2 - Multiple Choice",      t2,  20),
+        ("Teil 3 - Richtig / Falsch",     t3,  10),
+        ("Teil 4 - Leseverstehen",        t4,  15),
+        ("Teil 5 - Anzeigen",             t5,  10),
+        ("Teil 6 - Schreiben",            t6,  10),
+        ("Teil 7 - Selbstvorstellung",    t7,  10),
+        ("Teil 8 - Bildbeschreibung",     t8,  10),
+    ]
+    col_lbl = 50; col_pts = 330; col_bar = 370
+
+    c.setFont("Helvetica-Bold", 10); c.setFillColor(dark)
+    c.drawString(col_lbl, tbl_y, "Pruefungsteil")
+    c.drawString(col_pts, tbl_y, "Punkte")
+    c.drawString(col_bar, tbl_y, "Anteil")
+    tbl_y -= 6
+    c.setStrokeColor(colors.HexColor("#CBD5E1")); c.setLineWidth(0.5)
+    c.line(48, tbl_y, width - 48, tbl_y)
+    tbl_y -= 14
+
+    bar_max_w = 130
+    for label, pts, mx in parts:
+        bar_fill = int(bar_max_w * pts / mx) if mx else 0
+        pct = round(pts / mx * 100) if mx else 0
+        c.setFillColor(colors.HexColor("#F1F5F9"))
+        c.roundRect(col_bar, tbl_y - 2, bar_max_w, 13, 3, stroke=0, fill=1)
+        color_bar = accent if pct >= 70 else (colors.HexColor("#F59E0B") if pct >= 50 else colors.HexColor("#EF4444"))
+        c.setFillColor(color_bar)
+        c.roundRect(col_bar, tbl_y - 2, max(bar_fill, 4), 13, 3, stroke=0, fill=1)
+        c.setFont("Helvetica", 10); c.setFillColor(colors.HexColor("#1E293B"))
+        c.drawString(col_lbl, tbl_y, label)
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(col_pts, tbl_y, f"{pts}/{mx}")
+        c.setFont("Helvetica", 9); c.setFillColor(colors.HexColor("#475569"))
+        c.drawString(col_bar + bar_max_w + 5, tbl_y, f"{pct}%")
+        tbl_y -= 20
+
+    combined_feedback = "\n".join(part for part in [
+        session.self_intro_feedback_text or "",
+        session.image_description_feedback_text or "",
+        session.feedback_text or "",
+    ] if part.strip())
+    if combined_feedback and tbl_y > 140:
+        tbl_y -= 6
+        c.setFont("Helvetica-Bold", 10); c.setFillColor(dark)
+        c.drawString(50, tbl_y, "Kommentar der Lehrkraft:")
+        tbl_y -= 14
+        c.setFont("Helvetica-Oblique", 9); c.setFillColor(colors.HexColor("#475569"))
+        for line in combined_feedback.split("\n")[:5]:
+            if tbl_y < 120:
+                break
+            c.drawString(60, tbl_y, line[:100])
+            tbl_y -= 13
+
+    center_text(f"Sitzungs-ID: {session.id}", 170, size=10, color=dark)
+    center_text(f"Abgeschlossen: {finished}", 155, size=10, color=dark)
+    c.setStrokeColor(colors.HexColor("#334155")); c.setLineWidth(0.9)
+    c.line(95, 112, 255, 112); c.line(width - 255, 112, width - 95, 112)
+    c.setFont("Helvetica", 9); c.setFillColor(colors.HexColor("#475569"))
+    c.drawString(140, 98, "Autorisiert durch Stepaniuk")
+    c.drawString(width - 226, 98, "Sprachpruefungsplattform")
+
+    if schreiben_text:
+        c.showPage()
+        y2 = height - 40
+        c.setFont("Helvetica-Bold", 14); c.setFillColor(dark)
+        c.drawString(40, y2, "Teil 6 - Schreiben: Ihr Brieftext"); y2 -= 20
+        c.setStrokeColor(accent); c.setLineWidth(0.8)
+        c.line(40, y2, width - 40, y2); y2 -= 16
+        c.setFont("Helvetica", 10); c.setFillColor(colors.black)
+        for line in wrap_text(schreiben_text, 100):
+            if y2 < 50:
+                c.showPage(); y2 = height - 40
+            c.drawString(40, y2, line); y2 -= 13
+
+    c.save()
+    pdf_stream.seek(0)
+    return pdf_stream.getvalue()

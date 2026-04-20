@@ -31,6 +31,7 @@ class TestSession(Base):
     feedback_text = Column(Text, nullable=True, default="")
     self_intro_feedback_text = Column(Text, nullable=True, default="")
     image_description_feedback_text = Column(Text, nullable=True, default="")
+    hoeren_score = Column(Integer, nullable=True, default=None)
 
 
 class CustomCourse(Base):

@@ -912,6 +912,9 @@ function renderSpeakingList() {
         <button class="btn btn-pri" onclick="submitAndGenerateCertificate(${s.id})">
           🖨️ Submit and Generate Certificate
         </button>
+        <button class="btn" onclick="sendFinalCertificate(${s.id})" style="background:#6366f1;color:#fff;border:none;${!s.user_email ? 'opacity:.4;cursor:not-allowed;' : ''}" title="${s.user_email ? 'An ' + s.user_email + ' senden' : 'E-Mail fehlt'}">
+          📧 Abschluss-Zertifikat per E-Mail
+        </button>
       </div>
     </div>
   `).join('');
@@ -938,6 +941,28 @@ async function submitAndGenerateCertificate(sessionId) {
   } catch (err) {
     console.error('submitAndGenerateCertificate', err);
     toast('⚠️ Fehler beim Generieren des Zertifikats: ' + err.message);
+  }
+}
+
+async function sendFinalCertificate(sessionId) {
+  const session = allSessions.find(s => s.id === sessionId);
+  if (!session) return;
+  if (!session.user_email) {
+    toast('⚠️ Keine E-Mail-Adresse für diese Sitzung.');
+    return;
+  }
+  if (!confirm(`Finales Abschluss-Zertifikat (alle 8 Teile) an ${session.user_email} senden?`)) return;
+  try {
+    const res = await apiJson(API + '/sessions/' + sessionId + '/send-final-certificate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const emailMsg = res.email_sent ? `E-Mail an ${res.to_email} gesendet.` : 'E-Mail nicht konfiguriert – nur Telegram.';
+    const telegramMsg = res.telegram_sent ? ' Telegram: ✅' : ' Telegram: ⚠️';
+    toast('✅ Zertifikat: ' + emailMsg + telegramMsg);
+  } catch (err) {
+    console.error('sendFinalCertificate', err);
+    toast('⚠️ Fehler: ' + err.message);
   }
 }
 

@@ -7,8 +7,9 @@ from sqlalchemy import desc, and_
 from models.database import get_db
 from models.models import TestSession, TeacherAccount, AuditLog
 from services.question_resolver import get_questions_by_test_number, get_test_label
-from services.report_pdf import build_test_report_pdf, build_speaking_report_pdf
+from services.report_pdf import build_test_report_pdf, build_speaking_report_pdf, build_final_certificate_pdf
 from services.telegram import get_file_download_url, send_pdf_document, send_message
+from services.email_service import send_email_with_pdf, is_email_configured
 from datetime import datetime, date
 from typing import Optional, List, Dict, Any
 import json
@@ -747,4 +748,64 @@ def get_audit_log(
             }
             for e in entries
         ],
+    }
+
+
+@router.post("/sessions/{session_id}/send-final-certificate")
+def send_final_certificate(
+    session_id: int,
+    db: Session = Depends(get_db),
+    _auth: str = Depends(require_teacher_auth),
+):
+    """Generate final certificate with all 8 parts and send to student's email."""
+    session = db.query(TestSession).filter(TestSession.id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if not session.score:
+        raise HTTPException(status_code=400, detail="Session not finished")
+    if not session.user_email:
+        raise HTTPException(status_code=400, detail="Student email not set for this session")
+
+    questions = get_questions_by_test_number(db, session.test_number or 1)
+    pdf_bytes = build_final_certificate_pdf(session, questions)
+
+    safe_name = session.user_name.replace(" ", "_")
+    filename = f"Abschlusszertifikat_{safe_name}_{session.id}.pdf"
+
+    email_sent = False
+    if is_email_configured():
+        subject = f"Ihr Abschlusszertifikat – Deutsch B1 Prüfung"
+        body = f"""
+        <html><body style="font-family:Arial,sans-serif;max-width:600px;margin:auto;">
+        <h2 style="color:#0F766E;">Ihr Abschlusszertifikat ist fertig!</h2>
+        <p>Sehr geehrte/r <strong>{session.user_name}</strong>,</p>
+        <p>im Anhang finden Sie Ihr persönliches Abschlusszertifikat mit den Ergebnissen aller Prüfungsteile.</p>
+        <p style="color:#475569;font-size:13px;">Session-ID: {session.id}</p>
+        <hr style="border:none;border-top:1px solid #e2e8f0;margin:20px 0"/>
+        <p style="font-size:12px;color:#94a3b8;">Stepaniuk Sprachprüfungsplattform · stepaniuk.shop</p>
+        </body></html>
+        """
+        send_email_with_pdf(session.user_email, subject, body, pdf_bytes, filename)
+        email_sent = True
+
+    # Always also send via Telegram
+    telegram_sent = False
+    try:
+        caption = (
+            f"Abschlusszertifikat: {session.user_name}\n"
+            f"E-Mail: {session.user_email}\n"
+            f"Session: {session.id}"
+        )
+        send_pdf_document(pdf_bytes, filename, caption)
+        telegram_sent = True
+    except Exception as e:
+        print(f"Telegram send error: {e}")
+
+    return {
+        "status": "ok",
+        "session_id": session.id,
+        "email_sent": email_sent,
+        "telegram_sent": telegram_sent,
+        "to_email": session.user_email,
+        "filename": filename,
     }

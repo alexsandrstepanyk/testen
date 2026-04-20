@@ -2611,7 +2611,7 @@ async function submitHoeren() {
     const res = await fetch(`${API}/hoeren/submit`, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ test_number: hoerenTestNum, answers: hoerenAnswers })
+      body: JSON.stringify({ test_number: hoerenTestNum, answers: hoerenAnswers, session_id: selSessId || null })
     });
     const data = await res.json();
     renderHoerenResults(data);
