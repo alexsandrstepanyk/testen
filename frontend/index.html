@@ -511,7 +511,6 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
   <div class="test-grid" id="testGrid"></div>
   <button class="btn-start" id="btnStart" onclick="doStart()" disabled>Test starten →</button>
   <button class="hist-back-btn" style="width:100%;justify-content:center;margin-top:10px;border-radius:12px;padding:11px;" onclick="scr('scHistory')">📊 Meine Ergebnisse ansehen</button>
-  <button class="hist-back-btn" id="btnHoeren" style="width:100%;justify-content:center;margin-top:8px;border-radius:12px;padding:11px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;border:none;cursor:pointer;" onclick="openHoeren()">🎧 Hören üben (B1)</button>
   <div class="start-hint">Ergebnisse werden im Leaderboard gespeichert.</div>
   <div class="brand-credit">Dieses Testprogramm wurde von Stepaniuk Oleksandr entwickelt · <a href="https://stepaniuk.shop" target="_blank" rel="noopener noreferrer">stepaniuk.shop</a></div>
 </div></div>
@@ -562,6 +561,7 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
     <button class="t-tab" id="tab5" onclick="setTeil(5)">Teil 5 ✍️<span class="t-pill" id="pill5">–</span></button>
     <button class="t-tab" id="tab6" onclick="setTeil(6)">Teil 6 🗣️<span class="t-pill" id="pill6">Intro</span></button>
     <button class="t-tab" id="tab7" onclick="setTeil(7)">Teil 7 🎥<span class="t-pill" id="pill7">Bild</span></button>
+    <button class="t-tab" id="tab8" onclick="setTeil(8)" style="display:none">Teil 8 🎧<span class="t-pill" id="pill8">0/20</span></button>
     <button class="t-tab t-tab-lb" onclick="goLb()">🏆 Rangliste</button>
   </div></nav>
 
@@ -686,7 +686,51 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
           </div>
         </div>
       </div>
-      <div class="nav-row"><button class="bnav" onclick="setTeil(6)">← Teil 6</button></div>
+      <div class="nav-row">
+        <button class="bnav" onclick="setTeil(6)">← Teil 6</button>
+        <button class="bnav pri" id="teil7to8btn" onclick="setTeil(8)" style="display:none">Teil 8 🎧 →</button>
+      </div>
+    </div>
+
+    <!-- TEIL 8 — HÖRVERSTEHEN -->
+    <div class="teil-sec" id="teil8">
+      <div class="teil-hd" style="background:linear-gradient(135deg,#0ea5e9 0%,#6366f1 100%);">
+        <h2>Teil 8 — Hörverstehen</h2>
+        <p>Hören Sie die Aufnahmen und wählen Sie die richtige Antwort — 20 Aufgaben</p>
+      </div>
+
+      <!-- Quiz area -->
+      <div id="hoerenQuizArea">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <span id="hoerenProgress" style="color:#94a3b8;font-size:13px;">Aufgabe 1 / 20</span>
+          <span id="hoerenPlayCount" style="font-size:12px;color:#fbbf24;"></span>
+        </div>
+        <div class="qcard">
+          <p id="hoerenQuestion" style="font-size:16px;font-weight:600;margin-bottom:16px;"></p>
+          <div style="margin-bottom:16px;">
+            <button id="hoerenPlayBtn" onclick="hoerenPlayAudio()" style="background:#0ea5e9;color:#fff;border:none;border-radius:10px;padding:10px 22px;font-size:14px;cursor:pointer;">▶ Aufnahme abspielen</button>
+            <audio id="hoerenAudio" style="display:none"></audio>
+          </div>
+          <div id="hoerenOptions" style="display:none;">
+            <div id="hoerenOptA" class="hoeren-opt" onclick="hoerenSelect(0)"></div>
+            <div id="hoerenOptB" class="hoeren-opt" onclick="hoerenSelect(1)"></div>
+            <div id="hoerenOptC" class="hoeren-opt" onclick="hoerenSelect(2)"></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;">
+          <span id="hoerenSelectedLabel" style="font-size:13px;color:#94a3b8;">Bitte zuerst die Aufnahme abspielen</span>
+          <button id="hoerenNextBtn" onclick="hoerenNext()" disabled style="background:#6366f1;color:#fff;border:none;border-radius:10px;padding:10px 22px;font-size:14px;cursor:pointer;opacity:.5;">Weiter →</button>
+        </div>
+      </div>
+
+      <!-- Results area (hidden until submitted) -->
+      <div id="hoerenResults" style="display:none;">
+        <div id="hoerenResultBanner" style="background:#1e293b;border-radius:14px;padding:20px;margin-bottom:20px;text-align:center;"></div>
+        <div id="hoerenResultList"></div>
+        <button onclick="hoerenRetry()" style="margin-top:16px;background:#334155;color:#e2e8f0;border:none;border-radius:10px;padding:10px 22px;font-size:14px;cursor:pointer;">Nochmals versuchen</button>
+      </div>
+
+      <div class="nav-row"><button class="bnav" onclick="setTeil(7)">← Teil 7</button></div>
     </div>
   </div>
 
@@ -719,60 +763,6 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
         <thead><tr><th>#</th><th>Name</th><th>Test</th><th>Punkte</th><th>%</th><th>Zeit</th><th>Status</th></tr></thead>
         <tbody id="lbTB"></tbody>
       </table>
-    </div>
-  </div>
-</div>
-</div>
-
-<!-- HÖREN SCREEN -->
-<div class="screen" id="scHoeren">
-<div class="hist-bg">
-  <div class="hist-card" style="max-width:620px;">
-    <button class="hist-back-btn" onclick="scr('scStart')" id="hoerenBackBtn">← Zurück zum Start</button>
-    <div class="eyebrow" style="margin-bottom:14px;">🎧 Hörverstehen · B1</div>
-    <h2>Hören <em>üben</em></h2>
-
-    <!-- Test selector -->
-    <div id="hoerenTestSelect">
-      <p style="color:#94a3b8;margin-bottom:20px;">Wählen Sie einen Test aus und hören Sie die Aufnahmen.</p>
-      <div class="test-grid" id="hoerenTestGrid"></div>
-    </div>
-
-    <!-- Audio + Question area (hidden until test started) -->
-    <div id="hoerenQuizArea" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-        <span id="hoerenProgress" style="color:#94a3b8;font-size:13px;">Aufgabe 1 / 20</span>
-        <span id="hoerenPlayCount" style="font-size:12px;color:#fbbf24;"></span>
-      </div>
-
-      <div style="background:#1e293b;border-radius:14px;padding:20px;margin-bottom:18px;">
-        <p id="hoerenQuestion" style="font-size:16px;font-weight:600;color:#f1f5f9;margin-bottom:16px;"></p>
-
-        <!-- Audio player -->
-        <div style="margin-bottom:16px;">
-          <button id="hoerenPlayBtn" onclick="hoerenPlayAudio()" style="background:#0ea5e9;color:#fff;border:none;border-radius:10px;padding:10px 22px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:8px;">▶ Aufnahme abspielen</button>
-          <audio id="hoerenAudio" style="display:none"></audio>
-        </div>
-
-        <!-- Options (shown after first play) -->
-        <div id="hoerenOptions" style="display:none;">
-          <div id="hoerenOptA" class="hoeren-opt" onclick="hoerenSelect(0)"></div>
-          <div id="hoerenOptB" class="hoeren-opt" onclick="hoerenSelect(1)"></div>
-          <div id="hoerenOptC" class="hoeren-opt" onclick="hoerenSelect(2)"></div>
-        </div>
-      </div>
-
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span id="hoerenSelectedLabel" style="font-size:13px;color:#94a3b8;">Keine Antwort gewählt</span>
-        <button id="hoerenNextBtn" onclick="hoerenNext()" disabled style="background:#6366f1;color:#fff;border:none;border-radius:10px;padding:10px 22px;font-size:14px;cursor:pointer;opacity:.5;">Weiter →</button>
-      </div>
-    </div>
-
-    <!-- Results area -->
-    <div id="hoerenResults" style="display:none;">
-      <div id="hoerenResultBanner" style="background:#1e293b;border-radius:14px;padding:20px;margin-bottom:20px;text-align:center;"></div>
-      <div id="hoerenResultList"></div>
-      <button onclick="resetHoeren()" style="margin-top:16px;background:#334155;color:#e2e8f0;border:none;border-radius:10px;padding:10px 22px;font-size:14px;cursor:pointer;">Nochmals versuchen</button>
     </div>
   </div>
 </div>
@@ -968,7 +958,7 @@ async function doStart(){
   document.getElementById('hLabel').textContent=meta.label;
   document.getElementById('hSub').textContent=name+' · '+meta.e+' '+meta.theme+' · 7 Teilbereiche';
   answers={};submitted=false;timerSecs=0;timerOn=false;aufgabe=null;briefSaved=false;
-  teilTimers={1:0,2:0,3:0,4:0,5:0,6:0,7:0};
+  teilTimers={1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0};
   document.getElementById('timerVal').textContent='15:00';
   document.getElementById('pill6').textContent='Intro';
   document.getElementById('pill7').textContent='Bild';
@@ -986,6 +976,8 @@ async function doStart(){
   await renderPresentationPrompt();
   updProg();
   setTeil(1);
+  // Load Hören for Test 1
+  if(Number(selTest)===1) initHoeren(1);
 }
 
 async function renderPresentationPrompt(){
@@ -1399,7 +1391,7 @@ function setTeil(t){
 
   const prevTeil=curTeil;
   curTeil=t;
-  for(let i=1;i<=7;i++){
+  for(let i=1;i<=8;i++){
     const sec=document.getElementById('teil'+i);
     const tab=document.getElementById('tab'+i);
     if(sec){
@@ -1432,6 +1424,12 @@ function setTeil(t){
   }
   if(t===7){
     renderPresentationPrompt();
+  }
+  if(t===8){
+    // render first question if just entering
+    if(hoerenQuestions.length && document.getElementById('hoerenResults').style.display==='none'){
+      renderHoerenQuestion();
+    }
   }
   
   // Start section timer
@@ -2403,60 +2401,43 @@ function renderHistory(data){
 bootApp();
 
 // ═══════════════════════════════════════════════════════════════
-// HÖREN MODULE
+// HÖREN MODULE — integrated as Teil 8 (Test 1 only)
 // ═══════════════════════════════════════════════════════════════
 let hoerenTestNum = 0;
 let hoerenQuestions = [];
 let hoerenIndex = 0;
-let hoerenAnswers = {};   // question_id → chosen index
+let hoerenAnswers = {};
 let hoerenPlayCount = 0;
-const HOEREN_MAX_PLAYS = 1;  // like real Goethe B1 Teil 1
+const HOEREN_MAX_PLAYS = 1;
 
-function openHoeren() {
-  resetHoerenUI();
-  buildHoerenTestGrid();
-  scr('scHoeren');
-}
-
-function buildHoerenTestGrid() {
-  const grid = document.getElementById('hoerenTestGrid');
-  grid.innerHTML = '';
-  // Currently only Test 1 available — extend as more tests are added
-  const available = [1];
-  available.forEach(n => {
-    const card = document.createElement('div');
-    card.className = 'tcard';
-    card.innerHTML = `<div class="tc-em">🎧</div><div class="tc-t">Test ${n}</div><div class="tc-sub">Alltag</div>`;
-    card.onclick = () => startHoeren(n);
-    grid.appendChild(card);
-  });
-}
-
-async function startHoeren(testNum) {
+async function initHoeren(testNum) {
   hoerenTestNum = testNum;
-  hoerenAnswers = {};
+  hoerenQuestions = [];
   hoerenIndex = 0;
+  hoerenAnswers = {};
   try {
     const res = await fetch(`${API}/hoeren/${testNum}`);
-    if (!res.ok) throw new Error('Fehler beim Laden');
+    if (!res.ok) throw new Error();
     const data = await res.json();
     hoerenQuestions = data.questions;
+    // Show tab8 and Teil 7 → Teil 8 button
+    document.getElementById('tab8').style.display = 'inline-flex';
+    const btn = document.getElementById('teil7to8btn');
+    if (btn) btn.style.display = 'inline-block';
+    document.getElementById('pill8').textContent = '0/' + hoerenQuestions.length;
   } catch(e) {
-    toast('⚠️ Hören-Aufgaben konnten nicht geladen werden.');
-    return;
+    // Hören not available — keep tab8 hidden
   }
-  document.getElementById('hoerenTestSelect').style.display = 'none';
-  document.getElementById('hoerenQuizArea').style.display = 'block';
-  document.getElementById('hoerenResults').style.display = 'none';
-  document.getElementById('hoerenBackBtn').onclick = () => resetHoeren();
-  renderHoerenQuestion();
 }
 
 function renderHoerenQuestion() {
+  if (!hoerenQuestions.length) return;
   const q = hoerenQuestions[hoerenIndex];
   if (!q) return;
   hoerenPlayCount = 0;
 
+  document.getElementById('hoerenQuizArea').style.display = 'block';
+  document.getElementById('hoerenResults').style.display = 'none';
   document.getElementById('hoerenProgress').textContent =
     `Aufgabe ${hoerenIndex + 1} / ${hoerenQuestions.length}`;
   document.getElementById('hoerenQuestion').textContent = q.question;
@@ -2470,7 +2451,6 @@ function renderHoerenQuestion() {
   playBtn.style.opacity = '1';
   playBtn.textContent = '▶ Aufnahme abspielen';
 
-  // Hide options until audio plays
   document.getElementById('hoerenOptions').style.display = 'none';
   document.getElementById('hoerenSelectedLabel').textContent = 'Bitte zuerst die Aufnahme abspielen';
 
@@ -2479,11 +2459,8 @@ function renderHoerenQuestion() {
   nextBtn.style.opacity = '0.5';
 
   updatePlayCountLabel();
-
-  // Clear option styles
   ['hoerenOptA','hoerenOptB','hoerenOptC'].forEach(id => {
-    const el = document.getElementById(id);
-    el.classList.remove('sel','ok','bad');
+    document.getElementById(id).classList.remove('sel','ok','bad');
   });
 }
 
@@ -2500,7 +2477,14 @@ function hoerenPlayAudio() {
   }
   const audio = document.getElementById('hoerenAudio');
   const playBtn = document.getElementById('hoerenPlayBtn');
-
+  const revealOptions = () => {
+    document.getElementById('hoerenOptions').style.display = 'block';
+    const q = hoerenQuestions[hoerenIndex];
+    document.getElementById('hoerenOptA').textContent = 'A) ' + q.options[0];
+    document.getElementById('hoerenOptB').textContent = 'B) ' + q.options[1];
+    document.getElementById('hoerenOptC').textContent = 'C) ' + q.options[2];
+    document.getElementById('hoerenSelectedLabel').textContent = 'Keine Antwort gewählt';
+  };
   audio.play().then(() => {
     hoerenPlayCount++;
     updatePlayCountLabel();
@@ -2509,21 +2493,10 @@ function hoerenPlayAudio() {
       playBtn.style.opacity = '0.4';
       playBtn.textContent = '🔒 Bereits abgespielt';
     }
-    // Reveal options after first play
-    document.getElementById('hoerenOptions').style.display = 'block';
-    const q = hoerenQuestions[hoerenIndex];
-    document.getElementById('hoerenOptA').textContent = 'A) ' + q.options[0];
-    document.getElementById('hoerenOptB').textContent = 'B) ' + q.options[1];
-    document.getElementById('hoerenOptC').textContent = 'C) ' + q.options[2];
-    document.getElementById('hoerenSelectedLabel').textContent = 'Keine Antwort gewählt';
+    revealOptions();
   }).catch(() => {
-    toast('⚠️ Audiodatei nicht verfügbar. Bitte MP3-Dateien hochladen.');
-    // Still reveal options so user can practice
-    document.getElementById('hoerenOptions').style.display = 'block';
-    const q = hoerenQuestions[hoerenIndex];
-    document.getElementById('hoerenOptA').textContent = 'A) ' + q.options[0];
-    document.getElementById('hoerenOptB').textContent = 'B) ' + q.options[1];
-    document.getElementById('hoerenOptC').textContent = 'C) ' + q.options[2];
+    toast('⚠️ Audiodatei nicht verfügbar.');
+    revealOptions();
   });
 }
 
@@ -2536,6 +2509,8 @@ function hoerenSelect(idx) {
   });
   document.getElementById('hoerenSelectedLabel').textContent =
     `Gewählt: ${labels[idx]}) ${q.options[idx]}`;
+  const done = Object.keys(hoerenAnswers).length;
+  document.getElementById('pill8').textContent = done + '/' + hoerenQuestions.length;
   const nextBtn = document.getElementById('hoerenNextBtn');
   nextBtn.disabled = false;
   nextBtn.style.opacity = '1';
@@ -2546,6 +2521,7 @@ async function hoerenNext() {
   hoerenIndex++;
   if (hoerenIndex < hoerenQuestions.length) {
     renderHoerenQuestion();
+    window.scrollTo({top:0,behavior:'smooth'});
   } else {
     await submitHoeren();
   }
@@ -2561,8 +2537,9 @@ async function submitHoeren() {
     });
     const data = await res.json();
     renderHoerenResults(data);
+    document.getElementById('tab8').classList.add('done');
   } catch(e) {
-    toast('⚠️ Ergebnisse konnten nicht gespeichert werden.');
+    toast('⚠️ Ergebnisse konnten nicht geladen werden.');
   }
 }
 
@@ -2592,15 +2569,13 @@ function renderHoerenResults(data) {
   document.getElementById('hoerenResults').style.display = 'block';
 }
 
-function resetHoerenUI() {
-  document.getElementById('hoerenTestSelect').style.display = 'block';
-  document.getElementById('hoerenQuizArea').style.display = 'none';
-  document.getElementById('hoerenResults').style.display = 'none';
-  document.getElementById('hoerenBackBtn').onclick = () => scr('scStart');
-}
-
-function resetHoeren() {
-  resetHoerenUI();
+function hoerenRetry() {
+  hoerenIndex = 0;
+  hoerenAnswers = {};
+  hoerenPlayCount = 0;
+  document.getElementById('pill8').textContent = '0/' + hoerenQuestions.length;
+  document.getElementById('tab8').classList.remove('done');
+  renderHoerenQuestion();
 }
 </script>
 <footer class="site-footer">
