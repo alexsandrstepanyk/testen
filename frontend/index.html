@@ -409,6 +409,59 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
   .qhead{padding:13px 14px 11px;}.ans-wrap{padding:11px 14px 13px;}.qctx{padding:11px 14px;}
   .etog,.ebox{margin-left:14px;margin-right:14px;}
 }
+/* ── History screen ── */
+.hist-bg{min-height:100vh;background:var(--ink);
+  background-image:radial-gradient(ellipse 60% 50% at 80% 20%,rgba(29,78,216,.18) 0%,transparent 55%),
+    radial-gradient(ellipse 55% 55% at 15% 80%,rgba(200,168,75,.16) 0%,transparent 55%);
+  display:flex;flex-direction:column;align-items:center;padding:32px 16px 60px;}
+.hist-card{max-width:620px;width:100%;background:rgba(255,255,255,.055);border:1px solid rgba(200,168,75,.28);
+  border-radius:20px;padding:36px 32px 32px;backdrop-filter:blur(24px);color:#fff;text-align:center;}
+.hist-card h2{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;margin-bottom:6px;color:#fff;}
+.hist-card h2 em{color:var(--gold);font-style:normal;}
+.hist-subtitle{font-size:13px;color:rgba(255,255,255,.55);margin-bottom:28px;}
+.hist-form{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
+@media(max-width:480px){.hist-form{grid-template-columns:1fr;}}
+.hist-inp{width:100%;padding:11px 14px;border-radius:10px;border:1px solid rgba(200,168,75,.3);
+  background:rgba(255,255,255,.07);color:#fff;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;}
+.hist-inp:focus{border-color:var(--gold);}
+.hist-inp::placeholder{color:rgba(255,255,255,.32);}
+.hist-search-btn{grid-column:1/-1;padding:13px;border-radius:12px;border:none;
+  background:linear-gradient(135deg,#c8a84b,#e0c06a);color:#181825;font-weight:700;
+  font-size:15px;cursor:pointer;font-family:inherit;transition:opacity .2s;}
+.hist-search-btn:hover{opacity:.88;}
+.hist-search-btn:disabled{opacity:.4;cursor:not-allowed;}
+.hist-back-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:8px 16px;
+  border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;margin-bottom:24px;
+  transition:background .2s;}
+.hist-back-btn:hover{background:rgba(255,255,255,.13);}
+.hist-error{color:#fca5a5;font-size:13px;margin-bottom:16px;min-height:18px;}
+.hist-results{text-align:left;margin-top:6px;}
+.hist-user-name{font-size:19px;font-weight:700;color:var(--gold);margin-bottom:18px;text-align:center;}
+.hist-session{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  border-radius:14px;padding:18px 20px;margin-bottom:14px;cursor:pointer;
+  transition:background .18s,border-color .18s;}
+.hist-session:hover{background:rgba(255,255,255,.10);border-color:rgba(200,168,75,.4);}
+.hs-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px;}
+.hs-label{font-size:14px;font-weight:700;color:#fff;}
+.hs-badge{padding:4px 12px;border-radius:99px;font-size:11px;font-weight:700;letter-spacing:.5px;}
+.hs-badge.pass{background:rgba(22,101,52,.6);color:#86efac;border:1px solid rgba(134,239,172,.3);}
+.hs-badge.fail{background:rgba(153,27,27,.5);color:#fca5a5;border:1px solid rgba(252,165,165,.3);}
+.hs-score{font-size:28px;font-weight:900;color:var(--gold);text-align:center;margin:2px 0 4px;}
+.hs-pct{font-size:12px;color:rgba(255,255,255,.5);text-align:center;}
+.hs-teile{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:12px 0 6px;}
+.hs-teil{background:rgba(255,255,255,.06);border-radius:8px;padding:7px 4px;text-align:center;}
+.hs-teil-val{font-size:15px;font-weight:700;color:#fff;}
+.hs-teil-lbl{font-size:9px;color:rgba(255,255,255,.45);margin-top:2px;}
+.hs-meta{font-size:11px;color:rgba(255,255,255,.38);display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap;}
+.hs-feedback{background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.25);border-radius:10px;
+  padding:12px 14px;margin-top:10px;font-size:12px;color:rgba(255,255,255,.7);line-height:1.5;}
+.hs-feedback strong{color:var(--gold);display:block;margin-bottom:4px;}
+.hist-pdf-btn{display:block;width:100%;margin-top:10px;padding:9px;border-radius:10px;
+  background:rgba(200,168,75,.18);border:1px solid rgba(200,168,75,.4);color:var(--gold);
+  font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s;text-decoration:none;text-align:center;}
+.hist-pdf-btn:hover{background:rgba(200,168,75,.3);}
+.hist-empty{text-align:center;color:rgba(255,255,255,.4);font-size:14px;padding:20px 0;}
 </style>
 </head>
 <body>
@@ -448,9 +501,29 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
   <div class="flabel">Test auswählen</div>
   <div class="test-grid" id="testGrid"></div>
   <button class="btn-start" id="btnStart" onclick="doStart()" disabled>Test starten →</button>
+  <button class="hist-back-btn" style="width:100%;justify-content:center;margin-top:10px;border-radius:12px;padding:11px;" onclick="scr('scHistory')">📊 Meine Ergebnisse ansehen</button>
   <div class="start-hint">Ergebnisse werden im Leaderboard gespeichert.</div>
   <div class="brand-credit">Dieses Testprogramm wurde von Stepaniuk Oleksandr entwickelt · <a href="https://stepaniuk.shop" target="_blank" rel="noopener noreferrer">stepaniuk.shop</a></div>
 </div></div>
+</div>
+
+<!-- HISTORY SCREEN -->
+<div class="screen" id="scHistory">
+<div class="hist-bg">
+  <div class="hist-card">
+    <button class="hist-back-btn" onclick="scr('scStart')">← Zurück zum Start</button>
+    <div class="eyebrow" style="margin-bottom:14px;">📊 Meine Testergebnisse</div>
+    <h2>Verlauf <em>ansehen</em></h2>
+    <p class="hist-subtitle">Geben Sie Ihren Namen und Ihre E-Mail oder Telefonnummer ein,<br>um alle Ihre Testergebnisse zu sehen.</p>
+    <div class="hist-form">
+      <input class="hist-inp" id="histName" type="text" placeholder="Ihr Name" maxlength="60" oninput="histValidate()">
+      <input class="hist-inp" id="histContact" type="text" placeholder="E-Mail oder Telefon" maxlength="150" oninput="histValidate()">
+      <button class="hist-search-btn" id="histBtn" onclick="loadHistory()" disabled>Ergebnisse suchen →</button>
+    </div>
+    <div class="hist-error" id="histError"></div>
+    <div class="hist-results" id="histResults"></div>
+  </div>
+</div>
 </div>
 
 <!-- TEST SCREEN -->
@@ -2161,6 +2234,106 @@ function bootApp(){
       testOptions=getDefaultTests();
       buildGrid();
     });
+}
+
+/* ─── History ─── */
+function histValidate(){
+  const n=document.getElementById('histName').value.trim();
+  const c=document.getElementById('histContact').value.trim();
+  document.getElementById('histBtn').disabled=!(n&&c);
+}
+
+function ft2(secs){
+  const m=Math.floor(secs/60),s=secs%60;
+  return `${m}m ${s}s`;
+}
+
+function levelBadge(pct){
+  if(pct>=70) return 'B1';
+  if(pct>=55) return 'A2';
+  return 'A1';
+}
+
+async function loadHistory(){
+  const name=document.getElementById('histName').value.trim();
+  const contact=document.getElementById('histContact').value.trim();
+  const errEl=document.getElementById('histError');
+  const resEl=document.getElementById('histResults');
+  const btn=document.getElementById('histBtn');
+  errEl.textContent='';
+  resEl.innerHTML='<div class="hist-empty">Suche…</div>';
+  btn.disabled=true;
+  try{
+    const r=await fetch(`${API}/results/history?name=${encodeURIComponent(name)}&contact=${encodeURIComponent(contact)}`);
+    if(r.status===404){
+      resEl.innerHTML='';
+      errEl.textContent='Keine Testergebnisse gefunden. Bitte überprüfen Sie Ihren Namen und Kontakt.';
+      return;
+    }
+    if(!r.ok) throw new Error('Server error');
+    const data=await r.json();
+    renderHistory(data);
+  }catch(e){
+    resEl.innerHTML='';
+    errEl.textContent='Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.';
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+function renderHistory(data){
+  const resEl=document.getElementById('histResults');
+  if(!data.sessions||!data.sessions.length){
+    resEl.innerHTML='<div class="hist-empty">Keine Ergebnisse gefunden.</div>';
+    return;
+  }
+  const name=esc(data.user_name);
+  let html=`<div class="hist-user-name">👤 ${name} — ${data.total} Test${data.total===1?'':'s'}</div>`;
+  data.sessions.forEach(s=>{
+    const pct=Math.round(s.percentage||0);
+    const level=levelBadge(pct);
+    const passClass=s.passed?'pass':'fail';
+    const passLabel=s.passed?'Bestanden ✓':'Nicht bestanden';
+    const date=s.finished_at?new Date(s.finished_at).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
+    const dur=s.duration_seconds?ft2(s.duration_seconds):'—';
+    const t1=s.teil1_score??'—';
+    const t2=s.teil2_score??'—';
+    const t3=s.teil3_score??'—';
+    const t4=s.teil4_score??'—';
+    const t5=s.teil5_score??'—';
+    let feedbackHtml='';
+    if(s.self_intro_feedback_text||s.image_description_feedback_text){
+      feedbackHtml=`<div class="hs-feedback">`;
+      if(s.self_intro_feedback_text){
+        feedbackHtml+=`<strong>Selbstvorstellung (Feedback):</strong>${esc(s.self_intro_feedback_text)}`;
+      }
+      if(s.image_description_feedback_text){
+        feedbackHtml+=`<strong style="margin-top:8px;">Bildbeschreibung (Feedback):</strong>${esc(s.image_description_feedback_text)}`;
+      }
+      feedbackHtml+='</div>';
+    }
+    const pdfUrl=`${API}/results/report/${s.id}/pdf?user_name=${encodeURIComponent(document.getElementById('histName').value.trim())}`;
+    html+=`
+    <div class="hist-session">
+      <div class="hs-top">
+        <span class="hs-label">${esc(s.test_label)} · ${level}</span>
+        <span class="hs-badge ${passClass}">${passLabel}</span>
+      </div>
+      <div class="hs-score">${s.score??'—'} <span style="font-size:16px;font-weight:400;color:rgba(255,255,255,.5)">/ ${s.total_questions??55+10} Punkte</span></div>
+      <div class="hs-pct">${pct}%</div>
+      <div class="hs-teile">
+        <div class="hs-teil"><div class="hs-teil-val">${t1}</div><div class="hs-teil-lbl">Teil 1</div></div>
+        <div class="hs-teil"><div class="hs-teil-val">${t2}</div><div class="hs-teil-lbl">Teil 2</div></div>
+        <div class="hs-teil"><div class="hs-teil-val">${t3}</div><div class="hs-teil-lbl">Teil 3</div></div>
+        <div class="hs-teil"><div class="hs-teil-val">${t4}</div><div class="hs-teil-lbl">Teil 4</div></div>
+        <div class="hs-teil"><div class="hs-teil-val">${t5}</div><div class="hs-teil-lbl">Schreiben</div></div>
+      </div>
+      <div class="hs-meta"><span>📅 ${date}</span><span>⏱ ${dur}</span></div>
+      ${feedbackHtml}
+      <a class="hist-pdf-btn" href="${pdfUrl}" target="_blank" rel="noopener">📄 PDF-Bericht herunterladen</a>
+    </div>`;
+  });
+  resEl.innerHTML=html;
 }
 
 bootApp();

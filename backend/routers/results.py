@@ -99,3 +99,60 @@ def download_result_pdf(
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@router.get("/history")
+def get_student_history(
+    name: str = Query(..., min_length=1, max_length=100),
+    contact: str = Query(..., min_length=1, max_length=150),
+    db: Session = Depends(get_db),
+):
+    """
+    Return all finished sessions for a student identified by name + email or phone.
+    contact can be an email address or a phone number.
+    """
+    name_clean = name.strip()
+    contact_clean = contact.strip()
+
+    q = (
+        db.query(TestSession)
+        .filter(
+            TestSession.score.isnot(None),
+            TestSession.user_name.ilike(name_clean),
+            or_(
+                TestSession.user_email.ilike(contact_clean),
+                TestSession.user_phone.ilike(contact_clean),
+            ),
+        )
+        .order_by(desc(TestSession.finished_at))
+        .limit(50)
+    )
+
+    sessions = q.all()
+    if not sessions:
+        raise HTTPException(status_code=404, detail="Keine Testergebnisse gefunden.")
+
+    result = []
+    for s in sessions:
+        teil5 = get_derived_teil5_score(s)
+        result.append({
+            "id": s.id,
+            "test_number": s.test_number or 1,
+            "test_label": get_test_label(s.test_number or 1, db),
+            "finished_at": s.finished_at.isoformat() if s.finished_at else None,
+            "duration_seconds": s.duration_seconds,
+            "score": s.score,
+            "total_questions": s.total_questions,
+            "percentage": s.percentage,
+            "passed": s.passed,
+            "teil1_score": s.teil1_score,
+            "teil2_score": s.teil2_score,
+            "teil3_score": s.teil3_score,
+            "teil4_score": s.teil4_score or 0,
+            "teil5_score": teil5,
+            "self_intro_feedback_text": s.self_intro_feedback_text or "",
+            "image_description_feedback_text": s.image_description_feedback_text or "",
+        })
+
+    return {"user_name": sessions[0].user_name, "total": len(result), "sessions": result}
+
