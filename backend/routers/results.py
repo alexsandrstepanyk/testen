@@ -150,6 +150,7 @@ def get_student_history(
             "teil3_score": s.teil3_score,
             "teil4_score": s.teil4_score or 0,
             "teil5_score": teil5,
+            "hoeren_score": s.hoeren_score,
             "self_intro_feedback_text": s.self_intro_feedback_text or "",
             "image_description_feedback_text": s.image_description_feedback_text or "",
         })

@@ -344,6 +344,8 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="builder-actions">
         <button class="btn btn-pri" onclick="saveCourse()">💾 Kurs speichern</button>
         <button class="btn btn-sec" onclick="resetCourseForm()">Neu beginnen</button>
+        <button class="btn btn-sec" onclick="previewCourse()">👁 Vorschau</button>
+        <button class="btn btn-sec" onclick="duplicateCourse()">📋 Kopieren</button>
         <button class="btn btn-sec" onclick="deleteCourse()">🗑 Kurs loeschen</button>
       </div>
       <div class="muted-note" id="courseStatsNote">Kein Kurs ausgewaehlt.</div>
@@ -1500,10 +1502,64 @@ function toast(msg) {
 
 /* INIT */
 loadStats();
+async function previewCourse() {
+  const id = document.getElementById('builderCourseId').value;
+  if (!id) { toast('⚠️ Bitte zuerst einen Kurs auswaehlen'); return; }
+  try {
+    const course = await apiJson(API + '/courses/' + id);
+    const qs = course.questions || [];
+    document.getElementById('previewModalTitle').textContent = course.title || 'Kursvorschau';
+    document.getElementById('previewModalMeta').textContent =
+      `${course.level} · ${qs.length} Fragen · ${course.is_published ? '✅ Veroeffentlicht' : '⏸ Entwurf'}`;
+    const preview = qs.slice(0, 10).map((q, i) => {
+      const opts = (q.options_json || []).map((o, idx) => `<li style="color:#555;font-size:13px;">${String.fromCharCode(65+idx)}) ${esc(o)}</li>`).join('');
+      const typeLabel = {mc:'Multiple Choice',rf:'Richtig/Falsch',text:'Text',audio:'Audio'}[q.question_type] || q.question_type;
+      return `<div style="background:#f9f7f2;border-radius:10px;padding:14px;margin-bottom:10px;border-left:3px solid #c8a84b;">
+        <div style="font-size:11px;color:#94a3b8;margin-bottom:4px;">Teil ${q.teil} · ${typeLabel}</div>
+        <div style="font-weight:600;font-size:14px;color:#181825;margin-bottom:8px;">${i+1}. ${esc(q.question_text || '')}</div>
+        ${q.context_text ? `<div style="font-size:12px;color:#666;font-style:italic;margin-bottom:8px;">${esc(q.context_text)}</div>` : ''}
+        ${opts ? `<ul style="margin:0;padding-left:16px;">${opts}</ul>` : ''}
+      </div>`;
+    }).join('');
+    document.getElementById('previewModalBody').innerHTML = preview +
+      (qs.length > 10 ? `<p style="text-align:center;color:#94a3b8;font-size:13px;">... und ${qs.length - 10} weitere Fragen</p>` : '');
+    document.getElementById('previewModal').style.display = 'block';
+  } catch(e) {
+    toast('⚠️ Vorschau konnte nicht geladen werden');
+  }
+}
+
+async function duplicateCourse() {
+  const id = document.getElementById('builderCourseId').value;
+  if (!id) { toast('⚠️ Bitte zuerst einen Kurs auswaehlen'); return; }
+  if (!confirm('Diesen Kurs duplizieren? Eine Kopie wird als Entwurf erstellt.')) return;
+  try {
+    const saved = await apiJson(API + '/courses/' + id + '/duplicate', { method: 'POST' });
+    toast('✅ Kurs dupliziert');
+    await loadCourses(saved.id);
+  } catch(e) {
+    toast(e.message === 'auth' ? '🔒 Bitte neu anmelden.' : '⚠️ Kurs konnte nicht dupliziert werden');
+  }
+}
+
 loadSessions();
 loadCourses();
 toggleQuestionFields();
 </script>
+
+<!-- Course Preview Modal -->
+<div id="previewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;overflow-y:auto;padding:40px 16px;">
+  <div style="max-width:700px;margin:0 auto;background:#fff;border-radius:18px;padding:28px 32px;position:relative;">
+    <button onclick="document.getElementById('previewModal').style.display='none'" style="position:absolute;top:16px;right:20px;background:none;border:none;font-size:22px;cursor:pointer;color:#666;">✕</button>
+    <h3 id="previewModalTitle" style="font-size:20px;font-weight:700;margin-bottom:6px;color:#181825;">Kursvorschau</h3>
+    <p id="previewModalMeta" style="font-size:13px;color:#94a3b8;margin-bottom:20px;"></p>
+    <div id="previewModalBody"></div>
+    <div style="text-align:right;margin-top:18px;">
+      <button onclick="document.getElementById('previewModal').style.display='none'" style="padding:9px 22px;border-radius:10px;border:1px solid #ddd;background:#f9f9f9;cursor:pointer;font-size:14px;">Schliessen</button>
+    </div>
+  </div>
+</div>
+
 <footer class="site-footer">
   Entwickelt von Stepaniuk Oleksandr · <a href="https://stepaniuk.shop" target="_blank" rel="noopener noreferrer">stepaniuk.shop</a> · <a href="/impressum">Impressum</a> · <a href="/datenschutz">Datenschutz</a>
 </footer>

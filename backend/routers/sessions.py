@@ -96,9 +96,6 @@ def finish_session(session_id: int, data: SessionFinish, db: Session = Depends(g
         raise HTTPException(status_code=404, detail="Session not found")
     session.finished_at = datetime.now(timezone.utc)
     session.duration_seconds = data.duration_seconds
-    session.score = data.score
-    session.percentage = data.percentage
-    session.passed = data.passed
     answers_payload = data.answers.copy() if isinstance(data.answers, dict) else dict(data.answers)
     answers_payload["__teil5_score"] = data.teil5_score or 0
     session.answers_json = answers_payload
@@ -108,6 +105,16 @@ def finish_session(session_id: int, data: SessionFinish, db: Session = Depends(g
     session.teil4_score = data.teil4_score or 0
     resolved_total = len(get_questions_by_test_number(db, session.test_number or 1))
     session.total_questions = resolved_total or session.total_questions or 0
+
+    # Include Hören (Teil 1) score already saved via /api/hoeren/submit
+    hoeren_bonus = session.hoeren_score or 0
+    base_score = data.score or 0
+    session.score = base_score + hoeren_bonus
+    # Recalculate percentage to include Hören points
+    total_pts = session.total_questions + 10 + (20 if hoeren_bonus > 0 else 0)
+    session.percentage = round(session.score / total_pts * 100) if total_pts else (data.percentage or 0)
+    session.passed = session.percentage >= 60
+
     db.commit(); db.refresh(session)
 
     response_payload = SessionOut.model_validate(session).model_dump()
@@ -118,9 +125,10 @@ def finish_session(session_id: int, data: SessionFinish, db: Session = Depends(g
             questions = get_questions_by_test_number(db, session.test_number or 1)
             pdf_bytes, mistakes = build_test_report_pdf(session, questions)
             filename = f"Testbericht_T{session.test_number}_{session.user_name.replace(' ', '_')}_{session.id}.pdf"
+            hoeren_info = f" | Hören: {hoeren_bonus}/20" if hoeren_bonus > 0 else ""
             caption = (
                 f"Neues Testergebnis: {session.user_name} ({get_test_label(session.test_number or 1, db)})\n"
-                f"Punkte: {session.score}/{(session.total_questions or 55) + 10} | {session.percentage}%\n"
+                f"Punkte: {session.score}/{total_pts}{hoeren_info} | {session.percentage}%\n"
                 f"Fehler: {len(mistakes)}"
             )
             send_pdf_document(pdf_bytes, filename, caption)
