@@ -511,7 +511,7 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
   <div class="test-grid" id="testGrid"></div>
   <button class="btn-start" id="btnStart" onclick="doStart()" disabled>Test starten →</button>
   <button class="hist-back-btn" style="width:100%;justify-content:center;margin-top:10px;border-radius:12px;padding:11px;" onclick="scr('scHistory')">📊 Meine Ergebnisse ansehen</button>
-  <button class="hist-back-btn" style="width:100%;justify-content:center;margin-top:6px;border-radius:12px;padding:11px;" onclick="goLb()">🏆 Rangliste ansehen</button>
+  <button type="button" class="hist-back-btn" style="width:100%;justify-content:center;margin-top:6px;border-radius:12px;padding:11px;" onclick="goLb()">🏆 Rangliste ansehen</button>
   <div class="start-hint">Ergebnisse werden im Leaderboard gespeichert.</div>
   <div class="brand-credit">Dieses Testprogramm wurde von Stepaniuk Oleksandr entwickelt · <a href="https://stepaniuk.shop" target="_blank" rel="noopener noreferrer">stepaniuk.shop</a></div>
 </div></div>
@@ -756,7 +756,7 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:va
         <button class="bnav" onclick="setTeil(6)">← Teil 7</button>
       </div>
     </div>
-
+  </div><!-- /main-area -->
 
   <div class="abar"><div class="ab-inner">
     <div class="ab-stat" id="abStat">0 Fragen noch offen</div>
@@ -869,7 +869,9 @@ function scr(id){
       current.classList.remove('active','leave');
       next.classList.add('active','enter');
       setTimeout(()=>next.classList.remove('enter'),360);
-      window.scrollTo({top:0,behavior:'smooth'});
+      window.scrollTo(0,0);
+      document.documentElement.scrollTop=0;
+      document.body.scrollTop=0;
     },140);
     return;
   }
@@ -1765,7 +1767,19 @@ function showFinalSpeakingEndMessage() {
 }
 
 /* LEADERBOARD */
-async function goLb(){scr('scLb');buildLbF();await loadLb();}
+async function goLb(){
+  // Force screen switch immediately without animation delay
+  document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active','leave','enter');});
+  const el=document.getElementById('scLb');
+  el.classList.add('active');
+  window.scrollTo(0,0);
+  document.documentElement.scrollTop=0;
+  document.body.scrollTop=0;
+  // Ensure reveal animations are triggered (IntersectionObserver won't fire for display:none elements)
+  document.querySelectorAll('#scLb .reveal-ready').forEach(e=>{e.classList.add('reveal-in');});
+  buildLbF();
+  await loadLb();
+}
 function buildLbF(){
   document.getElementById('lbF').innerHTML=
     '<button class="lf-btn act" onclick="setLbF(0,this)">Alle Tests</button>'+
@@ -2455,6 +2469,7 @@ function renderHistory(data){
 }
 
 bootApp();
+
 
 // ═══════════════════════════════════════════════════════════════
 // HÖREN MODULE — integrated as Teil 8 (Test 1 only)
