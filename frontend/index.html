@@ -1772,15 +1772,24 @@ function buildLbF(){
     [1,2,3,4,5].map(n=>'<button class="lf-btn" onclick="setLbF('+n+',this)">'+TM[n].e+' Test '+n+'</button>').join('');
 }
 function setLbF(n,el){lbFlt=n;document.querySelectorAll('.lf-btn').forEach(b=>b.classList.remove('act'));el.classList.add('act');loadLb();}
-async function loadLb(){
-  document.getElementById('lbTB').innerHTML='<tr><td colspan="7" class="lb-empty">Wird geladen…</td></tr>';
-  try{
-    const url=lbFlt?API+'/results/leaderboard?limit=50&test_number='+lbFlt:API+'/results/leaderboard?limit=50';
-    const[lr,sr]=await Promise.all([fetch(url),fetch(API+'/results/stats')]);
-    renderLb((await lr.json()).leaderboard,await sr.json());
-  }catch{
-    document.getElementById('lbTB').innerHTML='<tr><td colspan="7" class="lb-empty">Backend nicht erreichbar — starte zuerst den Server.</td></tr>';
-    document.getElementById('lbSG').innerHTML='';
+async function loadLb(retries=3){
+  document.getElementById('lbTB').innerHTML='<tr><td colspan="7" class="lb-empty">⏳ Wird geladen…</td></tr>';
+  const url=lbFlt?API+'/results/leaderboard?limit=50&test_number='+lbFlt:API+'/results/leaderboard?limit=50';
+  for(let attempt=1;attempt<=retries;attempt++){
+    try{
+      const[lr,sr]=await Promise.all([fetch(url),fetch(API+'/results/stats')]);
+      if(!lr.ok||!sr.ok) throw new Error('HTTP '+lr.status);
+      renderLb((await lr.json()).leaderboard,await sr.json());
+      return;
+    }catch(err){
+      if(attempt<retries){
+        document.getElementById('lbTB').innerHTML='<tr><td colspan="7" class="lb-empty">⏳ Server startet… Versuch '+attempt+'/'+retries+'</td></tr>';
+        await new Promise(r=>setTimeout(r,3000*attempt));
+      } else {
+        document.getElementById('lbTB').innerHTML='<tr><td colspan="7" class="lb-empty">❌ Server nicht erreichbar. Bitte Seite neu laden und nochmal versuchen.</td></tr>';
+        document.getElementById('lbSG').innerHTML='';
+      }
+    }
   }
 }
 function renderLb(ents,stats){
@@ -2628,7 +2637,7 @@ async function submitHoeren() {
     const res = await fetch(`${API}/hoeren/submit`, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ test_number: hoerenTestNum, answers: hoerenAnswers, session_id: selSessId || null })
+      body: JSON.stringify({ test_number: hoerenTestNum, answers: hoerenAnswers, session_id: sessionId || null })
     });
     const data = await res.json();
     hoerenScore = data.score || 0;
