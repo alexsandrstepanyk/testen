@@ -106,12 +106,11 @@ def finish_session(session_id: int, data: SessionFinish, db: Session = Depends(g
     resolved_total = len(get_questions_by_test_number(db, session.test_number or 1))
     session.total_questions = resolved_total or session.total_questions or 0
 
-    # Include Hören (Teil 1) score already saved via /api/hoeren/submit
-    hoeren_bonus = session.hoeren_score or 0
-    base_score = data.score or 0
-    session.score = base_score + hoeren_bonus
-    # Recalculate percentage to include Hören points
-    total_pts = session.total_questions + 10 + (20 if hoeren_bonus > 0 else 0)
+    # Frontend already includes hoerenScore in data.score — do NOT add again
+    session.score = data.score or 0
+    # Recalculate percentage with correct denominator (include Hören 20pts if done)
+    hoeren_done = (session.hoeren_score or 0) > 0
+    total_pts = session.total_questions + 10 + (20 if hoeren_done else 0)
     session.percentage = round(session.score / total_pts * 100) if total_pts else (data.percentage or 0)
     session.passed = session.percentage >= 60
 
@@ -125,7 +124,7 @@ def finish_session(session_id: int, data: SessionFinish, db: Session = Depends(g
             questions = get_questions_by_test_number(db, session.test_number or 1)
             pdf_bytes, mistakes = build_test_report_pdf(session, questions)
             filename = f"Testbericht_T{session.test_number}_{session.user_name.replace(' ', '_')}_{session.id}.pdf"
-            hoeren_info = f" | Hören: {hoeren_bonus}/20" if hoeren_bonus > 0 else ""
+            hoeren_info = f" | Hören: {session.hoeren_score}/20" if hoeren_done else ""
             caption = (
                 f"Neues Testergebnis: {session.user_name} ({get_test_label(session.test_number or 1, db)})\n"
                 f"Punkte: {session.score}/{total_pts}{hoeren_info} | {session.percentage}%\n"

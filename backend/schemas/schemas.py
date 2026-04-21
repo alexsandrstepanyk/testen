@@ -47,6 +47,7 @@ class SessionOut(BaseModel):
     feedback_text: Optional[str] = ""
     self_intro_feedback_text: Optional[str] = ""
     image_description_feedback_text: Optional[str] = ""
+    hoeren_score: Optional[int] = None
     class Config:
         from_attributes = True
 

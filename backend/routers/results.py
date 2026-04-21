@@ -52,6 +52,7 @@ def get_leaderboard(limit: int = Query(default=50, le=200),
          "teil2_score": s.teil2_score, "teil3_score": s.teil3_score,
          "teil4_score": s.teil4_score or 0,
          "teil5_score": get_derived_teil5_score(s),
+         "hoeren_score": s.hoeren_score,
          "finished_at": s.finished_at.isoformat() if s.finished_at else None}
         for i, s in enumerate(sessions)
     ], "total_entries": len(sessions)}

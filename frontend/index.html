@@ -1805,7 +1805,7 @@ function renderLb(ents,stats){
     const tn=e.test_number||1;
     const lbMeta=TM[tn] || {e:'🧩'};
     const label=(e.test_label || ('Test '+tn));
-    const total=(e.total_questions||55)+10;
+    const total=(e.total_questions||55)+10+(e.hoeren_score!=null&&e.hoeren_score>0?20:0);
     return '<tr><td><span class="rn '+rc+'">'+(med||e.rank)+'</span></td><td><strong>'+esc(e.user_name)+'</strong></td><td><span class="tchip">'+lbMeta.e+' '+esc(label)+'</span></td><td><strong>'+e.score+'/'+total+'</strong></td><td>'+e.percentage+'%</td><td>'+ft(e.duration_seconds||0)+'</td><td><span class="'+(e.passed?'bpass':'bfail')+'">'+(e.passed?'✓':'✗')+'</span></td></tr>';
   }).join('');
 }
