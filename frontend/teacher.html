@@ -176,6 +176,7 @@ tbody tr:last-child td{border-bottom:none;}
 <div class="page-tabs">
   <button class="page-tab active" id="tabDashboard" onclick="showPanel('dashboard')">📊 Ergebnisse</button>
   <button class="page-tab" id="tabSprechen" onclick="showPanel('speaking')">🗣 Sprechen</button>
+  <button class="page-tab" id="tabSchreiben" onclick="showPanel('schreiben')">✍️ Schreiben</button>
   <button class="page-tab" id="tabBuilder" onclick="showPanel('builder')">🛠 Kurs-Builder</button>
 </div>
 
@@ -273,6 +274,20 @@ tbody tr:last-child td{border-bottom:none;}
   
   <div id="speakingList" class="question-list">
     <div class="loading"><div class="loading-spinner"></div>Lade Videos...</div>
+  </div>
+</div>
+
+<div class="stats-wrap page-panel" id="panelSchreiben">
+  <div class="filters">
+    <div class="filter-grp">
+      <label>Suchen:</label>
+      <input type="text" id="filterSchreiben" placeholder="Name oder E-Mail..." oninput="renderSchreibenList()">
+    </div>
+    <button class="btn btn-sec" onclick="loadSessions()">↻ Aktualisieren</button>
+  </div>
+
+  <div id="schreibenList" class="question-list">
+    <div class="loading"><div class="loading-spinner"></div>Lade Schreiben-Aufgaben...</div>
   </div>
 </div>
 
@@ -508,21 +523,34 @@ async function apiJson(url, options = {}) {
 
 function showPanel(panel) {
   activePanel = panel;
-  const tabs = ['Dashboard', 'Builder', 'Sprechen'];
+  const tabs = ['Dashboard', 'Builder', 'Sprechen', 'Schreiben'];
   tabs.forEach(t => {
     const el = document.getElementById('tab' + t);
-    if (el) el.classList.toggle('active', panel === (t === 'Sprechen' ? 'speaking' : t.toLowerCase()));
+    if (!el) return;
+    if (t === 'Sprechen') {
+      el.classList.toggle('active', panel === 'speaking');
+      return;
+    }
+    if (t === 'Schreiben') {
+      el.classList.toggle('active', panel === 'schreiben');
+      return;
+    }
+    el.classList.toggle('active', panel === t.toLowerCase());
   });
 
   document.getElementById('panelDashboard').classList.toggle('active', panel === 'dashboard');
   document.getElementById('panelBuilder').classList.toggle('active', panel === 'builder');
   document.getElementById('panelSpeaking').classList.toggle('active', panel === 'speaking');
+  document.getElementById('panelSchreiben').classList.toggle('active', panel === 'schreiben');
 
   if (panel === 'builder' && allCourses.length === 0) {
     loadCourses();
   }
   if (panel === 'speaking') {
     renderSpeakingList();
+  }
+  if (panel === 'schreiben') {
+    renderSchreibenList();
   }
 }
 
@@ -604,6 +632,7 @@ async function loadSessions() {
       </tr>
     `).join('');
     renderSpeakingList();
+    renderSchreibenList();
   } catch (e) {
     console.error('Sessions error:', e);
     toast(e.message === 'auth' ? '🔒 Bitte Seite neu laden und mit admin / admin anmelden.' : '⚠️ Fehler beim Laden der Ergebnisse');
@@ -920,6 +949,116 @@ function renderSpeakingList() {
       </div>
     </div>
   `).join('');
+}
+
+function renderSchreibenList() {
+  const list = document.getElementById('schreibenList');
+  const query = (document.getElementById('filterSchreiben')?.value || '').toLowerCase();
+
+  const schreibenSessions = allSessions.filter(s => {
+    const hasText = !!(s.schreiben_text && String(s.schreiben_text).trim());
+    if (!hasText) return false;
+    if (!query) return true;
+    return (s.user_name || '').toLowerCase().includes(query) || (s.user_email || '').toLowerCase().includes(query);
+  });
+
+  if (schreibenSessions.length === 0) {
+    list.innerHTML = '<div class="empty-box">Noch keine Schreiben-Texte gefunden.</div>';
+    return;
+  }
+
+  list.innerHTML = schreibenSessions.map(s => {
+    const scoreVal = Number.isFinite(Number(s.schreiben_score_manual)) ? Number(s.schreiben_score_manual) : Number(s.teil5_score || 0);
+    const feedbackVal = s.schreiben_feedback_text || '';
+    const emailDisabled = !s.user_email ? 'opacity:.4;cursor:not-allowed;' : '';
+    return `
+      <div class="builder-card" style="margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:10px;">
+          <div>
+            <h3 style="margin:0;">${esc(s.user_name)}</h3>
+            <p style="font-size:13px;color:var(--muted);margin:4px 0;">${esc(s.user_email || 'Keine E-Mail')} • ${esc(s.user_phone || 'Kein Telefon')} • Test ${s.test_number}</p>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:12px;color:var(--muted);">${formatDate(s.finished_at)}</div>
+            <div style="font-size:12px;color:var(--ink);font-weight:700;">Wörter: ${s.schreiben_word_count || 0}</div>
+          </div>
+        </div>
+
+        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;">
+          <div style="white-space:pre-wrap;font-family:'Source Serif 4',serif;font-size:14px;line-height:1.7;color:var(--ink);">${esc(s.schreiben_text || '')}</div>
+        </div>
+
+        <div class="form-grid" style="margin-bottom:12px;">
+          <div class="field">
+            <label>Bewertung Schreiben (0-10)</label>
+            <input type="number" min="0" max="10" id="sch-score-${s.id}" value="${scoreVal}">
+          </div>
+          <div class="field">
+            <label>Fehler / Feedback</label>
+            <textarea id="sch-feedback-${s.id}" placeholder="Fehler markieren, kurze Begründung und Empfehlung..." style="min-height:120px;">${esc(feedbackVal)}</textarea>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-pri" onclick="saveSchreibenReview(${s.id})">💾 Schreiben-Bewertung speichern</button>
+          <button class="btn" onclick="sendSchreibenCertificate(${s.id})" style="background:#6366f1;color:#fff;border:none;${emailDisabled}" title="${s.user_email ? 'An ' + s.user_email + ' senden' : 'E-Mail fehlt'}">📧 Zertifikat per E-Mail senden</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function saveSchreibenReview(sessionId) {
+  const scoreEl = document.getElementById(`sch-score-${sessionId}`);
+  const feedbackEl = document.getElementById(`sch-feedback-${sessionId}`);
+  if (!scoreEl || !feedbackEl) return;
+
+  const score = Number(scoreEl.value);
+  if (!Number.isFinite(score) || score < 0 || score > 10) {
+    toast('⚠️ Schreiben-Bewertung muss zwischen 0 und 10 liegen.');
+    return;
+  }
+
+  try {
+    const res = await apiJson(API + '/sessions/' + sessionId + '/schreiben-review', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ schreiben_score: score, feedback_text: feedbackEl.value || '' })
+    });
+
+    const s = allSessions.find(x => x.id === sessionId);
+    if (s) {
+      s.schreiben_score_manual = res.schreiben_score;
+      s.teil5_score = res.schreiben_score;
+      s.schreiben_feedback_text = res.schreiben_feedback_text || '';
+    }
+    toast('✅ Schreiben-Bewertung gespeichert.');
+  } catch (err) {
+    console.error('saveSchreibenReview', err);
+    toast('⚠️ Fehler beim Speichern: ' + err.message);
+  }
+}
+
+async function sendSchreibenCertificate(sessionId) {
+  const s = allSessions.find(x => x.id === sessionId);
+  if (!s) return;
+  if (!s.user_email) {
+    toast('⚠️ Keine E-Mail-Adresse für diese Sitzung.');
+    return;
+  }
+
+  if (!confirm(`Zertifikat mit Schreiben-Bewertung an ${s.user_email} senden?`)) return;
+
+  try {
+    const res = await apiJson(API + '/sessions/' + sessionId + '/send-schreiben-certificate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    toast('✅ Zertifikat wurde an ' + res.to_email + ' gesendet.');
+  } catch (err) {
+    console.error('sendSchreibenCertificate', err);
+    toast('⚠️ Fehler: ' + err.message);
+  }
 }
 
 async function submitAndGenerateCertificate(sessionId) {

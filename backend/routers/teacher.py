@@ -71,6 +71,11 @@ class PresentationFeedback(BaseModel):
     feedback_text: str = ""
 
 
+class SchreibenReviewUpdate(BaseModel):
+    schreiben_score: int
+    feedback_text: str = ""
+
+
 class SessionUpdate(BaseModel):
     user_name: Optional[str] = None
     user_email: Optional[str] = None
@@ -132,6 +137,43 @@ def get_derived_teil5_score(session: TestSession) -> int:
         session.teil3_score or 0,
         session.teil4_score or 0,
     ]))
+
+
+def parse_answers_json(raw_answers: Any) -> Dict[str, Any]:
+    if not raw_answers:
+        return {}
+    if isinstance(raw_answers, dict):
+        return raw_answers
+    if isinstance(raw_answers, str):
+        try:
+            parsed = json.loads(raw_answers)
+            return parsed if isinstance(parsed, dict) else {}
+        except Exception:
+            return {}
+    return {}
+
+
+def extract_schreiben_text(answers: Dict[str, Any]) -> str:
+    schreiben = answers.get("schreiben")
+    if isinstance(schreiben, str):
+        return schreiben.strip()
+    if isinstance(schreiben, dict):
+        return str(schreiben.get("text", "")).strip()
+    return ""
+
+
+def get_schreiben_review_meta(answers: Dict[str, Any]) -> Dict[str, Any]:
+    score = answers.get("__teil5_score")
+    feedback = answers.get("__schreiben_feedback")
+    score_val = None
+    if isinstance(score, int):
+        score_val = score
+    elif isinstance(score, str) and score.isdigit():
+        score_val = int(score)
+    return {
+        "schreiben_score_manual": score_val,
+        "schreiben_feedback_text": str(feedback or ""),
+    }
 
 
 def is_answer_correct(question: Dict[str, Any], user_answer: Any) -> bool:
@@ -231,7 +273,10 @@ def get_all_sessions(
                 "image_description_score": s.image_description_score or 0,
                 "feedback_text": s.feedback_text or "",
                 "self_intro_feedback_text": s.self_intro_feedback_text or "",
-                "image_description_feedback_text": s.image_description_feedback_text or ""
+                "image_description_feedback_text": s.image_description_feedback_text or "",
+                "schreiben_text": extract_schreiben_text(parse_answers_json(s.answers_json)),
+                "schreiben_word_count": len(extract_schreiben_text(parse_answers_json(s.answers_json)).split()) if extract_schreiben_text(parse_answers_json(s.answers_json)) else 0,
+                **get_schreiben_review_meta(parse_answers_json(s.answers_json)),
             }
             for s in sessions
         ]
@@ -292,11 +337,7 @@ def get_session_details(session_id: int, db: Session = Depends(get_db)):
             return jsonable_encoder(session_out.__dict__)
         
         # Parse JSON string to dict
-        try:
-            user_answers = json.loads(session.answers_json) if isinstance(session.answers_json, str) else session.answers_json
-        except Exception as e:
-            print(f"JSON parse error: {e}")
-            user_answers = {}
+        user_answers = parse_answers_json(session.answers_json)
         
         if not user_answers:
             session_out = TeacherSessionOut(session, [])
@@ -340,7 +381,10 @@ def get_session_details(session_id: int, db: Session = Depends(get_db)):
                 mistakes.append(mistake_info)
         
         session_out = TeacherSessionOut(session, mistakes)
-        return jsonable_encoder(session_out.__dict__)
+        payload = session_out.__dict__
+        payload["schreiben_text"] = extract_schreiben_text(user_answers)
+        payload.update(get_schreiben_review_meta(user_answers))
+        return jsonable_encoder(payload)
     except Exception as e:
         print(f"Error in get_session_details: {e}")
         import traceback
@@ -559,6 +603,78 @@ def save_presentation_feedback_by_kind(
         "feedback_text": session.feedback_text,
         "part_feedback_text": getattr(session, feedback_field),
         "message": "Feedback saved successfully"
+    }
+
+
+@router.patch("/sessions/{session_id}/schreiben-review")
+def save_schreiben_review(
+    session_id: int,
+    review: SchreibenReviewUpdate,
+    db: Session = Depends(get_db)
+):
+    session = db.query(TestSession).filter(TestSession.id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    if not (0 <= review.schreiben_score <= 10):
+        raise HTTPException(status_code=400, detail="schreiben_score must be between 0 and 10")
+
+    answers = dict(parse_answers_json(session.answers_json))
+    answers["__teil5_score"] = review.schreiben_score
+    answers["__schreiben_feedback"] = review.feedback_text or ""
+    session.answers_json = answers
+    db.commit()
+    db.refresh(session)
+
+    return {
+        "status": "ok",
+        "session_id": session.id,
+        "schreiben_score": review.schreiben_score,
+        "schreiben_feedback_text": review.feedback_text or "",
+        "message": "Schreiben review saved",
+    }
+
+
+@router.post("/sessions/{session_id}/send-schreiben-certificate")
+def send_schreiben_certificate(
+    session_id: int,
+    db: Session = Depends(get_db),
+    _auth: str = Depends(require_teacher_auth),
+):
+    session = db.query(TestSession).filter(TestSession.id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if session.score is None:
+        raise HTTPException(status_code=400, detail="Session not finished")
+    if not session.user_email:
+        raise HTTPException(status_code=400, detail="Student email not set for this session")
+    if not is_email_configured():
+        raise HTTPException(status_code=400, detail="Email service is not configured")
+
+    questions = get_questions_by_test_number(db, session.test_number or 1)
+    pdf_bytes, _mistakes = build_test_report_pdf(session, questions)
+    safe_name = (session.user_name or "Teilnehmer").replace(" ", "_")
+    filename = f"Schreiben_Zertifikat_{safe_name}_{session.id}.pdf"
+
+    subject = "Ihr zertifiziertes Schreiben-Ergebnis – Deutsch B1"
+    body = f"""
+    <html><body style=\"font-family:Arial,sans-serif;max-width:600px;margin:auto;\">
+    <h2 style=\"color:#0F766E;\">Ihr Schreiben wurde geprüft</h2>
+    <p>Sehr geehrte/r <strong>{session.user_name}</strong>,</p>
+    <p>im Anhang finden Sie Ihren aktualisierten Bericht mit der bewerteten Schreiben-Aufgabe.</p>
+    <p style=\"color:#475569;font-size:13px;\">Session-ID: {session.id}</p>
+    <hr style=\"border:none;border-top:1px solid #e2e8f0;margin:20px 0\"/>
+    <p style=\"font-size:12px;color:#94a3b8;\">Stepaniuk Sprachprüfungsplattform · stepaniuk.shop</p>
+    </body></html>
+    """
+    send_email_with_pdf(session.user_email, subject, body, pdf_bytes, filename)
+
+    return {
+        "status": "ok",
+        "session_id": session.id,
+        "email_sent": True,
+        "to_email": session.user_email,
+        "filename": filename,
     }
 
 
