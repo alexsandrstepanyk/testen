@@ -5,10 +5,19 @@ from sqlalchemy import desc, func, not_, or_
 from models.database import get_db
 from models.models import TestSession
 import io
+import re
+import unicodedata
 from services.report_pdf import build_test_report_pdf
 from services.question_resolver import get_questions_by_test_number, get_test_label
 
 router = APIRouter()
+
+
+def safe_filename_part(value: str, fallback: str = "file") -> str:
+    normalized = unicodedata.normalize("NFKD", value or "")
+    ascii_only = normalized.encode("ascii", "ignore").decode("ascii")
+    cleaned = re.sub(r"[^A-Za-z0-9._-]+", "_", ascii_only).strip("._-")
+    return cleaned or fallback
 
 TEST_NAME_PATTERNS = [
     "%test-student%",
@@ -93,8 +102,9 @@ def download_result_pdf(
     questions = get_questions_by_test_number(db, session.test_number or 1)
     pdf_bytes, _mistakes = build_test_report_pdf(session, questions)
     pdf_stream = io.BytesIO(pdf_bytes)
-    safe_name = session.user_name.replace(" ", "_")
-    filename = f"Testbericht_{(get_test_label(session.test_number or 1, db)).replace(' ', '_')}_{safe_name}_{session.id}.pdf"
+    safe_name = safe_filename_part(session.user_name, fallback="Teilnehmer")
+    safe_label = safe_filename_part(get_test_label(session.test_number or 1, db), fallback="Test")
+    filename = f"Testbericht_{safe_label}_{safe_name}_{session.id}.pdf"
     return StreamingResponse(
         pdf_stream,
         media_type="application/pdf",

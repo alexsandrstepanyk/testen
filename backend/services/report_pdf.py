@@ -6,6 +6,16 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
 
+def pdf_safe_text(value) -> str:
+    """
+    ReportLab's built-in Helvetica fonts are WinAnsi/latin-1 based.
+    Replace unsupported characters (emoji, etc.) so PDF generation never crashes.
+    """
+    if value is None:
+        return ""
+    return str(value).encode("latin-1", "replace").decode("latin-1")
+
+
 def build_test_report_pdf(session, questions):
     questions_by_id = {q["id"]: q for q in questions}
     answers = parse_answers(session.answers_json)
@@ -28,13 +38,13 @@ def build_test_report_pdf(session, questions):
         font = "Helvetica-Bold" if bold else "Helvetica"
         c.setFont(font, size)
         c.setFillColor(color)
-        c.drawString(40 + indent, y, text)
+        c.drawString(40 + indent, y, pdf_safe_text(text))
         c.setFillColor(colors.black)
         y -= gap
 
     def write_wrapped(text, size=10, indent=0, width_chars=105, gap=12, color=colors.black, bold=False):
         nonlocal y
-        lines = wrap_text(text, width_chars)
+        lines = wrap_text(pdf_safe_text(text), width_chars)
         font = "Helvetica-Bold" if bold else "Helvetica"
         for line in lines:
             ensure_space()
@@ -64,10 +74,11 @@ def build_test_report_pdf(session, questions):
 
     def center_text(text, y_pos, size=12, bold=False, color=colors.black):
         font = "Helvetica-Bold" if bold else "Helvetica"
+        safe_text = pdf_safe_text(text)
         c.setFont(font, size)
         c.setFillColor(color)
-        text_width = c.stringWidth(text, font, size)
-        c.drawString((width - text_width) / 2, y_pos, text)
+        text_width = c.stringWidth(safe_text, font, size)
+        c.drawString((width - text_width) / 2, y_pos, safe_text)
         c.setFillColor(colors.black)
 
     # Double frame
@@ -264,10 +275,11 @@ def build_speaking_report_pdf(session):
 
         def center_text(text, y_pos, size=12, bold=False, color=colors.black):
             font = "Helvetica-Bold" if bold else "Helvetica"
+            safe_text = pdf_safe_text(text)
             c.setFont(font, size)
             c.setFillColor(color)
-            text_width = c.stringWidth(text, font, size)
-            c.drawString((width - text_width) / 2, y_pos, text)
+            text_width = c.stringWidth(safe_text, font, size)
+            c.drawString((width - text_width) / 2, y_pos, safe_text)
             c.setFillColor(colors.black)
 
         # Double frame
