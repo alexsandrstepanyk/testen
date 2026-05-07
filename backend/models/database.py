@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 # Get the backend directory path
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -47,10 +47,36 @@ def normalize_render_postgres_url(url: str) -> str:
 
     return url
 
+
+def ensure_render_sslmode(url: str) -> str:
+    """Add sslmode=require for Render Postgres URLs when not provided.
+
+    Render external Postgres endpoints can terminate non-SSL or ambiguous
+    negotiation attempts. We enforce sslmode=require if the URL points to
+    render.com and sslmode is missing.
+    """
+    if not url.startswith("postgres"):
+        return url
+
+    parsed = urlsplit(url)
+    host = parsed.hostname or ""
+    if "render.com" not in host:
+        return url
+
+    query_pairs = parse_qsl(parsed.query, keep_blank_values=True)
+    query_map = {k: v for k, v in query_pairs}
+    if "sslmode" not in query_map:
+        query_map["sslmode"] = os.environ.get("DB_SSLMODE", "require")
+        new_query = urlencode(query_map)
+        return urlunsplit((parsed.scheme, parsed.netloc, parsed.path, new_query, parsed.fragment))
+
+    return url
+
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 DATABASE_URL = normalize_render_postgres_url(DATABASE_URL)
+DATABASE_URL = ensure_render_sslmode(DATABASE_URL)
 
 if DATABASE_URL.startswith("postgresql://"):
     parsed_db = urlsplit(DATABASE_URL)
