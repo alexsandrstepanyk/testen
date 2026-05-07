@@ -15,6 +15,46 @@ DATABASE_URL = os.environ.get(
 )
 
 
+def is_ip_host(host: str) -> bool:
+    if not host:
+        return False
+    try:
+        ipaddress.ip_address(host)
+        return True
+    except ValueError:
+        return False
+
+
+def choose_postgres_driver(url: str) -> str:
+    """Choose SQLAlchemy PostgreSQL driver with safe production defaults."""
+    forced_driver = (os.environ.get("DB_DRIVER") or "").strip().lower()
+    if forced_driver in {"psycopg", "psycopg2"}:
+        return forced_driver
+
+    parsed = urlsplit(url)
+    host = parsed.hostname or ""
+
+    # Raw IP endpoints are often more stable with psycopg2 on managed platforms.
+    if is_ip_host(host):
+        return "psycopg2"
+
+    return "psycopg"
+
+
+def apply_postgres_driver(url: str, driver: str) -> str:
+    """Normalize URL to a SQLAlchemy postgres URL with explicit driver."""
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+
+    if not url.startswith("postgresql"):
+        return url
+
+    parsed = urlsplit(url)
+    scheme_prefix = f"{parsed.scheme}://"
+    target_prefix = f"postgresql+{driver}://"
+    return url.replace(scheme_prefix, target_prefix, 1)
+
+
 def normalize_render_postgres_url(url: str) -> str:
     """Fix truncated Render host IDs in DATABASE_URL when present.
 
@@ -93,12 +133,6 @@ def get_postgres_connect_args(url: str) -> dict:
         or os.environ.get("RENDER_EXTERNAL_HOSTNAME")
     )
 
-    try:
-        ipaddress.ip_address(host)
-        is_ip_host = True
-    except ValueError:
-        is_ip_host = False
-
     # Priority: explicit env var -> URL query -> inferred default.
     # This lets operators override provider URLs without rewriting DATABASE_URL.
     sslmode = os.environ.get("DB_SSLMODE") or (query.get("sslmode") or [None])[0]
@@ -109,7 +143,7 @@ def get_postgres_connect_args(url: str) -> dict:
             sslmode = "disable"
         elif is_local_host:
             sslmode = "disable"
-        elif is_ip_host:
+        elif is_ip_host(host):
             # For raw IP endpoints, prefer TLS but allow fallback to non-TLS
             # when providers terminate SSL in non-standard ways.
             sslmode = "prefer"
@@ -124,20 +158,21 @@ def get_postgres_connect_args(url: str) -> dict:
         "connect_timeout": int(os.environ.get("DB_CONNECT_TIMEOUT", "15")),
     }
 
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-
-if DATABASE_URL.startswith("postgresql://"):
-    # Prefer psycopg v3 driver for better TLS compatibility on managed hosts.
-    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
+if DATABASE_URL.startswith("postgres"):
+    DATABASE_URL = apply_postgres_driver(
+        DATABASE_URL,
+        choose_postgres_driver(DATABASE_URL),
+    )
 
 DATABASE_URL = normalize_render_postgres_url(DATABASE_URL)
 
 if DATABASE_URL.startswith("postgresql"):
     parsed_db = urlsplit(DATABASE_URL)
     db_host = parsed_db.hostname or "unknown"
+    db_scheme = parsed_db.scheme
+    db_driver = db_scheme.split("+", 1)[1] if "+" in db_scheme else "default"
     db_sslmode = get_postgres_connect_args(DATABASE_URL).get("sslmode", "unknown")
-    print(f"[db] Using PostgreSQL host: {db_host} (sslmode={db_sslmode})")
+    print(f"[db] Using PostgreSQL host: {db_host} (driver={db_driver}, sslmode={db_sslmode})")
 
 # PostgreSQL requires different engine settings
 if DATABASE_URL.startswith("postgresql"):
