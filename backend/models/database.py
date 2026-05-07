@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
+import ipaddress
 import os
 import socket
 from urllib.parse import parse_qs, urlsplit, urlunsplit
@@ -92,8 +93,15 @@ def get_postgres_connect_args(url: str) -> dict:
         or os.environ.get("RENDER_EXTERNAL_HOSTNAME")
     )
 
-    # Priority: explicit URL query -> explicit env var -> inferred default.
-    sslmode = (query.get("sslmode") or [None])[0] or os.environ.get("DB_SSLMODE")
+    try:
+        ipaddress.ip_address(host)
+        is_ip_host = True
+    except ValueError:
+        is_ip_host = False
+
+    # Priority: explicit env var -> URL query -> inferred default.
+    # This lets operators override provider URLs without rewriting DATABASE_URL.
+    sslmode = os.environ.get("DB_SSLMODE") or (query.get("sslmode") or [None])[0]
     if not sslmode:
         is_local_host = host in {"", "localhost", "127.0.0.1", "::1"}
         if host.startswith("dpg-") and "." not in host:
@@ -101,6 +109,10 @@ def get_postgres_connect_args(url: str) -> dict:
             sslmode = "disable"
         elif is_local_host:
             sslmode = "disable"
+        elif is_ip_host:
+            # For raw IP endpoints, prefer TLS but allow fallback to non-TLS
+            # when providers terminate SSL in non-standard ways.
+            sslmode = "prefer"
         elif running_on_render or "render.com" in host:
             # Managed/cloud postgres commonly expects TLS.
             sslmode = "require"
