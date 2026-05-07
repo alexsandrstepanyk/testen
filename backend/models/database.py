@@ -28,8 +28,17 @@ def normalize_render_postgres_url(url: str) -> str:
     if not host:
         return url
 
-    # Repair short Render DB host IDs such as dpg-...-a
+    # Repair short Render DB host IDs such as dpg-...-a ONLY outside Render.
+    # Inside Render this short host is often the internal DNS name.
     if host.startswith("dpg-") and "." not in host:
+        running_on_render = bool(
+            os.environ.get("RENDER")
+            or os.environ.get("RENDER_SERVICE_ID")
+            or os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+        )
+        if running_on_render:
+            return url
+
         region = os.environ.get("RENDER_REGION", "frankfurt").strip() or "frankfurt"
         fixed_host = f"{host}.{region}-postgres.render.com"
 
@@ -57,7 +66,13 @@ def get_postgres_connect_args(url: str) -> dict:
     host = parsed.hostname or ""
     sslmode = os.environ.get("DB_SSLMODE")
     if not sslmode:
-        sslmode = "require" if "render.com" in host else "prefer"
+        if host.startswith("dpg-") and "." not in host:
+            # Render internal DB endpoint
+            sslmode = "disable"
+        elif "render.com" in host:
+            sslmode = "require"
+        else:
+            sslmode = "prefer"
     return {
         "sslmode": sslmode,
         "connect_timeout": int(os.environ.get("DB_CONNECT_TIMEOUT", "15")),
