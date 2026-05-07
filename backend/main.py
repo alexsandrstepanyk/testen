@@ -5,13 +5,33 @@ from fastapi.responses import FileResponse
 from fastapi import HTTPException
 from sqlalchemy import inspect, text
 import os
+import time
 from pathlib import Path
 
 from routers import questions, sessions, results, schreiben, teacher, course_builder, hoeren
 from models.database import engine, Base
 from models.models import TeacherAccount, AuditLog  # ensure new models are registered
 
-Base.metadata.create_all(bind=engine)
+
+def wait_for_database_ready() -> None:
+    """Wait for DB availability to survive transient managed DB restarts."""
+    max_retries = int(os.environ.get("DB_INIT_MAX_RETRIES", "30"))
+    retry_delay = float(os.environ.get("DB_INIT_RETRY_DELAY", "2"))
+
+    last_error = None
+    for attempt in range(1, max_retries + 1):
+        try:
+            with engine.connect() as connection:
+                connection.execute(text("SELECT 1"))
+            print(f"[db] Database is ready (attempt {attempt}/{max_retries})")
+            return
+        except Exception as exc:  # pragma: no cover
+            last_error = exc
+            print(f"[db] Database not ready (attempt {attempt}/{max_retries}): {exc}")
+            if attempt < max_retries:
+                time.sleep(retry_delay)
+
+    raise RuntimeError(f"Database not reachable after {max_retries} attempts") from last_error
 
 
 def ensure_schema_updates() -> None:
@@ -49,20 +69,34 @@ def ensure_schema_updates() -> None:
             connection.execute(text("ALTER TABLE test_sessions ADD COLUMN user_phone VARCHAR(50)"))
 
 
-ensure_schema_updates()
-
 app = FastAPI(
     title="Deutsch B1 Übungstest",
     description="API for German B1 practice tests with letter writing & download",
     version="2.0.0"
 )
 
+
+@app.on_event("startup")
+def startup_db_init() -> None:
+    wait_for_database_ready()
+    Base.metadata.create_all(bind=engine)
+    ensure_schema_updates()
+
+ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get(
+        "ALLOWED_ORIGINS",
+        "https://deutsch-b1-app.onrender.com",
+    ).split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept"],
 )
 
 app.include_router(questions.router,  prefix="/api/questions",  tags=["Questions"])
