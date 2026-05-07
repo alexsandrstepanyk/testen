@@ -25,6 +25,8 @@ services:
         value: require
       - key: DB_DRIVER
         value: psycopg2
+      - key: RENDER_USE_INTERNAL_DB_HOST
+        value: "1"
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: TELEGRAM_CHAT_ID

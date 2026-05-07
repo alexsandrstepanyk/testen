@@ -75,10 +75,16 @@ def normalize_render_postgres_url(url: str) -> str:
         or os.environ.get("RENDER_SERVICE_ID")
         or os.environ.get("RENDER_EXTERNAL_HOSTNAME")
     )
+    use_internal_render_host = os.environ.get("RENDER_USE_INTERNAL_DB_HOST", "1").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
 
-    # If app runs on Render and DB host is Render external FQDN, prefer
-    # internal short host to keep traffic private and avoid external TLS issues.
-    if running_on_render and host.endswith(".render.com") and host.startswith("dpg-"):
+    # If DB host is Render external FQDN, prefer internal short host to keep
+    # traffic private and avoid external TLS issues.
+    if use_internal_render_host and host.endswith(".render.com") and host.startswith("dpg-"):
         internal_host = host.split(".", 1)[0]
         userinfo = ""
         if parsed.username:
@@ -92,8 +98,10 @@ def normalize_render_postgres_url(url: str) -> str:
         return urlunsplit((parsed.scheme, netloc, parsed.path, parsed.query, parsed.fragment))
 
     # Repair short Render DB host IDs such as dpg-...-a.
-    # Keep as-is only when it is actually resolvable in current runtime.
+    # On Render we keep internal host as-is to avoid fallback to external TLS path.
     if host.startswith("dpg-") and "." not in host:
+        if running_on_render and use_internal_render_host:
+            return url
         try:
             socket.getaddrinfo(host, parsed.port or 5432)
             return url
