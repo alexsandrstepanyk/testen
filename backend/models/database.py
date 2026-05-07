@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 import os
 import socket
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import parse_qs, urlsplit, urlunsplit
 
 # Get the backend directory path
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -85,15 +85,28 @@ def get_postgres_connect_args(url: str) -> dict:
     """
     parsed = urlsplit(url)
     host = parsed.hostname or ""
-    sslmode = os.environ.get("DB_SSLMODE")
+    query = parse_qs(parsed.query)
+    running_on_render = bool(
+        os.environ.get("RENDER")
+        or os.environ.get("RENDER_SERVICE_ID")
+        or os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+    )
+
+    # Priority: explicit URL query -> explicit env var -> inferred default.
+    sslmode = (query.get("sslmode") or [None])[0] or os.environ.get("DB_SSLMODE")
     if not sslmode:
+        is_local_host = host in {"", "localhost", "127.0.0.1", "::1"}
         if host.startswith("dpg-") and "." not in host:
             # Render internal DB endpoint
             sslmode = "disable"
-        elif "render.com" in host:
+        elif is_local_host:
+            sslmode = "disable"
+        elif running_on_render or "render.com" in host:
+            # Managed/cloud postgres commonly expects TLS.
             sslmode = "require"
         else:
-            sslmode = "prefer"
+            # Safe default for non-local hosts; override via DB_SSLMODE if needed.
+            sslmode = "require"
     return {
         "sslmode": sslmode,
         "connect_timeout": int(os.environ.get("DB_CONNECT_TIMEOUT", "15")),
@@ -111,7 +124,7 @@ DATABASE_URL = normalize_render_postgres_url(DATABASE_URL)
 if DATABASE_URL.startswith("postgresql"):
     parsed_db = urlsplit(DATABASE_URL)
     db_host = parsed_db.hostname or "unknown"
-    db_sslmode = os.environ.get("DB_SSLMODE") or ("require" if "render.com" in db_host else "prefer")
+    db_sslmode = get_postgres_connect_args(DATABASE_URL).get("sslmode", "unknown")
     print(f"[db] Using PostgreSQL host: {db_host} (sslmode={db_sslmode})")
 
 # PostgreSQL requires different engine settings
