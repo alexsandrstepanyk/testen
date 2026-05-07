@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 import os
 from urllib.parse import urlsplit, urlunsplit
 
@@ -67,9 +66,13 @@ def get_postgres_connect_args(url: str) -> dict:
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
+if DATABASE_URL.startswith("postgresql://"):
+    # Prefer psycopg v3 driver for better TLS compatibility on managed hosts.
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
+
 DATABASE_URL = normalize_render_postgres_url(DATABASE_URL)
 
-if DATABASE_URL.startswith("postgresql://"):
+if DATABASE_URL.startswith("postgresql"):
     parsed_db = urlsplit(DATABASE_URL)
     db_host = parsed_db.hostname or "unknown"
     db_sslmode = os.environ.get("DB_SSLMODE") or ("require" if "render.com" in db_host else "prefer")
