@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 import os
+import socket
 from urllib.parse import urlsplit, urlunsplit
 
 # Get the backend directory path
@@ -28,16 +29,15 @@ def normalize_render_postgres_url(url: str) -> str:
     if not host:
         return url
 
-    # Repair short Render DB host IDs such as dpg-...-a ONLY outside Render.
-    # Inside Render this short host is often the internal DNS name.
+    # Repair short Render DB host IDs such as dpg-...-a.
+    # Keep as-is only when it is actually resolvable in current runtime.
     if host.startswith("dpg-") and "." not in host:
-        running_on_render = bool(
-            os.environ.get("RENDER")
-            or os.environ.get("RENDER_SERVICE_ID")
-            or os.environ.get("RENDER_EXTERNAL_HOSTNAME")
-        )
-        if running_on_render:
+        try:
+            socket.getaddrinfo(host, parsed.port or 5432)
             return url
+        except OSError:
+            # Fall through to fully qualified regional hostname.
+            pass
 
         region = os.environ.get("RENDER_REGION", "frankfurt").strip() or "frankfurt"
         fixed_host = f"{host}.{region}-postgres.render.com"
